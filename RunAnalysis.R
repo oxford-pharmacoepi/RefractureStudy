@@ -6,32 +6,51 @@ level(logger) <- "INFO"
 
 # generate table names
 info(logger, "GENERATE TABLE NAMES")
-cohortTableName <- paste0(stem_table, "_cohorts_to_instantiate")
+exclusionCohortTableName <- paste0(stem_table, "_study_cohorts")
 
 # instantiate necessary cohorts
 info(logger, "INSTANTIATE COHORTS")
-cohortSet <- readCohortSet(
+exclusionCohortSet <- readCohortSet(
   path = here("1_InstantiateCohorts", "Cohorts")
 )
 cdm <- generateCohortSet(
   cdm = cdm,
-  cohortSet = cohortSet,
-  cohortTableName = cohortTableName,
+  cohortSet = exclusionCohortSet,
+  cohortTableName = exclusionCohortTableName,
   overwrite = TRUE
 )
 
-study_results <- list()
-
-info(logger, "WRITING CSV FILES")
-lapply(names(study_results), function(x) {
-  result <- study_results[[x]]
-  utils::write.csv(
-    result, file = paste0(output_folder, "/", x, ".csv"), row.names = FALSE
-  )
-})
-info(logger, "ZIPPING RESULTS")
-output_folder <- basename(output_folder)
-zip(
-  zipfile = file.path(paste0(output_folder, "/Results_", db_name, ".zip")),
-  files = list.files(output_folder, full.names = TRUE)
+# get denominator population
+cdm[["denominator"]] <- generateDenominatorCohortSet(
+  cdm,
+  startDate = as.Date("2010-04-01"),
+  endDate = as.Date("2018-03-31"),
+  ageGroup = list(c(50, 150)),
+  sex = "Female",
+  daysPriorHistory = 730
 )
+
+attritionDenominatorCohort <- attrition(cdm$denominator)
+
+# identify individuals with a previous cancer
+cancerId <- exclusionCohortSet %>%
+  filter(cohortName == "Malignant neoplastic disease excluding non-melanoma skin cancer") %>%
+  pull("cohortId")
+individualsCancerBefore <- cdm[["denominator"]] %>%
+  inner_join(
+    cdm[[exclusionCohortTableName]] %>%
+      filter(cohort_definition_id == cancerId) %>%
+      select("subject_id", "cancer_date" = "cohort_start_date"),
+    by = "subject_id"
+  ) %>%
+  filter(cancer_date < cohort_start_date) %>%
+  compute()
+
+# exclude individuals with previous cancer
+cdm[["denominator"]] <- cdm[["denominator"]] %>%
+  anti_join(individualsCancerBefore, by = "subject_id") %>%
+  compute()
+
+# now you can add a new line to the attritionDenominatorCohort
+# ...
+

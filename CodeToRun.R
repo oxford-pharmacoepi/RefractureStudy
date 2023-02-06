@@ -6,6 +6,7 @@ library(log4r)
 library(dplyr)
 library(dbplyr)
 library(here)
+library(IncidencePrevalence)
 
 # database metadata and connection details -----
 # The name/ acronym for the database
