@@ -16,7 +16,7 @@ exclusionCohortSet <- readCohortSet(
 cdm <- generateCohortSet(
   cdm = cdm,
   cohortSet = exclusionCohortSet,
-  cohortTableName = exclusionCohortTableName,
+  name = exclusionCohortTableName,
   overwrite = TRUE
 )
 
@@ -34,8 +34,8 @@ attritionDenominatorCohort <- attrition(cdm$denominator)
 
 # identify individuals with a previous cancer
 cancerId <- exclusionCohortSet %>%
-  filter(cohortName == "Malignant neoplastic disease excluding non-melanoma skin cancer") %>%
-  pull("cohortId")
+  filter(cohort_name == "Malignant neoplastic disease excluding non-melanoma skin cancer") %>%
+  pull("cohort_definition_id")
 individualsCancerBefore <- cdm[["denominator"]] %>%
   inner_join(
     cdm[[exclusionCohortTableName]] %>%
@@ -47,10 +47,50 @@ individualsCancerBefore <- cdm[["denominator"]] %>%
   compute()
 
 # exclude individuals with previous cancer
-cdm[["denominator"]] <- cdm[["denominator"]] %>%
+cdm[["denominator1"]] <- cdm[["denominator"]] %>%
   anti_join(individualsCancerBefore, by = "subject_id") %>%
   compute()
 
 # now you can add a new line to the attritionDenominatorCohort
-# ...
+attritionDenominatorCohort <- attritionDenominatorCohort %>%
+  union_all(
+    tibble(
+      current_n = cdm$denominator1 %>% tally() %>% pull(),
+      reason = "Previous history of Malignant neoplastic disease excluding non-melanoma skin cancer",
+      cohort_definition_id = as.integer(1),
+      step = "Exclusion later"
+    ) %>%
+      mutate(excluded = attritionDenominatorCohort$current_n[9] - .data$current_n)
+  )
+
+# identify individuals with a previous cancer
+cancerId <- exclusionCohortSet %>%
+  filter(cohort_name == "Metabolic bone diseases") %>%
+  pull("cohort_definition_id")
+individualsCancerBefore <- cdm[["denominator1"]] %>%
+  inner_join(
+    cdm[[exclusionCohortTableName]] %>%
+      filter(cohort_definition_id == cancerId) %>%
+      select("subject_id", "cancer_date" = "cohort_start_date"),
+    by = "subject_id"
+  ) %>%
+  filter(cancer_date < cohort_start_date) %>%
+  compute()
+
+# exclude individuals with previous cancer
+cdm[["denominator2"]] <- cdm[["denominator1"]] %>%
+  anti_join(individualsCancerBefore, by = "subject_id") %>%
+  compute()
+
+# now you can add a new line to the attritionDenominatorCohort
+attritionDenominatorCohort <- attritionDenominatorCohort %>%
+  union_all(
+    tibble(
+      current_n = cdm$denominator2 %>% tally() %>% pull(),
+      reason = "Metabolic bone diseases",
+      cohort_definition_id = as.integer(1),
+      step = "Exclusion later"
+    ) %>%
+      mutate(excluded = attritionDenominatorCohort$current_n[10] - .data$current_n)
+  )
 
