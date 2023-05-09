@@ -64,22 +64,22 @@ attritionDenominatorCohort <- attritionDenominatorCohort %>%
   )
 
 # identify individuals with a previous cancer
-cancerId <- exclusionCohortSet %>%
+BoneDiseaseId <- exclusionCohortSet %>%
   filter(cohort_name == "Metabolic bone diseases") %>%
   pull("cohort_definition_id")
-individualsCancerBefore <- cdm[["denominator1"]] %>%
+individualsBoneDiseaseBefore <- cdm[["denominator1"]] %>%
   inner_join(
     cdm[[exclusionCohortTableName]] %>%
-      filter(cohort_definition_id == cancerId) %>%
-      select("subject_id", "cancer_date" = "cohort_start_date"),
+      filter(cohort_definition_id == BoneDiseaseId) %>%
+      select("subject_id", "bone_disease_date" = "cohort_start_date"),
     by = "subject_id"
   ) %>%
-  filter(cancer_date < cohort_start_date) %>%
+  filter(bone_disease_date < cohort_start_date) %>%
   compute()
 
 # exclude individuals with previous cancer
 cdm[["denominator2"]] <- cdm[["denominator1"]] %>%
-  anti_join(individualsCancerBefore, by = "subject_id") %>%
+  anti_join(individualsBoneDiseaseBefore, by = "subject_id") %>%
   compute()
 
 # now you can add a new line to the attritionDenominatorCohort
@@ -93,4 +93,6 @@ attritionDenominatorCohort <- attritionDenominatorCohort %>%
     ) %>%
       mutate(excluded = attritionDenominatorCohort$current_n[10] - .data$current_n)
   )
+
+### Up to this step, it gives a complete count of everyone who is eligible (after exclusion criterion) and the relevant attrition table.
 
