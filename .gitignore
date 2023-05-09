@@ -37,3 +37,8 @@ vignettes/*.pdf
 
 # R Environment Variables
 .Renviron
+
+# Ignored files from candidate codes
+FracturesCandidateCodes/.Rhistory
+FracturesCandidateCodes/.Rproj.user/*
+FracturesCandidateCodes/.Rprofile
