@@ -1,3 +1,3 @@
-# StudyTemplate
+# Re-fracture UCB study
 
-This template can be used to create a new study.
+This is a repository for UCB Re-fracture study.
