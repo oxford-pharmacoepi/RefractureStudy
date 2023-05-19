@@ -26,7 +26,7 @@ cdm[["denominator"]] <- generateDenominatorCohortSet(
   startDate = as.Date("2010-04-01"),
   endDate = as.Date("2018-03-31"),
   ageGroup = list(c(50, 150)),
-  sex = "Female",
+  sex = "Female", 
   daysPriorHistory = 730
 )
 
@@ -92,7 +92,23 @@ attritionDenominatorCohort <- attritionDenominatorCohort %>%
       step = "Exclusion later"
     ) %>%
       mutate(excluded = attritionDenominatorCohort$current_n[10] - .data$current_n)
-  )
+  ) #denominator 2 is every female >50 with required continuous prior obs and no dieases of concern prior cohort start date.
 
-### Up to this step, it gives a complete count of everyone who is eligible (after exclusion criterion) and the relevant attrition table.
 
+### Loading codes
+conditions_sheet1 <- read_excel("~/R/RefractureStudy/FracturesCandidateCodes/fracture_sites_conditions.xlsx", sheet = 1)
+trauma <- read_excel("~/R/RefractureStudy/FracturesCandidateCodes/Trauma Codes.xlsx")
+trauma_condition <- trauma %>% filter(Domain == "Condition")
+trauma_observation <- trauma %>% filter(Domain == "Observation")
+
+sites <- c("Hip", "Femur", "Pelvic", "Vertebra", "Humerus", "Forearm", "Tibia and Fibula", "Rib", "Foot", "Nonspecific")
+conditions_cs<-list()
+for (site in sites){
+  conditions_cs[[site]]<-cs(conditions_sheet1 %>% filter(Site == site) %>% select(Id) %>% pull())
+}
+
+any_fracture_id <- conditions_sheet1 %>% filter(!Site == "Exclude") %>% select(Id)
+
+### Cohort computation 
+cdm[["fracture"]] <- cdm[["denominator2"]] %>% 
+  left_join(cdm[["condition_occurrence"]], by = c("subject_id" = "person_id"))
