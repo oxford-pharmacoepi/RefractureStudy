@@ -107,8 +107,10 @@ for (site in sites){
   conditions_cs[[site]]<-cs(conditions_sheet1 %>% filter(Site == site) %>% select(Id) %>% pull())
 }
 
-any_fracture_id <- conditions_sheet1 %>% filter(!Site == "Exclude") %>% select(Id)
+any_fracture_id <- conditions_sheet1 %>% filter(!Site == "Exclude") %>% select(Id) %>% pull()
 
 ### Cohort computation 
 cdm[["fracture"]] <- cdm[["denominator2"]] %>% 
-  left_join(cdm[["condition_occurrence"]], by = c("subject_id" = "person_id"))
+  left_join(cdm[["condition_occurrence"]], by = c("subject_id" = "person_id")) %>%
+  select(c("subject_id", "cohort_start_date", "cohort_end_date", "condition_occurrence_id", "condition_concept_id", "condition_start_date", "condition_end_date", "condition_type_concept_id")) %>%
+  filter(condition_concept_id %in% any_fracture_id)
