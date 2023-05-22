@@ -169,3 +169,5 @@ cdm[["fracture"]] <- cdm[["fracture"]] %>%
 
 cdm[["fracture"]] <- cdm[["fracture"]] %>% 
   anti_join(cdm[["observation"]] %>% filter(observation_concept_id %in% trauma_observation), by = c("subject_id" = "person_id", "condition_start_date" = "observation_date")) 
+
+### Washout and computing index date
