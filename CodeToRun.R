@@ -1,4 +1,7 @@
 # ADD NECESSARY PACKAGES
+install.packages("renv") # if not already installed, install renv from CRAN
+renv::activate() 
+renv::restore() # this should prompt you to install the various packages required for the study
 
 library(CDMConnector)
 library(DBI)
@@ -7,6 +10,8 @@ library(dplyr)
 library(dbplyr)
 library(here)
 library(IncidencePrevalence)
+library(readxl)
+#library(openxlsx)
 
 # database metadata and connection details -----
 # The name/ acronym for the database
@@ -53,6 +58,9 @@ stem_table <- "...."
 
 # minimum counts that can be displayed according to data governance
 minimum_counts <- 5
+
+# washout period, fractures of the same site within this window is considered as a re-recording
+washout_period <- 90 #30 for sensitive analysis 
 
 # create cdm reference ----
 cdm <- CDMConnector::cdm_from_con(
