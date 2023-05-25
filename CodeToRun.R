@@ -62,6 +62,12 @@ minimum_counts <- 5
 # washout period, fractures of the same site within this window is considered as a re-recording
 washout_period <- 90 #30 for sensitive analysis 
 
+# study start date
+study_start_date <- as.Date("2010-04-01")
+
+#study end date
+study_end_date <- as.Date("2018-03-31")
+
 # create cdm reference ----
 cdm <- CDMConnector::cdm_from_con(
   con = db,
