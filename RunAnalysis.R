@@ -203,3 +203,22 @@ fracture_index_2 <- fracture_table %>% filter(gap_to_index == 0) %>% select(-ind
 fracture_table <- rbind(fracture_index_1, fracture_index_2)
 
 # Extra care for nonspecific codes
+fracture_table <- fracture_table %>% 
+  group_by(subject_id) %>% arrange(condition_start_date, .by_group =T) %>%
+  mutate(gap_to_prior_fracture = condition_start_date - lag(condition_start_date), lag_site = lag(fracture_site))
+
+fracture_table <- rbind(fracture_table[is.na(fracture_table$gap_to_prior_fracture),],
+                        fracture_table %>%
+                          filter (!(fracture_site == "Nonspecific" & gap_to_prior_fracture < washout_period)) %>%
+                          filter (!(lag_site == "Nonspecific" & gap_to_prior_fracture < washout_period)))
+fracture_table <- fracture_table %>% ungroup() %>% select(-gap_to_prior_fracture, -lag_site)
+
+# Adding index date
+fracture_table <- fracture_table %>%
+  right_join(fracture_table %>% 
+               filter (condition_start_date >= study_start_date) %>%
+               filter (condition_start_date <= study_end_date) %>% 
+               group_by (subject_id) %>% 
+               summarise (index_date = min(condition_start_date, na.rm = T)), by = "subject_id")
+  
+
