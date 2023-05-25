@@ -13,6 +13,7 @@ info(logger, "INSTANTIATE COHORTS")
 exclusionCohortSet <- readCohortSet(
   path = here("1_InstantiateCohorts", "Cohorts")
 )
+
 cdm <- generateCohortSet(
   cdm = cdm,
   cohortSet = exclusionCohortSet,
@@ -95,13 +96,12 @@ cdm <- generateCohortSet(
 #   ) 
 
 ### Create a cohort of women only, age above 50 between 2010/04/01 and 2018/03/31
-cdm[["denominator"]] <- generateDenominatorCohortSet(
+cdm <- generateDenominatorCohortSet(
   cdm,
-  startDate = as.Date("2010-04-01"), 
-  endDate = as.Date("2018-03-31"),
+  name = "denominator",
+  cohortDateRange = as.Date(c("2010-04-01", "2018-03-31")),
   ageGroup = list(c(50, 150)),
-  sex = "Female", 
-  sample = 5000)
+  sex = "Female")
 
 ### Loading fracture codes
 conditions_sheet1 <- read_excel("~/R/RefractureStudy/FracturesCandidateCodes/fracture_sites_conditions.xlsx", sheet = 1)
@@ -125,7 +125,7 @@ nonspecific_fracture_id <- conditions_sheet1 %>% filter(Site == "Nonspecific") %
 any_fracture_id <- conditions_sheet1 %>% filter(!Site == "Exclude") %>% select(Id) %>% pull()
 
 ### cohort with all records of fracture (fracture must lie between 2008 April 1st and 2020 March 31st)
-cdm[["fracture"]] <- cdm[["denominator"]] %>% 
+cdm[["fracture"]] <- cdm[["denominator"]] %>% #temp fix
   left_join(cdm[["condition_occurrence"]], by = c("subject_id" = "person_id")) %>%
   filter(condition_concept_id %in% any_fracture_id) %>%
   select(subject_id, condition_concept_id, condition_start_date) %>%
@@ -171,6 +171,35 @@ cdm[["fracture"]] <- cdm[["fracture"]] %>%
   anti_join(cdm[["observation"]] %>% filter(observation_concept_id %in% trauma_observation), by = c("subject_id" = "person_id", "condition_start_date" = "observation_date")) 
 
 ### Washout and computing index date
-testtable1 <- cdm[["fracture"]] %>% group_by(subject_id, fracture_site) %>% arrange(desc(condition_start_date), .group =T) %>% collect()
 
+fracture_table <- cdm[["fracture"]] %>% collect()
+fracture_table_back_up <- fracture_table
+  
+#Round 1: Removing re-recordings
+fracture_table <- fracture_table %>% 
+  right_join(fracture_table %>% group_by(subject_id, fracture_site) %>% summarise(index_date = min(condition_start_date, na.rm =T)), by = c("subject_id", "fracture_site")) %>%
+  mutate(gap_to_index = condition_start_date - index_date) %>% 
+  filter(gap_to_index == 0 | gap_to_index > washout_period) %>%
+  group_by(subject_id, condition_start_date, fracture_site, gap_to_index) %>% 
+  arrange(condition_concept_id, .by_group = TRUE) %>% 
+  filter(row_number()==1) 
 
+fracture_index_1 <- fracture_table %>% filter(gap_to_index == 0) %>% select(-index_date) %>% ungroup() %>% select(-gap_to_index)
+
+#Round 2: Removing re-recordings  
+fracture_table <- fracture_table %>% filter(!gap_to_index == 0) %>% select(-index_date) %>% ungroup() %>% select(-gap_to_index)
+
+fracture_table <- fracture_table %>% 
+  right_join(fracture_table %>% group_by(subject_id, fracture_site) %>% summarise(index_date = min(condition_start_date, na.rm =T)), by = c("subject_id", "fracture_site")) %>%
+  mutate(gap_to_index = condition_start_date - index_date) %>% 
+  filter(gap_to_index == 0 | gap_to_index > washout_period) %>%
+  group_by(subject_id, condition_start_date, fracture_site, gap_to_index) %>% 
+  arrange(condition_concept_id, .by_group = TRUE) %>% 
+  filter(row_number()==1) 
+
+fracture_index_2 <- fracture_table %>% filter(gap_to_index == 0) %>% select(-index_date) %>% ungroup() %>% select(-gap_to_index)
+
+#After removing based on sites
+fracture_table <- rbind(fracture_index_1, fracture_index_2)
+
+# Extra care for nonspecific codes
