@@ -65,8 +65,11 @@ washout_period <- 90 #30 for sensitive analysis
 # study start date
 study_start_date <- as.Date("2010-04-01")
 
-#study end date
+# study end date
 study_end_date <- as.Date("2018-03-31")
+
+# prior obs
+prior_observation <- 730
 
 # create cdm reference ----
 cdm <- CDMConnector::cdm_from_con(
