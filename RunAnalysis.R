@@ -21,80 +21,6 @@ cdm <- generateCohortSet(
   overwrite = TRUE
 )
 
-# # get denominator population
-# cdm[["denominator"]] <- generateDenominatorCohortSet(
-#   cdm,
-#   startDate = as.Date("2010-04-01"), 
-#   endDate = as.Date("2018-03-31"),
-#   ageGroup = list(c(50, 150)),
-#   sex = "Female", 
-#   daysPriorHistory = 730
-# )
-# 
-# attritionDenominatorCohort <- attrition(cdm$denominator)
-# 
-# # identify individuals with a previous cancer
-# cancerId <- exclusionCohortSet %>%
-#   filter(cohort_name == "Malignant neoplastic disease excluding non-melanoma skin cancer") %>%
-#   pull("cohort_definition_id")
-# individualsCancerBefore <- cdm[["denominator"]] %>%
-#   inner_join(
-#     cdm[[exclusionCohortTableName]] %>%
-#       filter(cohort_definition_id == cancerId) %>%
-#       select("subject_id", "cancer_date" = "cohort_start_date"),
-#     by = "subject_id"
-#   ) %>%
-#   filter(cancer_date < cohort_start_date) %>%
-#   compute()
-# 
-# # exclude individuals with previous cancer
-# cdm[["denominator1"]] <- cdm[["denominator"]] %>%
-#   anti_join(individualsCancerBefore, by = "subject_id") %>%
-#   compute()
-# 
-# # now you can add a new line to the attritionDenominatorCohort
-# attritionDenominatorCohort <- attritionDenominatorCohort %>%
-#   union_all(
-#     tibble(
-#       current_n = cdm$denominator1 %>% tally() %>% pull(),
-#       reason = "Previous history of Malignant neoplastic disease excluding non-melanoma skin cancer",
-#       cohort_definition_id = as.integer(1),
-#       step = "Exclusion later"
-#     ) %>%
-#       mutate(excluded = attritionDenominatorCohort$current_n[9] - .data$current_n)
-#   )
-# 
-# # identify individuals with a previous cancer
-# BoneDiseaseId <- exclusionCohortSet %>%
-#   filter(cohort_name == "Metabolic bone diseases") %>%
-#   pull("cohort_definition_id")
-# individualsBoneDiseaseBefore <- cdm[["denominator1"]] %>%
-#   inner_join(
-#     cdm[[exclusionCohortTableName]] %>%
-#       filter(cohort_definition_id == BoneDiseaseId) %>%
-#       select("subject_id", "bone_disease_date" = "cohort_start_date"),
-#     by = "subject_id"
-#   ) %>%
-#   filter(bone_disease_date < cohort_start_date) %>%
-#   compute()
-# 
-# # exclude individuals with previous cancer
-# cdm[["denominator2"]] <- cdm[["denominator1"]] %>%
-#   anti_join(individualsBoneDiseaseBefore, by = "subject_id") %>%
-#   compute()
-# 
-# # now you can add a new line to the attritionDenominatorCohort
-# attritionDenominatorCohort <- attritionDenominatorCohort %>%
-#   union_all(
-#     tibble(
-#       current_n = cdm$denominator2 %>% tally() %>% pull(),
-#       reason = "Metabolic bone diseases",
-#       cohort_definition_id = as.integer(1),
-#       step = "Exclusion later"
-#     ) %>%
-#       mutate(excluded = attritionDenominatorCohort$current_n[10] - .data$current_n)
-#   ) 
-
 ### Create a cohort of women only, age above 50 between 2010/04/01 and 2018/03/31
 cdm <- generateDenominatorCohortSet(
   cdm,
@@ -108,8 +34,6 @@ conditions_sheet1 <- read_excel("~/R/RefractureStudy/FracturesCandidateCodes/fra
 trauma <- read_excel("~/R/RefractureStudy/FracturesCandidateCodes/Trauma Codes.xlsx")
 trauma_condition <- trauma %>% filter(Domain == "Condition") %>% select(Id) %>% pull()
 trauma_observation <- trauma %>% filter(Domain == "Observation") %>% select(Id) %>% pull()
-
-sites <- c("Hip", "Femur", "Pelvic", "Vertebra", "Humerus", "Forearm", "Tibia and Fibula", "Rib", "Foot", "Nonspecific")
 
 hip_fracture_id <- conditions_sheet1 %>% filter(Site == "Hip") %>% select(Id) %>% pull()
 femur_fracture_id <- conditions_sheet1 %>% filter(Site == "Femur") %>% select(Id) %>% pull()
@@ -125,7 +49,7 @@ nonspecific_fracture_id <- conditions_sheet1 %>% filter(Site == "Nonspecific") %
 any_fracture_id <- conditions_sheet1 %>% filter(!Site == "Exclude") %>% select(Id) %>% pull()
 
 ### cohort with all records of fracture (fracture must lie between 2008 April 1st and 2020 March 31st)
-cdm[["fracture"]] <- cdm[["denominator"]] %>% #temp fix
+cdm[["fracture"]] <- cdm[["denominator"]] %>% 
   left_join(cdm[["condition_occurrence"]], by = c("subject_id" = "person_id")) %>%
   filter(condition_concept_id %in% any_fracture_id) %>%
   select(subject_id, condition_concept_id, condition_start_date) %>%
@@ -222,3 +146,21 @@ fracture_table <- fracture_table %>%
                summarise (index_date = min(condition_start_date, na.rm = T)), by = "subject_id")
   
 
+### Exclusion criteria
+# At least 730 days prior obs
+fracture_table <-fracture_table %>% 
+  left_join(cdm[["observation_period"]], by = c("subject_id" = "person_id"), copy = T) %>% 
+  select(subject_id:index_date, observation_period_start_date, observation_period_end_date) %>%
+  mutate(days_prior_obs = index_date - observation_period_start_date) %>%
+  filter(days_prior_obs >= prior_observation) %>%
+  group_by(subject_id, condition_concept_id, condition_start_date, fracture_site, index_date) %>%
+  arrange(observation_period_start_date) %>%
+  filter(row_number()==1) %>%
+  ungroup() %>%
+  select(subject_id, condition_concept_id, condition_start_date, fracture_site, index_date)
+
+# No records of death on the index date
+
+# No records of cancer before the index date
+
+# No records of metabolic bone disease
