@@ -5,11 +5,11 @@ logfile(logger) <- log_file
 level(logger) <- "INFO"
 
 # generate table names
-info(logger, "GENERATE TABLE NAMES")
-exclusionCohortTableName <- paste0(stem_table, "_study_cohorts")
+info(logger, "GENERATE TABLE NAMES FOR EXCLUSION CRITERIA")
+exclusionCohortTableName <- paste0(stem_table, "_exclusion_cohorts")
 
 # instantiate necessary cohorts
-info(logger, "INSTANTIATE COHORTS")
+info(logger, "INSTANTIATE COHORTS - EXCLUSION CRITERIA")
 exclusionCohortSet <- readCohortSet(
   path = here("1_InstantiateCohorts", "Cohorts")
 )
@@ -22,12 +22,14 @@ cdm <- generateCohortSet(
 )
 
 ### Create a cohort of women only, age above 50 between 2010/04/01 and 2018/03/31
+info(logger, "CREATING DENOMINATOR - WOMEN WHO ARE ABOVE 50 WITHIN THE STUDY PERIOD")
 cdm <- generateDenominatorCohortSet(
   cdm,
   name = "denominator",
   cohortDateRange = as.Date(c("2010-04-01", "2018-03-31")),
-  ageGroup = list(c(50, 150)),
-  sex = "Female")
+  ageGroup = list(c(50, 150)))
+
+AttritionReportDenom<-cohortAttrition(cdm$denominator)
 
 ### Loading fracture codes
 conditions_sheet1 <- read_excel("~/R/RefractureStudy/FracturesCandidateCodes/fracture_sites_conditions.xlsx", sheet = 1)
@@ -49,6 +51,7 @@ nonspecific_fracture_id <- conditions_sheet1 %>% filter(Site == "Nonspecific") %
 any_fracture_id <- conditions_sheet1 %>% filter(!Site == "Exclude") %>% select(Id) %>% pull()
 
 ### cohort with all records of fracture (fracture must lie between 2008 April 1st and 2020 March 31st)
+info(logger, "COLLECTING ALL RECORDS OF FRACTURES FROM DENOMINATORS")
 cdm[["fracture"]] <- cdm[["denominator"]] %>% 
   left_join(cdm[["condition_occurrence"]], by = c("subject_id" = "person_id")) %>%
   filter(condition_concept_id %in% any_fracture_id) %>%
@@ -87,6 +90,8 @@ cdm[["fracture"]] <- cdm[["denominator"]] %>%
   }
   )
 
+fracture_table <- cdm[["fracture"]] %>% collect()
+
 ### Removing the fractures that happen on the same day as a trauma
 cdm[["fracture"]] <- cdm[["fracture"]] %>%
   anti_join(cdm[["condition_occurrence"]] %>% filter(condition_concept_id %in% trauma_condition), by = c("subject_id" = "person_id", "condition_start_date"))
@@ -94,8 +99,18 @@ cdm[["fracture"]] <- cdm[["fracture"]] %>%
 cdm[["fracture"]] <- cdm[["fracture"]] %>% 
   anti_join(cdm[["observation"]] %>% filter(observation_concept_id %in% trauma_observation), by = c("subject_id" = "person_id", "condition_start_date" = "observation_date")) 
 
-### Washout and computing index date
+AttritionReport <- AttritionReport %>%
+   union_all(
+     tibble(
+       current_n = cdm$fracture%>% tally() %>% pull(),
+       reason = "Previous history of Malignant neoplastic disease excluding non-melanoma skin cancer",
+       cohort_definition_id = as.integer(1),
+       step = "Exclusion later"
+     ) %>%
+       mutate(excluded = attritionDenominatorCohort$current_n[9] - .data$current_n)
+   )
 
+### Washout and computing index date
 fracture_table <- cdm[["fracture"]] %>% collect()
 fracture_table_back_up <- fracture_table
   
