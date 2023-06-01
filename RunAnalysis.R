@@ -149,10 +149,10 @@ fracture_table_back_up <- fracture_table_back_up %>%
   
 fracture_table_back_up <- fracture_table_back_up %>%
   left_join(fracture_table_back_up %>% group_by(subject_id) %>% filter (gap_to_min_date == 0) %>% count(), by = "subject_id") %>%
-  dplyr::filter(!(fracture_site == "Nonspecific")|(fracture_site == "Nonspecific" & gap_to_min_date > 0)|(fracture_site == "Nonspecific" & gap_to_min_date == 0 & (n=1))) %>% #error
+  filter (!((n>1) & (gap_to_min_date==0) & (fracture_site=="Nonspecific"))) %>%
   select(-n)
-------
 
+##up here
 fracture_index_1 <- fracture_table %>% filter(gap_to_index == 0) %>% select(-index_date) %>% ungroup() %>% select(-gap_to_index)
 
 #Round 2: Removing re-recordings  
