@@ -117,16 +117,41 @@ AttritionReportFrac<- AttritionReportFrac %>%
   )
   ) 
 
-
 ### Washout and computing index date
-#Round 1: Removing re-recordings
-fracture_table <- fracture_table %>% 
-  right_join(fracture_table %>% group_by(subject_id, fracture_site) %>% summarise(index_date = min(condition_start_date, na.rm =T)), by = c("subject_id", "fracture_site")) %>%
-  mutate(gap_to_index = condition_start_date - index_date) %>% 
-  filter(gap_to_index == 0 | gap_to_index > washout_period) %>%
-  group_by(subject_id, condition_start_date, fracture_site, gap_to_index) %>% 
+info(logger, "APPLYING WASHOUT PERIOD")
+sites <- c("Hip", "Femur", "Pelvic", "Vertebra", "Humerus", "Forearm", "Tibia and Fibula", "Rib", "Foot", "Nonspecific")
+
+#Removing re-recordings
+fracture_table_back_up <- fracture_table
+fracture_correction <- list()
+for (i in (1:10)){
+  fracture_correction[[sites[i]]] <- fracture_table_back_up %>% 
+    group_by(subject_id) %>% 
+    filter(fracture_site == sites[[i]] | fracture_site == sites[[10]]) %>% 
+    summarise(min_date = min(condition_start_date, na.rm =T)) %>% 
+    mutate(site = sites[[i]])
+}
+
+fracture_correction_nonspecific <- list()
+
+for (i in (1:10)){
+  fracture_correction_nonspecific <- rbind(fracture_correction_nonspecific, fracture_correction[[i]])
+}
+
+fracture_table_back_up <- fracture_table_back_up %>% 
+  left_join(fracture_correction_nonspecific, by = c("subject_id", "fracture_site" = "site")) %>% # compute min date
+  mutate(gap_to_min_date = condition_start_date - min_date) %>%
+  filter(gap_to_min_date == 0 | gap_to_min_date > washout_period) %>%
+  group_by(subject_id, condition_start_date, fracture_site) %>%
   arrange(condition_concept_id, .by_group = TRUE) %>% 
-  filter(row_number()==1) 
+  filter(row_number()==1) %>%
+  ungroup()
+  
+fracture_table_back_up <- fracture_table_back_up %>%
+  left_join(fracture_table_back_up %>% group_by(subject_id) %>% filter (gap_to_min_date == 0) %>% count(), by = "subject_id") %>%
+  dplyr::filter(!(fracture_site == "Nonspecific")|(fracture_site == "Nonspecific" & gap_to_min_date > 0)|(fracture_site == "Nonspecific" & gap_to_min_date == 0 & (n=1))) %>% #error
+  select(-n)
+------
 
 fracture_index_1 <- fracture_table %>% filter(gap_to_index == 0) %>% select(-index_date) %>% ungroup() %>% select(-gap_to_index)
 
