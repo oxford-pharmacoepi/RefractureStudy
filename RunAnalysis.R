@@ -92,28 +92,33 @@ cdm[["fracture"]] <- cdm[["denominator"]] %>%
 
 fracture_table <- cdm[["fracture"]] %>% collect()
 
+AttritionReportFrac<-tibble(
+  cohort_definition_id = as.integer(1),
+  number_records = fracture_table %>% tally() %>% pull(),
+  number_subjects = fracture_table %>% distinct(subject_id) %>% tally() %>% pull(),
+  reason = "Starting Population"
+)
+
 ### Removing the fractures that happen on the same day as a trauma
-cdm[["fracture"]] <- cdm[["fracture"]] %>%
-  anti_join(cdm[["condition_occurrence"]] %>% filter(condition_concept_id %in% trauma_condition), by = c("subject_id" = "person_id", "condition_start_date"))
+info(logger, "REMOVING FRACTURES THAT HAPPEN ON THE SAME DAY AS A TRAUMA")
+fracture_table <- fracture_table %>%
+  anti_join(cdm[["condition_occurrence"]] %>% filter(condition_concept_id %in% trauma_condition), by = c("subject_id" = "person_id", "condition_start_date"), copy = T)
 
-cdm[["fracture"]] <- cdm[["fracture"]] %>% 
-  anti_join(cdm[["observation"]] %>% filter(observation_concept_id %in% trauma_observation), by = c("subject_id" = "person_id", "condition_start_date" = "observation_date")) 
+fracture_table <- fracture_table %>% 
+  anti_join(cdm[["observation"]] %>% filter(observation_concept_id %in% trauma_observation), by = c("subject_id" = "person_id", "condition_start_date" = "observation_date"), copy = T) 
 
-AttritionReport <- AttritionReport %>%
-   union_all(
-     tibble(
-       current_n = cdm$fracture%>% tally() %>% pull(),
-       reason = "Previous history of Malignant neoplastic disease excluding non-melanoma skin cancer",
-       cohort_definition_id = as.integer(1),
-       step = "Exclusion later"
-     ) %>%
-       mutate(excluded = attritionDenominatorCohort$current_n[9] - .data$current_n)
-   )
+AttritionReportFrac<- AttritionReportFrac %>% 
+  union_all(  
+    tibble(
+    cohort_definition_id = as.integer(1),
+    number_records = fracture_table %>% tally() %>% pull(),
+    number_subjects = fracture_table %>% distinct(subject_id) %>% tally() %>% pull(),
+    reason = "fracture happening on the same day as a trauma code"
+  )
+  ) 
+
 
 ### Washout and computing index date
-fracture_table <- cdm[["fracture"]] %>% collect()
-fracture_table_back_up <- fracture_table
-  
 #Round 1: Removing re-recordings
 fracture_table <- fracture_table %>% 
   right_join(fracture_table %>% group_by(subject_id, fracture_site) %>% summarise(index_date = min(condition_start_date, na.rm =T)), by = c("subject_id", "fracture_site")) %>%
