@@ -174,16 +174,17 @@ AttritionReportFrac<- AttritionReportFrac %>%
   ) 
 
 # Adding index date
+info(logger, "DEFINING INDEX DATE FOR EACH INDIVIDUAL")
 fracture_table <- fracture_table %>%
   right_join(fracture_table %>% 
                filter (condition_start_date >= study_start_date) %>%
                filter (condition_start_date <= study_end_date) %>% 
                group_by (subject_id) %>% 
                summarise (index_date = min(condition_start_date, na.rm = T)), by = "subject_id")
-  
 
 ### Exclusion criteria
 # At least 730 days prior obs
+info(logger, "EXCLUDING INDIVIDUALS WHO DO NOT HAVE SUFFICIENT PRIOR OBSERVATION")
 fracture_table <-fracture_table %>% 
   left_join(cdm[["observation_period"]], by = c("subject_id" = "person_id"), copy = T) %>% 
   select(subject_id:index_date, observation_period_start_date, observation_period_end_date) %>%
@@ -195,8 +196,74 @@ fracture_table <-fracture_table %>%
   ungroup() %>%
   select(subject_id, condition_concept_id, condition_start_date, fracture_site, index_date)
 
+AttritionReportFrac<- AttritionReportFrac %>% 
+  union_all(  
+    tibble(
+      cohort_definition_id = as.integer(1),
+      number_records = fracture_table %>% tally() %>% pull(),
+      number_subjects = fracture_table %>% distinct(subject_id) %>% tally() %>% pull(),
+      reason = "Excluding individuals who do not have sufficient prior observation"
+    )
+  ) 
+
 # No records of death on the index date
+info(logger, "EXCLUDING INDIVIDUALS WHO HAS A RECORD OF DEATH ON THE SAME DAY AS THE INDEX DATE")
+
+fracture_table<- fracture_table %>% anti_join(cdm[["death"]], by = c("subject_id" = "person_id", "index_date" = "death_date"), copy = T)
+
+AttritionReportFrac<- AttritionReportFrac %>% 
+  union_all(  
+    tibble(
+      cohort_definition_id = as.integer(1),
+      number_records = fracture_table %>% tally() %>% pull(),
+      number_subjects = fracture_table %>% distinct(subject_id) %>% tally() %>% pull(),
+      reason = "Excluding individuals who has a record of death on the same day as the index date"
+    )
+  ) 
 
 # No records of cancer before the index date
+info(logger, "EXCLUDING INDIVIDUALS WHO HAS A RECORD OF CANCER OF INTEREST BEFORE THE INDEX DATE")
+
+cancerId <- exclusionCohortSet %>%
+   filter(cohort_name == "Malignant neoplastic disease excluding non-melanoma skin cancer") %>%
+   pull("cohort_definition_id")
+
+fracture_table <- fracture_table %>% 
+  anti_join(fracture_table %>% 
+              inner_join(cdm[[exclusionCohortTableName]] %>% 
+                           filter(cohort_definition_id == cancerId), by = "subject_id", copy = T, relationship = "many-to-many") %>%
+              filter(cohort_start_date<index_date), by = colnames(fracture_table))
+
+AttritionReportFrac<- AttritionReportFrac %>% 
+  union_all(  
+    tibble(
+      cohort_definition_id = as.integer(1),
+      number_records = fracture_table %>% tally() %>% pull(),
+      number_subjects = fracture_table %>% distinct(subject_id) %>% tally() %>% pull(),
+      reason = "Excluding individuals who has a record of cancer of interest before the index date"
+    )
+  ) 
 
 # No records of metabolic bone disease
+info(logger, "EXCLUDING INDIVIDUALS WHO HAS A RECORD OF METABOLIC BONE DISEASE OF INTEREST BEFORE THE INDEX DATE")
+
+BoneDiseaseId <- exclusionCohortSet %>%
+  filter(cohort_name == "Metabolic bone diseases") %>%
+  pull("cohort_definition_id")
+
+fracture_table <- fracture_table %>% 
+  anti_join(fracture_table %>% 
+              inner_join(cdm[[exclusionCohortTableName]] %>% 
+                           filter(cohort_definition_id == BoneDiseaseId), by = "subject_id", copy = T, relationship = "many-to-many") %>%
+              filter(cohort_start_date<index_date), by = colnames(fracture_table))
+
+AttritionReportFrac<- AttritionReportFrac %>% 
+  union_all(  
+    tibble(
+      cohort_definition_id = as.integer(1),
+      number_records = fracture_table %>% tally() %>% pull(),
+      number_subjects = fracture_table %>% distinct(subject_id) %>% tally() %>% pull(),
+      reason = "Excluding individuals who has a record of metabolic bone diseases of interest before the index date"
+    )
+  ) 
+
