@@ -188,8 +188,8 @@ info(logger, "EXCLUDING INDIVIDUALS WHO DO NOT HAVE SUFFICIENT PRIOR OBSERVATION
 fracture_table <-fracture_table %>% 
   left_join(cdm[["observation_period"]], by = c("subject_id" = "person_id"), copy = T) %>% 
   select(subject_id:index_date, observation_period_start_date, observation_period_end_date) %>%
-  mutate(days_prior_obs = index_date - observation_period_start_date) %>%
-  filter(days_prior_obs >= prior_observation) %>%
+  mutate(days_prior_obs = index_date - observation_period_start_date, days_after_obs = observation_period_end_date - index_date) %>%
+  filter(days_prior_obs >= prior_observation, days_after_obs >= 0) %>%
   group_by(subject_id, condition_concept_id, condition_start_date, fracture_site, index_date) %>%
   arrange(observation_period_start_date) %>%
   filter(row_number()==1) %>%
@@ -267,3 +267,5 @@ AttritionReportFrac<- AttritionReportFrac %>%
     )
   ) 
 
+AttritionReportFrac <- AttritionReportFrac %>% 
+  mutate(subjects_excluded = -(number_subjects-lag(number_subjects)), records_excluded = -(number_records - lag(number_records)))
