@@ -123,64 +123,55 @@ sites <- c("Hip", "Femur", "Pelvic", "Vertebra", "Humerus", "Forearm", "Tibia an
 
 #Removing re-recordings
 fracture_table_back_up <- fracture_table
-fracture_correction <- list()
-for (i in (1:10)){
-  fracture_correction[[sites[i]]] <- fracture_table_back_up %>% 
-    group_by(subject_id) %>% 
-    filter(fracture_site == sites[[i]] | fracture_site == sites[[10]]) %>% 
-    summarise(min_date = min(condition_start_date, na.rm =T)) %>% 
-    mutate(site = sites[[i]])
-}
+index_fractures <- tibble()
 
-fracture_correction_nonspecific <- list()
-
-for (i in (1:10)){
-  fracture_correction_nonspecific <- rbind(fracture_correction_nonspecific, fracture_correction[[i]])
-}
-
-fracture_table_back_up <- fracture_table_back_up %>% 
-  left_join(fracture_correction_nonspecific, by = c("subject_id", "fracture_site" = "site")) %>% # compute min date
-  mutate(gap_to_min_date = condition_start_date - min_date) %>%
-  filter(gap_to_min_date == 0 | gap_to_min_date > washout_period) %>%
-  group_by(subject_id, condition_start_date, fracture_site) %>%
-  arrange(condition_concept_id, .by_group = TRUE) %>% 
-  filter(row_number()==1) %>%
-  ungroup()
+while(nrow(fracture_table_back_up)>0){
+  fracture_correction <- list()
+  for (i in (1:10)){
+    fracture_correction[[sites[i]]] <- fracture_table_back_up %>% 
+      group_by(subject_id) %>% 
+      filter(fracture_site == sites[[i]] | fracture_site == sites[[10]]) %>% 
+      summarise(min_date = min(condition_start_date, na.rm =T)) %>% 
+      mutate(site = sites[[i]])
+  }
   
-fracture_table_back_up <- fracture_table_back_up %>%
-  left_join(fracture_table_back_up %>% group_by(subject_id) %>% filter (gap_to_min_date == 0) %>% count(), by = "subject_id") %>%
-  filter (!((n>1) & (gap_to_min_date==0) & (fracture_site=="Nonspecific"))) %>%
-  select(-n)
+  fracture_correction_nonspecific <- list()
+  
+  for (i in (1:10)){
+    fracture_correction_nonspecific <- rbind(fracture_correction_nonspecific, fracture_correction[[i]])
+  }
+  
+  fracture_table_back_up <- fracture_table_back_up %>% 
+    left_join(fracture_correction_nonspecific, by = c("subject_id", "fracture_site" = "site")) %>% # compute min date
+    mutate(gap_to_min_date = condition_start_date - min_date) %>%
+    filter(gap_to_min_date == 0 | gap_to_min_date > washout_period) %>%
+    group_by(subject_id, condition_start_date, fracture_site) %>%
+    arrange(condition_concept_id, .by_group = TRUE) %>% 
+    filter(row_number()==1) %>%
+    ungroup()
+  
+  fracture_table_back_up <- fracture_table_back_up %>%
+    left_join(fracture_table_back_up %>% group_by(subject_id) %>% filter (gap_to_min_date == 0) %>% count(), by = "subject_id") %>%
+    filter (!((n>1) & (gap_to_min_date==0) & (fracture_site=="Nonspecific")))
+  
+  index_fractures <- rbind(index_fractures, fracture_table_back_up %>% filter(gap_to_min_date==0) %>% select(-min_date, -gap_to_min_date, -n))
+  
+  fracture_table_back_up <- fracture_table_back_up %>% 
+    filter(!gap_to_min_date==0) %>%
+    select(-min_date, -gap_to_min_date, -n)
+}
 
-##up here
-fracture_index_1 <- fracture_table %>% filter(gap_to_index == 0) %>% select(-index_date) %>% ungroup() %>% select(-gap_to_index)
+fracture_table <- index_fractures
 
-#Round 2: Removing re-recordings  
-fracture_table <- fracture_table %>% filter(!gap_to_index == 0) %>% select(-index_date) %>% ungroup() %>% select(-gap_to_index)
-
-fracture_table <- fracture_table %>% 
-  right_join(fracture_table %>% group_by(subject_id, fracture_site) %>% summarise(index_date = min(condition_start_date, na.rm =T)), by = c("subject_id", "fracture_site")) %>%
-  mutate(gap_to_index = condition_start_date - index_date) %>% 
-  filter(gap_to_index == 0 | gap_to_index > washout_period) %>%
-  group_by(subject_id, condition_start_date, fracture_site, gap_to_index) %>% 
-  arrange(condition_concept_id, .by_group = TRUE) %>% 
-  filter(row_number()==1) 
-
-fracture_index_2 <- fracture_table %>% filter(gap_to_index == 0) %>% select(-index_date) %>% ungroup() %>% select(-gap_to_index)
-
-#After removing based on sites
-fracture_table <- rbind(fracture_index_1, fracture_index_2)
-
-# Extra care for nonspecific codes
-fracture_table <- fracture_table %>% 
-  group_by(subject_id) %>% arrange(condition_start_date, .by_group =T) %>%
-  mutate(gap_to_prior_fracture = condition_start_date - lag(condition_start_date), lag_site = lag(fracture_site))
-
-fracture_table <- rbind(fracture_table[is.na(fracture_table$gap_to_prior_fracture),],
-                        fracture_table %>%
-                          filter (!(fracture_site == "Nonspecific" & gap_to_prior_fracture < washout_period)) %>%
-                          filter (!(lag_site == "Nonspecific" & gap_to_prior_fracture < washout_period)))
-fracture_table <- fracture_table %>% ungroup() %>% select(-gap_to_prior_fracture, -lag_site)
+AttritionReportFrac<- AttritionReportFrac %>% 
+  union_all(  
+    tibble(
+      cohort_definition_id = as.integer(1),
+      number_records = fracture_table %>% tally() %>% pull(),
+      number_subjects = fracture_table %>% distinct(subject_id) %>% tally() %>% pull(),
+      reason = "Clean out using washout period"
+    )
+  ) 
 
 # Adding index date
 fracture_table <- fracture_table %>%
