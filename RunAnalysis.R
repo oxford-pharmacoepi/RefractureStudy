@@ -8,3 +8,8 @@ level(logger) <- "INFO"
 info(logger, "GENERATING COHORTS FOR RESEARCH QUESTION 1 AND 2")
 source(here("2_CohortCreation", "CohortRQ1&2.R"))
 info(logger, "GENERATING COHORTS FOR RESEARCH QUESTION 1 AND 2 IS DONE")
+
+# carrying out analyses for Research Question 1 and 2
+info(logger, "CARRYING OUT ANALYSES FOR RESEARCH QUESTION 1 AND 2")
+source(here("3_Analysis", "RQ1&2.R"))
+info(logger, "CARRYING OUT ANALYSES FOR RESEARCH QUESTION 1 AND 2 IS DONE")
