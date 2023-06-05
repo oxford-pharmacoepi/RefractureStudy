@@ -51,5 +51,6 @@ fracture_table_follow_up <- fracture_table_follow_up %>% left_join(fracture_tabl
                                          filter(index_date < death_date), by = c("subject_id", "condition_concept_id", "condition_start_date", "fracture_site", "index_date", "after_index", "observation_period_end_date", "cancer_date_after_index", "bone_disease_date_after_index", "fracture_after_index"))
 
 # Add in FOLLOWUPEND
-fracture_table_follow_up$follow_up_end<-with(fracture_table_follow_up,pmin(after_index, observation_period_end_date, cancer_date_after_index, bone_disease_date_after_index, fracture_after_index, death_date, na.rm = T))
-
+fracture_table_follow_up <- fracture_table_follow_up %>% 
+  mutate(follow_up_end = pmin(after_index, observation_period_end_date, cancer_date_after_index, bone_disease_date_after_index, fracture_after_index, death_date, na.rm = T)) %>%
+  select(-after_index, -observation_period_end_date, -cancer_date_after_index, -bone_disease_date_after_index, -fracture_after_index, -death_date)
