@@ -267,5 +267,23 @@ AttritionReportFrac<- AttritionReportFrac %>%
     )
   ) 
 
+# Excluding records that happened two years before the index date
+info(logger, "EXCLUDING FRACTURE RECORDS THAT HAPPEN 2 YEARS BEFORE THE INDEX DATE")
+fracture_table <- fracture_table %>% filter(!(condition_start_date < index_date - 730))
+
+AttritionReportFrac<- AttritionReportFrac %>% 
+  union_all(  
+    tibble(
+      cohort_definition_id = as.integer(1),
+      number_records = fracture_table %>% tally() %>% pull(),
+      number_subjects = fracture_table %>% distinct(subject_id) %>% tally() %>% pull(),
+      reason = "Excluding records that happened two years before the index date"
+    )
+  ) 
+
+fracture_table
+
 AttritionReportFrac <- AttritionReportFrac %>% 
   mutate(subjects_excluded = -(number_subjects-lag(number_subjects)), records_excluded = -(number_records - lag(number_records)))
+
+fracture_table %>% filter(condition_start_date<index_date) %>% distinct(subject_id) %>% tally()
