@@ -43,3 +43,12 @@ fracture_table_follow_up <- fracture_table_follow_up %>% left_join(fracture_tabl
 # Add in first fracture date after the index dates
 fracture_table_follow_up <- fracture_table_follow_up %>% left_join(fracture_table %>% group_by(subject_id) %>% filter(condition_start_date> index_date) %>% summarise(fracture_after_index = min(condition_start_date, na.rm =  T)),
                                        by = "subject_id")
+
+# Add in death date after the index date 
+fracture_table_follow_up <- fracture_table_follow_up %>% left_join(fracture_table_follow_up %>% 
+                                         left_join(cdm[["death"]], by = c("subject_id" = "person_id"), copy = T) %>%
+                                         select(subject_id:death_date) %>%
+                                         filter(index_date < death_date), by = c("subject_id", "condition_concept_id", "condition_start_date", "fracture_site", "index_date", "after_index", "observation_period_end_date", "cancer_date_after_index", "bone_disease_date_after_index", "fracture_after_index"))
+
+# Add in FOLLOWUPEND
+fracture_table_follow_up %>% mutate(follow_up_end = min (after_index:death_date, na.rm = T))
