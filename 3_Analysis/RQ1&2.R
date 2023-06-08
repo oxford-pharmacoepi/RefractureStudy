@@ -54,3 +54,12 @@ fracture_table_follow_up <- fracture_table_follow_up %>% left_join(fracture_tabl
 fracture_table_follow_up <- fracture_table_follow_up %>% 
   mutate(follow_up_end = pmin(after_index, observation_period_end_date, cancer_date_after_index, bone_disease_date_after_index, fracture_after_index, death_date, na.rm = T)) %>%
   select(-after_index, -observation_period_end_date, -cancer_date_after_index, -bone_disease_date_after_index, -fracture_after_index, -death_date)
+
+fracture_table_follow_up <- fracture_table_follow_up %>% 
+  mutate(within_follow_up = as.integer(condition_start_date <= follow_up_end))
+
+fracture_table_follow_up <- fracture_table_follow_up %>%
+  mutate(follow_up_time = follow_up_end-index_date)
+
+fracture_count <- sum(fracture_table_follow_up$within_follow_up)
+total_follow_up_time <- fracture_table_follow_up %>% group_by(subject_id) %>% filter(row_number()==1) %>% ungroup() %>% select(follow_up_time) %>% pull() %>% sum()
