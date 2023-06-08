@@ -1,5 +1,5 @@
 # ADD NECESSARY PACKAGES
-install.packages("renv") # if not already installed, install renv from CRAN
+#install.packages("renv") # if not already installed, install renv from CRAN
 renv::activate() 
 renv::restore() # this should prompt you to install the various packages required for the study
 
