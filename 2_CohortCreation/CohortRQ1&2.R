@@ -26,8 +26,8 @@ cdm <- generateDenominatorCohortSet(
 AttritionReportDenom<-cohortAttrition(cdm$denominator)
 
 ### Loading fracture codes
-conditions_sheet1 <- read_excel("~/R/RefractureStudy/FracturesCandidateCodes/fracture_sites_conditions.xlsx", sheet = 1)
-trauma <- read_excel("~/R/RefractureStudy/FracturesCandidateCodes/Trauma Codes.xlsx")
+conditions_sheet1 <- read_excel("~/RefractureStudy/FracturesCandidateCodes/fracture_sites_conditions.xlsx", sheet = 1)
+trauma <- read_excel("~/RefractureStudy/FracturesCandidateCodes/Trauma Codes.xlsx")
 trauma_condition <- trauma %>% filter(Domain == "Condition") %>% select(Id) %>% pull()
 trauma_observation <- trauma %>% filter(Domain == "Observation") %>% select(Id) %>% pull()
 
@@ -93,13 +93,15 @@ AttritionReportFrac<-tibble(
   reason = "Starting Population"
 )
 
-### Removing the fractures that happen on the same day as a trauma
+### Removing the fractures that happen on the same day as a trauma and applying hierarchy 
 info(logger, "REMOVING FRACTURES THAT HAPPEN ON THE SAME DAY AS A TRAUMA")
 fracture_table <- fracture_table %>%
   anti_join(cdm[["condition_occurrence"]] %>% filter(condition_concept_id %in% trauma_condition), by = c("subject_id" = "person_id", "condition_start_date"), copy = T)
 
 fracture_table <- fracture_table %>% 
   anti_join(cdm[["observation"]] %>% filter(observation_concept_id %in% trauma_observation), by = c("subject_id" = "person_id", "condition_start_date" = "observation_date"), copy = T) 
+
+
 
 AttritionReportFrac<- AttritionReportFrac %>% 
   union_all(  
