@@ -297,9 +297,28 @@ AttritionReportFrac<- AttritionReportFrac %>%
     )
   )
 
-# Applying Hierachy to multiple records on the same day
+# Applying Hierarchy to multiple records on the same day
+info(logger, "APPLYING HIERARCHY TO PREVENT MORE THAN ONE RECORD ON THE SAME DAY FOR THE SAME PERSON")
 
+fracture_table$fracture_site<-factor(fracture_table$fracture_site, levels = sites)
 
+fracture_table <- fracture_table %>%
+  group_by(subject_id, condition_start_date) %>%
+  arrange(fracture_site, .by_group = TRUE) %>% 
+  filter(row_number()==1) %>%
+  ungroup()
+
+AttritionReportFrac<- AttritionReportFrac %>% 
+  union_all(  
+    tibble(
+      cohort_definition_id = as.integer(1),
+      number_records = fracture_table %>% tally() %>% pull(),
+      number_subjects = fracture_table %>% distinct(subject_id) %>% tally() %>% pull(),
+      reason = "Excluding records on the same day for the same person according to hierarchy"
+    )
+  )
+
+### Finalise attrition
 
 AttritionReportFrac <- AttritionReportFrac %>% 
   mutate(subjects_excluded = -(number_subjects-lag(number_subjects)), records_excluded = -(number_records - lag(number_records)))
