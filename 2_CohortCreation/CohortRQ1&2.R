@@ -101,7 +101,11 @@ fracture_table <- fracture_table %>%
 fracture_table <- fracture_table %>% 
   anti_join(cdm[["observation"]] %>% filter(observation_concept_id %in% trauma_observation), by = c("subject_id" = "person_id", "condition_start_date" = "observation_date"), copy = T) 
 
-
+fracture_table<-fracture_table %>%
+  anti_join(
+    fracture_table %>% filter(!fracture_site=="Nonspecific") %>% group_by(subject_id, condition_start_date) %>% summarise(number_site = n_distinct(fracture_site)) %>% filter(number_site>=3),
+    by = c("subject_id", "condition_start_date")
+  )
 
 AttritionReportFrac<- AttritionReportFrac %>% 
   union_all(  
@@ -217,7 +221,7 @@ AttritionReportFrac<- AttritionReportFrac %>%
     )
   ) 
 
-# No records of cancer before the index date
+# No records of cancer before or on the index date
 info(logger, "EXCLUDING INDIVIDUALS WHO HAS A RECORD OF CANCER OF INTEREST BEFORE THE INDEX DATE")
 
 cancerId <- exclusionCohortSet %>%
@@ -228,7 +232,7 @@ fracture_table <- fracture_table %>%
   anti_join(fracture_table %>% 
               inner_join(cdm[[exclusionCohortTableName]] %>% 
                            filter(cohort_definition_id == cancerId), by = "subject_id", copy = T, relationship = "many-to-many") %>%
-              filter(cohort_start_date<index_date), by = colnames(fracture_table))
+              filter(cohort_start_date<=index_date), by = colnames(fracture_table))
 
 AttritionReportFrac<- AttritionReportFrac %>% 
   union_all(  
@@ -251,7 +255,7 @@ fracture_table <- fracture_table %>%
   anti_join(fracture_table %>% 
               inner_join(cdm[[exclusionCohortTableName]] %>% 
                            filter(cohort_definition_id == BoneDiseaseId), by = "subject_id", copy = T, relationship = "many-to-many") %>%
-              filter(cohort_start_date<index_date), by = colnames(fracture_table))
+              filter(cohort_start_date<=index_date), by = colnames(fracture_table))
 
 AttritionReportFrac<- AttritionReportFrac %>% 
   union_all(  
@@ -292,6 +296,10 @@ AttritionReportFrac<- AttritionReportFrac %>%
       reason = "Excluding individuals who had a record of fractures within 2 years before the index date"
     )
   )
+
+# Applying Hierachy to multiple records on the same day
+
+
 
 AttritionReportFrac <- AttritionReportFrac %>% 
   mutate(subjects_excluded = -(number_subjects-lag(number_subjects)), records_excluded = -(number_records - lag(number_records)))
