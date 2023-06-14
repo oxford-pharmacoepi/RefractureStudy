@@ -69,11 +69,9 @@ AttritionReportFrac<- AttritionReportFrac %>%
   )
 
 ### Finalise attrition
-
 AttritionReportFrac <- AttritionReportFrac %>% 
   mutate(subjects_excluded = -(number_subjects-lag(number_subjects)), records_excluded = -(number_records - lag(number_records)))
 
 ### Relevant counts
-
 fracture_count <- sum(fracture_table_follow_up$within_follow_up)
 total_follow_up_time <- fracture_table_follow_up %>% group_by(subject_id) %>% filter(row_number()==1) %>% ungroup() %>% select(follow_up_time) %>% pull() %>% sum()
