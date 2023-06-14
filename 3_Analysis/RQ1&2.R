@@ -53,13 +53,27 @@ fracture_table_follow_up <- fracture_table_follow_up %>% left_join(fracture_tabl
 # Add in FOLLOWUPEND
 fracture_table_follow_up <- fracture_table_follow_up %>% 
   mutate(follow_up_end = pmin(after_index, observation_period_end_date, cancer_date_after_index, bone_disease_date_after_index, fracture_after_index, death_date, na.rm = T)) %>%
-  select(-after_index, -observation_period_end_date, -cancer_date_after_index, -bone_disease_date_after_index, -fracture_after_index, -death_date)
+  select(-after_index, -observation_period_end_date, -cancer_date_after_index, -bone_disease_date_after_index, -fracture_after_index, -death_date) %>%
+  mutate(within_follow_up = as.integer(condition_start_date <= follow_up_end)) %>%
+  mutate(follow_up_time = follow_up_end-index_date) %>%
+  filter(follow_up_time > 0)
 
-fracture_table_follow_up <- fracture_table_follow_up %>% 
-  mutate(within_follow_up = as.integer(condition_start_date <= follow_up_end))
+AttritionReportFrac<- AttritionReportFrac %>% 
+  union_all(  
+    tibble(
+      cohort_definition_id = as.integer(1),
+      number_records = fracture_table_follow_up %>% tally() %>% pull(),
+      number_subjects = fracture_table_follow_up %>% distinct(subject_id) %>% tally() %>% pull(),
+      reason = "Excluding people with 0 day follow up due to their observational period"
+    )
+  )
 
-fracture_table_follow_up <- fracture_table_follow_up %>%
-  mutate(follow_up_time = follow_up_end-index_date)
+### Finalise attrition
+
+AttritionReportFrac <- AttritionReportFrac %>% 
+  mutate(subjects_excluded = -(number_subjects-lag(number_subjects)), records_excluded = -(number_records - lag(number_records)))
+
+### Relevant counts
 
 fracture_count <- sum(fracture_table_follow_up$within_follow_up)
 total_follow_up_time <- fracture_table_follow_up %>% group_by(subject_id) %>% filter(row_number()==1) %>% ungroup() %>% select(follow_up_time) %>% pull() %>% sum()

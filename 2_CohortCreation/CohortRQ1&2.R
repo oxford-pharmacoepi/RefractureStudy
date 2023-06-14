@@ -317,9 +317,3 @@ AttritionReportFrac<- AttritionReportFrac %>%
       reason = "Excluding records on the same day for the same person according to hierarchy"
     )
   )
-
-### Finalise attrition
-
-AttritionReportFrac <- AttritionReportFrac %>% 
-  mutate(subjects_excluded = -(number_subjects-lag(number_subjects)), records_excluded = -(number_records - lag(number_records)))
-
