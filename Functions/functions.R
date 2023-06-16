@@ -100,7 +100,7 @@ addInFollowUpEnd <- function(fractureTable){
     filter(follow_up_time > 0)
 }
 
-# clean out fractures based on their obs period
+# clean out fractures based on their follow up period, used to further analysis 
 nextFractureClean <- function (fractureTable){
   fractureTable %>% 
     filter(follow_up_time == 730) %>%
@@ -109,3 +109,4 @@ nextFractureClean <- function (fractureTable){
     filter(!(row_number()==1)) %>%
     select(subject_id, condition_concept_id, condition_start_date, fracture_site)
 }
+
