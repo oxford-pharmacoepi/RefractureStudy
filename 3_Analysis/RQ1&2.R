@@ -40,15 +40,14 @@ AttritionReportFrac <- AttritionReportFrac %>%
 ### Relevant counts
 fracture_table_follow_up_back_up <- fracture_table_follow_up
 
-counts <- tibble()
-
-counts <- counts %>%
-  union_all(
+counts <- 
     tibble(
-    number_records = fracture_table_follow_up_back_up %>% tally() %>% pull(),
-    number_subjects = fracture_table_follow_up_back_up %>% distinct(subject_id) %>% tally() %>% pull()
-  )
-  )
+      number_records = fracture_table_follow_up_back_up %>% tally() %>% pull(),
+      number_subjects = fracture_table_follow_up_back_up %>% distinct(subject_id) %>% tally() %>% pull(),
+      cohort_number_records = fracture_table_follow_up_back_up %>% filter(follow_up_time < 730) %>% tally() %>% pull(),
+      cohort_number_subjects = fracture_table_follow_up_back_up %>% filter(follow_up_time < 730) %>% distinct(subject_id) %>% tally() %>% pull()
+    )
+
 fracture_table_follow_up_back_up <- nextFractureClean(fracture_table_follow_up_back_up)
 fracture_table_follow_up_back_up <- addIndex(fracture_table_follow_up_back_up)
 fracture_table_follow_up_back_up <- noDeathOnIndex(fracture_table_follow_up_back_up)
@@ -59,3 +58,13 @@ fracture_table_follow_up_back_up <- addInObsEndDate(fracture_table_follow_up_bac
 fracture_table_follow_up_back_up <- addInCancerPostIndex(fracture_table_follow_up_back_up)
 fracture_table_follow_up_back_up <- addInBoneDiseasePostIndex(fracture_table_follow_up_back_up)
 fracture_table_follow_up_back_up <- addInDeath(fracture_table_follow_up_back_up)
+
+counts <- counts %>%
+  union_all(
+    tibble(
+      number_records = fracture_table_follow_up_back_up %>% tally() %>% pull(),
+      number_subjects = fracture_table_follow_up_back_up %>% distinct(subject_id) %>% tally() %>% pull(),
+      cohort_number_records = fracture_table_follow_up_back_up %>% filter(follow_up_time < 730) %>% tally() %>% pull(),
+      cohort_number_subjects = fracture_table_follow_up_back_up %>% filter(follow_up_time < 730) %>% distinct(subject_id) %>% tally() %>% pull()
+    )
+  )
