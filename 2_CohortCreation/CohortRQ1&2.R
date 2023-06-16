@@ -317,3 +317,9 @@ AttritionReportFrac<- AttritionReportFrac %>%
       reason = "Excluding records on the same day for the same person according to hierarchy"
     )
   )
+
+fracture_table <- fracture_table %>% 
+  group_by(subject_id) %>% 
+  arrange(condition_start_date, .by_group = T) %>%
+  ungroup() %>%
+  arrange(subject_id)
