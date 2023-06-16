@@ -175,12 +175,7 @@ AttritionReportFrac<- AttritionReportFrac %>%
 
 # Adding index date
 info(logger, "DEFINING INDEX DATE FOR EACH INDIVIDUAL")
-fracture_table <- fracture_table %>%
-  right_join(fracture_table %>% 
-               filter (condition_start_date >= study_start_date) %>%
-               filter (condition_start_date <= study_end_date) %>% 
-               group_by (subject_id) %>% 
-               summarise (index_date = min(condition_start_date, na.rm = T)), by = "subject_id")
+fracture_table <- addIndex(fracture_table)
 
 ### Exclusion criteria
 # At least 730 days prior obs
@@ -209,7 +204,7 @@ AttritionReportFrac<- AttritionReportFrac %>%
 # No records of death on the index date
 info(logger, "EXCLUDING INDIVIDUALS WHO HAS A RECORD OF DEATH ON THE SAME DAY AS THE INDEX DATE")
 
-fracture_table<- fracture_table %>% anti_join(cdm[["death"]], by = c("subject_id" = "person_id", "index_date" = "death_date"), copy = T)
+fracture_table <- noDeathOnIndex(fracture_table)
 
 AttritionReportFrac<- AttritionReportFrac %>% 
   union_all(  
@@ -228,11 +223,7 @@ cancerId <- exclusionCohortSet %>%
   filter(cohort_name == "Malignant neoplastic disease excluding non-melanoma skin cancer") %>%
   pull("cohort_definition_id")
 
-fracture_table <- fracture_table %>% 
-  anti_join(fracture_table %>% 
-              inner_join(cdm[[exclusionCohortTableName]] %>% 
-                           filter(cohort_definition_id == cancerId), by = "subject_id", copy = T, relationship = "many-to-many") %>%
-              filter(cohort_start_date<=index_date), by = colnames(fracture_table))
+fracture_table <- noCancerPriorOrOnIndex(fracture_table)
 
 AttritionReportFrac<- AttritionReportFrac %>% 
   union_all(  
@@ -251,11 +242,7 @@ BoneDiseaseId <- exclusionCohortSet %>%
   filter(cohort_name == "Metabolic bone diseases") %>%
   pull("cohort_definition_id")
 
-fracture_table <- fracture_table %>% 
-  anti_join(fracture_table %>% 
-              inner_join(cdm[[exclusionCohortTableName]] %>% 
-                           filter(cohort_definition_id == BoneDiseaseId), by = "subject_id", copy = T, relationship = "many-to-many") %>%
-              filter(cohort_start_date<=index_date), by = colnames(fracture_table))
+fracture_table <- noBoneDiseasePriorOrOnIndex(fracture_table)
 
 AttritionReportFrac<- AttritionReportFrac %>% 
   union_all(  
