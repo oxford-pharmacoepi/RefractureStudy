@@ -88,7 +88,8 @@ addInNextFracture <- function(fractureTable){
 addInDeath <- function(fractureTable){
   fractureTable %>% 
     left_join(cdm[["death"]], by = c("subject_id" = "person_id"), copy = T) %>%
-    filter(death_date > index_date | is.na(death_date))
+    filter(death_date > index_date | is.na(death_date)) %>%
+    select(subject_id, condition_concept_id, condition_start_date, fracture_site, index_date, after_index, observation_period_end_date, cancer_date_after_index, bone_disease_date_after_index, fracture_after_index, death_date)
 }
 
 # add in FOLLOWUPEND - only after the relevant columns are added

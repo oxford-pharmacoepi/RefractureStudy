@@ -53,7 +53,13 @@ counts <-
       zero_days = fracture_table_follow_up_back_up %>% filter (follow_up_time == 0) %>% distinct(subject_id) %>% tally() %>% pull()
     )
   
+patientID <- list()
+zeroPatientID <- list()
+reEntryTable <- list()
 while (nrow(fracture_table_follow_up_back_up) > 0){
+  reEntryTable[[nrow(fracture_table_follow_up_back_up)]] <- fracture_table_follow_up_back_up %>% filter(follow_up_time > 0)
+  patientID[[nrow(fracture_table_follow_up_back_up)]] <- fracture_table_follow_up_back_up %>% filter(follow_up_time > 0) %>% distinct(subject_id) %>% pull()
+  zeroPatientID[[nrow(fracture_table_follow_up_back_up)]] <- fracture_table_follow_up_back_up %>% filter(follow_up_time == 0) %>% distinct(subject_id) %>% pull()
   fracture_table_follow_up_back_up <- fracture_table_follow_up_back_up %>% filter(follow_up_time > 0)
   fracture_table_follow_up_back_up <- nextFractureClean(fracture_table_follow_up_back_up)
   fracture_table_follow_up_back_up <- addIndex(fracture_table_follow_up_back_up)
@@ -81,4 +87,32 @@ while (nrow(fracture_table_follow_up_back_up) > 0){
         zero_days = fracture_table_follow_up_back_up %>% filter (follow_up_time == 0) %>% distinct(subject_id) %>% tally() %>% pull()
       )
     )
+}
+
+patientID <- patientID[!sapply(patientID, is.null)]
+zeroPatientID <- zeroPatientID[!sapply(zeroPatientID, is.null)]
+reEntryTable <- reEntryTable[!sapply(reEntryTable, is.null)]
+
+totalLength <- list()
+for (i in (1:length(reEntryTable))){
+  totalLength[[i]] <- sum(reEntryTable[[i]]$follow_up_time) 
+}
+
+for (i in (1:length(reEntryTable))){
+reEntryTable[[i]] <- reEntryTable[[i]] %>% mutate(fracture_in_obs = as.integer(condition_start_date<=follow_up_end))  
+}
+
+totalFracture <- list()
+for (i in (1:length(reEntryTable))){
+  totalFracture[[i]] <- sum(reEntryTable[[i]]$fracture_in_obs)
+}
+
+total_amount_time <- 0
+for (i in (1:length(reEntryTable))){
+  total_amount_time <- total_amount_time + totalLength[[i]]
+}
+
+total_amount_fracture <- 0
+for (i in (1:length(reEntryTable))){
+  total_amount_fracture <- total_amount_fracture + totalFracture[[i]]
 }
