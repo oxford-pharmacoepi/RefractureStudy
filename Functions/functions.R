@@ -86,18 +86,16 @@ addInNextFracture <- function(fractureTable){
 
 # add a column of death record date after the index date
 addInDeath <- function(fractureTable){
-  fractureTable %>% left_join(fractureTable %>% 
-                                left_join(cdm[["death"]], by = c("subject_id" = "person_id"), copy = T) %>%
-                                select(subject_id:death_date) %>%
-                                filter(index_date < death_date), by = c("subject_id", "condition_concept_id", "condition_start_date", "fracture_site", "index_date", "after_index", "observation_period_end_date", "cancer_date_after_index", "bone_disease_date_after_index", "fracture_after_index"))
+  fractureTable %>% 
+    left_join(cdm[["death"]], by = c("subject_id" = "person_id"), copy = T) %>%
+    filter(death_date > index_date | is.na(death_date))
 }
 
 # add in FOLLOWUPEND - only after the relevant columns are added
 addInFollowUpEnd <- function(fractureTable){
   fractureTable %>% 
     mutate(follow_up_end = pmin(after_index, observation_period_end_date, cancer_date_after_index, bone_disease_date_after_index, fracture_after_index, death_date, na.rm = T)) %>%
-    mutate(follow_up_time = follow_up_end-index_date) %>%
-    filter(follow_up_time > 0)
+    mutate(follow_up_time = follow_up_end-index_date) 
 }
 
 # clean out fractures based on their follow up period, used to further analysis 
@@ -107,6 +105,6 @@ nextFractureClean <- function (fractureTable){
     group_by(subject_id) %>%
     arrange(condition_start_date, .by_group = T) %>%
     filter(!(row_number()==1)) %>%
-    select(subject_id, condition_concept_id, condition_start_date, fracture_site)
+    select(subject_id, condition_concept_id, condition_start_date, fracture_site) %>%
+    ungroup()
 }
-

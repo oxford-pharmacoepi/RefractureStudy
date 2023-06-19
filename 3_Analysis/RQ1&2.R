@@ -23,15 +23,17 @@ fracture_table_follow_up <- addInDeath(fracture_table_follow_up)
 # Add in FOLLOWUPEND
 fracture_table_follow_up <- addInFollowUpEnd(fracture_table_follow_up)
 
-AttritionReportFrac<- AttritionReportFrac %>% 
-  union_all(  
-    tibble(
-      cohort_definition_id = as.integer(1),
-      number_records = fracture_table_follow_up %>% tally() %>% pull(),
-      number_subjects = fracture_table_follow_up %>% distinct(subject_id) %>% tally() %>% pull(),
-      reason = "Excluding people with 0 day follow up due to their observational period"
-    )
-  )
+# fracture_table_follow_up <- fracture_table_follow_up %>% filter (follow_up_end > 0)
+# 
+# AttritionReportFrac<- AttritionReportFrac %>% 
+#   union_all(  
+#     tibble(
+#       cohort_definition_id = as.integer(1),
+#       number_records = fracture_table_follow_up %>% tally() %>% pull(),
+#       number_subjects = fracture_table_follow_up %>% distinct(subject_id) %>% tally() %>% pull(),
+#       reason = "Excluding people with 0 day follow up due to their observational period"
+#     )
+#   )
 
 ### Finalise attrition
 AttritionReportFrac <- AttritionReportFrac %>% 
@@ -45,26 +47,38 @@ counts <-
       number_records = fracture_table_follow_up_back_up %>% tally() %>% pull(),
       number_subjects = fracture_table_follow_up_back_up %>% distinct(subject_id) %>% tally() %>% pull(),
       cohort_number_records = fracture_table_follow_up_back_up %>% filter(follow_up_time < 730) %>% tally() %>% pull(),
-      cohort_number_subjects = fracture_table_follow_up_back_up %>% filter(follow_up_time < 730) %>% distinct(subject_id) %>% tally() %>% pull()
+      cohort_number_subjects = fracture_table_follow_up_back_up %>% filter(follow_up_time < 730) %>% distinct(subject_id) %>% tally() %>% pull(),
+      cohort_number_fracture_records = fracture_table_follow_up_back_up %>% filter(follow_up_time < 730 & follow_up_end == fracture_after_index) %>% tally() %>% pull(),
+      cohort_number_fracture_subjects = fracture_table_follow_up_back_up %>% filter(follow_up_time < 730 & follow_up_end == fracture_after_index) %>% distinct(subject_id) %>% tally() %>% pull(),
+      zero_days = fracture_table_follow_up_back_up %>% filter (follow_up_time == 0) %>% distinct(subject_id) %>% tally() %>% pull()
     )
-
-fracture_table_follow_up_back_up <- nextFractureClean(fracture_table_follow_up_back_up)
-fracture_table_follow_up_back_up <- addIndex(fracture_table_follow_up_back_up)
-fracture_table_follow_up_back_up <- noDeathOnIndex(fracture_table_follow_up_back_up)
-fracture_table_follow_up_back_up <- noCancerPriorOrOnIndex(fracture_table_follow_up_back_up)
-fracture_table_follow_up_back_up <- noBoneDiseasePriorOrOnIndex(fracture_table_follow_up_back_up)
-fracture_table_follow_up_back_up <- addInTwoYearsAfter(fracture_table_follow_up_back_up)
-fracture_table_follow_up_back_up <- addInObsEndDate(fracture_table_follow_up_back_up)
-fracture_table_follow_up_back_up <- addInCancerPostIndex(fracture_table_follow_up_back_up)
-fracture_table_follow_up_back_up <- addInBoneDiseasePostIndex(fracture_table_follow_up_back_up)
-fracture_table_follow_up_back_up <- addInDeath(fracture_table_follow_up_back_up)
-
-counts <- counts %>%
-  union_all(
-    tibble(
-      number_records = fracture_table_follow_up_back_up %>% tally() %>% pull(),
-      number_subjects = fracture_table_follow_up_back_up %>% distinct(subject_id) %>% tally() %>% pull(),
-      cohort_number_records = fracture_table_follow_up_back_up %>% filter(follow_up_time < 730) %>% tally() %>% pull(),
-      cohort_number_subjects = fracture_table_follow_up_back_up %>% filter(follow_up_time < 730) %>% distinct(subject_id) %>% tally() %>% pull()
+  
+while (nrow(fracture_table_follow_up_back_up) > 0){
+  fracture_table_follow_up_back_up <- fracture_table_follow_up_back_up %>% filter(follow_up_time > 0)
+  fracture_table_follow_up_back_up <- nextFractureClean(fracture_table_follow_up_back_up)
+  fracture_table_follow_up_back_up <- addIndex(fracture_table_follow_up_back_up)
+  fracture_table_follow_up_back_up <- noDeathOnIndex(fracture_table_follow_up_back_up)
+  fracture_table_follow_up_back_up <- noCancerPriorOrOnIndex(fracture_table_follow_up_back_up)
+  fracture_table_follow_up_back_up <- noBoneDiseasePriorOrOnIndex(fracture_table_follow_up_back_up)
+  fracture_table_follow_up_back_up <- addInTwoYearsAfter(fracture_table_follow_up_back_up)
+  fracture_table_follow_up_back_up <- addInObsEndDate(fracture_table_follow_up_back_up)
+  fracture_table_follow_up_back_up <- addInCancerPostIndex(fracture_table_follow_up_back_up)
+  fracture_table_follow_up_back_up <- addInBoneDiseasePostIndex(fracture_table_follow_up_back_up)
+  fracture_table_follow_up_back_up <- addInNextFracture(fracture_table_follow_up_back_up)
+  fracture_table_follow_up_back_up <- addInDeath(fracture_table_follow_up_back_up)
+  fracture_table_follow_up_back_up <- addInFollowUpEnd(fracture_table_follow_up_back_up)
+  fracture_table_follow_up_back_up <- fracture_table_follow_up_back_up %>% ungroup()
+  
+  counts <- counts %>%
+    union_all(
+      tibble(
+        number_records = fracture_table_follow_up_back_up %>% tally() %>% pull(),
+        number_subjects = fracture_table_follow_up_back_up %>% distinct(subject_id) %>% tally() %>% pull(),
+        cohort_number_records = fracture_table_follow_up_back_up %>% filter(follow_up_time < 730) %>% tally() %>% pull(),
+        cohort_number_subjects = fracture_table_follow_up_back_up %>% filter(follow_up_time < 730) %>% distinct(subject_id) %>% tally() %>% pull(),
+        cohort_number_fracture_records = fracture_table_follow_up_back_up %>% filter(follow_up_time < 730 & follow_up_end == fracture_after_index) %>% tally() %>% pull(),
+        cohort_number_fracture_subjects = fracture_table_follow_up_back_up %>% filter(follow_up_time < 730 & follow_up_end == fracture_after_index) %>% distinct(subject_id) %>% tally() %>% pull(),
+        zero_days = fracture_table_follow_up_back_up %>% filter (follow_up_time == 0) %>% distinct(subject_id) %>% tally() %>% pull()
+      )
     )
-  )
+}
