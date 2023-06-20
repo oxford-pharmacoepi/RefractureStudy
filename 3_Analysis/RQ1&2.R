@@ -124,4 +124,4 @@ inc_results <- tibble(fracture = total_amount_fracture,
 
 confidenceInterval <- PoissonCI(x=total_amount_fracture, n=total_amount_time_years, method = "exact")
 confidenceInterval <- as.data.frame(confidenceInterval) %>% mutate(est = round(est * 1000,2), lower = round(lwr.ci * 1000, 2), upper = round(upr.ci*1000,2)) %>% select(c(-lwr.ci, -upr.ci))
-inc_results <- cbind(inc_results, confidenceInterval)
+inc_results <- cbind(inc_results, confidenceInterval) #
