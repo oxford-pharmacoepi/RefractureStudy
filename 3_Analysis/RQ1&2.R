@@ -112,7 +112,16 @@ for (i in (1:length(reEntryTable))){
   total_amount_time <- total_amount_time + totalLength[[i]]
 }
 
+total_amount_time_years <- as.integer(total_amount_time)/365.25
+
 total_amount_fracture <- 0
 for (i in (1:length(reEntryTable))){
   total_amount_fracture <- total_amount_fracture + totalFracture[[i]]
 }
+
+inc_results <- tibble(fracture = total_amount_fracture, 
+                      py = total_amount_time_years)
+
+confidenceInterval <- PoissonCI(x=total_amount_fracture, n=total_amount_time_years, method = "exact")
+confidenceInterval <- as.data.frame(confidenceInterval) %>% mutate(est = round(est * 1000,2), lower = round(lwr.ci * 1000, 2), upper = round(upr.ci*1000,2)) %>% select(c(-lwr.ci, -upr.ci))
+inc_results <- cbind(inc_results, confidenceInterval)
