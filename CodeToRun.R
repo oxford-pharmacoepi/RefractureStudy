@@ -11,6 +11,7 @@ library(dbplyr)
 library(here)
 library(IncidencePrevalence)
 library(readxl)
+library(DescTools)
 #library(openxlsx)
 
 # database metadata and connection details -----
