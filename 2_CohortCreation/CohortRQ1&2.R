@@ -20,7 +20,7 @@ info(logger, "CREATING DENOMINATOR - WOMEN WHO ARE ABOVE 50 WITHIN THE STUDY PER
 cdm <- generateDenominatorCohortSet(
   cdm,
   name = "denominator",
-  cohortDateRange = as.Date(c("2010-04-01", "2018-03-31")),
+  cohortDateRange = c(study_start_date, study_end_date),
   ageGroup = list(c(50, 150)))
 
 AttritionReportDenom<-cohortAttrition(cdm$denominator)
@@ -49,9 +49,9 @@ info(logger, "COLLECTING ALL RECORDS OF FRACTURES FROM DENOMINATORS")
 cdm[["fracture"]] <- cdm[["denominator"]] %>% 
   left_join(cdm[["condition_occurrence"]], by = c("subject_id" = "person_id")) %>%
   filter(condition_concept_id %in% any_fracture_id) %>%
-  select(subject_id, condition_concept_id, condition_start_date) %>%
-  filter(condition_start_date >= as.Date("2008-04-01")) %>%
-  filter(condition_start_date <= as.Date("2020-03-31")) %>%
+  select(subject_id, cohort_start_date, cohort_end_date, condition_concept_id, condition_start_date) %>%
+  mutate(cohort_start_date = as.Date(as.character(cohort_start_date))) %>%
+  mutate(cohort_end_date = as.Date(as.character(cohort_end_date))) %>%
   mutate(fracture_site = if (condition_concept_id %in% hip_fracture_id) {
     "Hip"
   }
@@ -117,7 +117,23 @@ AttritionReportFrac<- AttritionReportFrac %>%
     )
   ) 
 
-### Washout and computing index date
+### Removing fractures outside of cohort period
+info(logger, "REMOVING FRACTURES OUTSIDE THE COHORT START DATE")
+fracture_table <- fracture_table %>% 
+  filter(condition_start_date >= cohort_start_date-730) %>%
+  filter(condition_start_date <= cohort_end_date)
+
+AttritionReportFrac<- AttritionReportFrac %>% 
+  union_all(  
+    tibble(
+      cohort_definition_id = as.integer(1),
+      number_records = fracture_table %>% tally() %>% pull(),
+      number_subjects = fracture_table %>% distinct(subject_id) %>% tally() %>% pull(),
+      reason = "fracture happening outside of study period"
+    )
+  ) 
+
+### Washout and computing index date 
 info(logger, "APPLYING WASHOUT PERIOD")
 sites <- c("Hip", "Femur", "Pelvic", "Vertebra", "Humerus", "Forearm", "Tibia and Fibula", "Rib", "Foot", "Nonspecific")
 
@@ -175,7 +191,7 @@ AttritionReportFrac<- AttritionReportFrac %>%
 
 # Adding index date
 info(logger, "DEFINING INDEX DATE FOR EACH INDIVIDUAL")
-fracture_table <- addIndex(fracture_table)
+fracture_table <- addIndex(fracture_table) #### up here
 
 ### Exclusion criteria
 # At least 730 days prior obs

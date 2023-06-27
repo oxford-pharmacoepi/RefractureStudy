@@ -2,8 +2,8 @@
 addIndex <- function (fractureTable){
   fractureTable %>%
     right_join(fractureTable %>% 
-                 filter (condition_start_date >= study_start_date) %>%
-                 filter (condition_start_date <= study_end_date) %>% 
+                 filter (condition_start_date >= cohort_start_date) %>%
+                 filter (condition_start_date <= cohort_end_date) %>% 
                  group_by (subject_id) %>% 
                  summarise (index_date = min(condition_start_date, na.rm = T)), by = "subject_id")
 }
