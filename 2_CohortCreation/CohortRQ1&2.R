@@ -321,6 +321,10 @@ AttritionReportFrac<- AttritionReportFrac %>%
     )
   )
 
+### Finalise attrition
+AttritionReportFrac <- AttritionReportFrac %>% 
+  mutate(subjects_excluded = -(number_subjects-lag(number_subjects)), records_excluded = -(number_records - lag(number_records)))
+
 fracture_table <- fracture_table %>% 
   group_by(subject_id) %>% 
   arrange(condition_start_date, .by_group = T) %>%
