@@ -121,7 +121,7 @@ AttritionReportFrac<- AttritionReportFrac %>%
 info(logger, "REMOVING FRACTURES OUTSIDE THE COHORT START DATE")
 fracture_table <- fracture_table %>% 
   filter(condition_start_date >= cohort_start_date-730) %>%
-  filter(condition_start_date <= cohort_end_date)
+  filter(condition_start_date <= cohort_end_date+730)
 
 AttritionReportFrac<- AttritionReportFrac %>% 
   union_all(  
@@ -191,7 +191,7 @@ AttritionReportFrac<- AttritionReportFrac %>%
 
 # Adding index date
 info(logger, "DEFINING INDEX DATE FOR EACH INDIVIDUAL")
-fracture_table <- addIndex(fracture_table) #### up here
+fracture_table <- addIndex(fracture_table) 
 
 ### Exclusion criteria
 # At least 730 days prior obs
@@ -205,7 +205,7 @@ fracture_table <-fracture_table %>%
   arrange(observation_period_start_date) %>%
   filter(row_number()==1) %>%
   ungroup() %>%
-  select(subject_id, condition_concept_id, condition_start_date, fracture_site, index_date)
+  select(subject_id, cohort_start_date, cohort_end_date, condition_concept_id, condition_start_date, fracture_site, index_date)
 
 AttritionReportFrac<- AttritionReportFrac %>% 
   union_all(  
