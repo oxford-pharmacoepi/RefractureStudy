@@ -44,7 +44,7 @@ nonspecific_fracture_id <- conditions_sheet1 %>% filter(Site == "Nonspecific") %
 
 any_fracture_id <- conditions_sheet1 %>% filter(!Site == "Exclude") %>% select(Id) %>% pull()
 
-### cohort with all records of fracture (fracture must lie between 2008 April 1st and 2020 March 31st)
+### cohort with all records of fracture 
 info(logger, "COLLECTING ALL RECORDS OF FRACTURES FROM DENOMINATORS")
 cdm[["fracture"]] <- cdm[["denominator"]] %>% 
   left_join(cdm[["condition_occurrence"]], by = c("subject_id" = "person_id")) %>%
