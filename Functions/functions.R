@@ -108,6 +108,6 @@ nextFractureClean <- function (fractureTable){
     group_by(subject_id) %>%
     arrange(condition_start_date, .by_group = T) %>%
     filter(!(row_number()==1)) %>%
-    select(subject_id, condition_concept_id, condition_start_date, fracture_site) %>%
+    select(subject_id, cohort_start_date, cohort_end_date, condition_concept_id, condition_start_date, fracture_site) %>%
     ungroup()
 }

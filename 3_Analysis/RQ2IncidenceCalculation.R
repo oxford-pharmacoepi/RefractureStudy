@@ -23,22 +23,6 @@ fracture_table_follow_up <- addInDeath(fracture_table_follow_up)
 # Add in FOLLOWUPEND
 fracture_table_follow_up <- addInFollowUpEnd(fracture_table_follow_up)
 
-# fracture_table_follow_up <- fracture_table_follow_up %>% filter (follow_up_end > 0)
-# 
-# AttritionReportFrac<- AttritionReportFrac %>% 
-#   union_all(  
-#     tibble(
-#       cohort_definition_id = as.integer(1),
-#       number_records = fracture_table_follow_up %>% tally() %>% pull(),
-#       number_subjects = fracture_table_follow_up %>% distinct(subject_id) %>% tally() %>% pull(),
-#       reason = "Excluding people with 0 day follow up due to their observational period"
-#     )
-#   )
-
-### Finalise attrition
-AttritionReportFrac <- AttritionReportFrac %>% 
-  mutate(subjects_excluded = -(number_subjects-lag(number_subjects)), records_excluded = -(number_records - lag(number_records)))
-
 ### Relevant counts
 fracture_table_follow_up_back_up <- fracture_table_follow_up
 
@@ -56,6 +40,7 @@ counts <-
 patientID <- list()
 zeroPatientID <- list()
 reEntryTable <- list()
+
 while (nrow(fracture_table_follow_up_back_up) > 0){
   reEntryTable[[nrow(fracture_table_follow_up_back_up)]] <- fracture_table_follow_up_back_up %>% filter(follow_up_time > 0)
   patientID[[nrow(fracture_table_follow_up_back_up)]] <- fracture_table_follow_up_back_up %>% filter(follow_up_time > 0) %>% distinct(subject_id) %>% pull()
@@ -124,4 +109,4 @@ inc_results <- tibble(fracture = total_amount_fracture,
 
 confidenceInterval <- PoissonCI(x=total_amount_fracture, n=total_amount_time_years, method = "exact")
 confidenceInterval <- as.data.frame(confidenceInterval) %>% mutate(est = round(est * 1000,2), lower = round(lwr.ci * 1000, 2), upper = round(upr.ci*1000,2)) %>% select(c(-lwr.ci, -upr.ci))
-inc_results <- cbind(inc_results, confidenceInterval) #
+inc_results <- cbind(inc_results, confidenceInterval) 
