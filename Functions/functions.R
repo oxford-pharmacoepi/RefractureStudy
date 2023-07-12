@@ -20,7 +20,7 @@ noCancerPriorOrOnIndex <- function (fractureTable){
                 select(-cohort_start_date, -cohort_end_date) %>%
                 inner_join(cdm[[exclusionCohortTableName]] %>% 
                              filter(cohort_definition_id == cancerId), by = "subject_id", copy = T, relationship = "many-to-many") %>%
-                filter(cohort_start_date<=index_date), by = colnames(fractureTable))
+                filter(cohort_start_date<=index_date), by = "subject_id")
 }
 
 # for a fracture table, removing individuals with bone disease before or on the same day as the index fracture
@@ -30,7 +30,7 @@ noBoneDiseasePriorOrOnIndex <- function (fractureTable){
                 select(-cohort_start_date, -cohort_end_date) %>%
                 inner_join(cdm[[exclusionCohortTableName]] %>% 
                              filter(cohort_definition_id == BoneDiseaseId), by = "subject_id", copy = T, relationship = "many-to-many") %>%
-                filter(cohort_start_date<=index_date), by = colnames(fractureTable))
+                filter(cohort_start_date<=index_date), by = "subject_id")
 }
 
 # add an extra variable after_index which is two years after the index date

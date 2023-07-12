@@ -117,7 +117,7 @@ AttritionReportFrac<- AttritionReportFrac %>%
     )
   ) 
 
-### Removing fractures outside of cohort period
+### Removing fractures outside of cohort period and outside of observation period
 info(logger, "REMOVING FRACTURES OUTSIDE THE COHORT START DATE")
 fracture_table <- fracture_table %>% 
   filter(condition_start_date >= cohort_start_date-730) %>%
@@ -130,6 +130,23 @@ AttritionReportFrac<- AttritionReportFrac %>%
       number_records = fracture_table %>% tally() %>% pull(),
       number_subjects = fracture_table %>% distinct(subject_id) %>% tally() %>% pull(),
       reason = "fracture happening outside of study period"
+    )
+  ) 
+
+info(logger, "REMOVING FRACTURES OUTSIDE THE OBSERVATION PERIOD")
+fracture_table <- fracture_table %>% 
+  left_join(cdm[["observation_period"]], by = c("subject_id" = "person_id"), copy = T) %>%
+  filter(condition_start_date>=observation_period_start_date) %>%
+  filter(condition_start_date<=observation_period_end_date) %>%
+  select(subject_id, cohort_start_date, cohort_end_date, condition_concept_id, condition_start_date, fracture_site)
+
+AttritionReportFrac<- AttritionReportFrac %>% 
+  union_all(  
+    tibble(
+      cohort_definition_id = as.integer(1),
+      number_records = fracture_table %>% tally() %>% pull(),
+      number_subjects = fracture_table %>% distinct(subject_id) %>% tally() %>% pull(),
+      reason = "fracture happening outside of observation period"
     )
   ) 
 
@@ -201,10 +218,6 @@ fracture_table <-fracture_table %>%
   select(subject_id:index_date, observation_period_start_date, observation_period_end_date) %>%
   mutate(days_prior_obs = index_date - observation_period_start_date, days_after_obs = observation_period_end_date - index_date) %>%
   filter(days_prior_obs >= prior_observation, days_after_obs >= 0) %>%
-  group_by(subject_id, condition_concept_id, condition_start_date, fracture_site, index_date) %>%
-  arrange(observation_period_start_date) %>%
-  filter(row_number()==1) %>%
-  ungroup() %>%
   select(subject_id, cohort_start_date, cohort_end_date, condition_concept_id, condition_start_date, fracture_site, index_date)
 
 AttritionReportFrac<- AttritionReportFrac %>% 
@@ -330,3 +343,6 @@ fracture_table <- fracture_table %>%
   arrange(condition_start_date, .by_group = T) %>%
   ungroup() %>%
   arrange(subject_id)
+
+write.xlsx(AttritionReportDenom, file = here::here("Results_WOMEN_600K", "AttritionReport1.xlsx"))
+write.xlsx(AttritionReportFrac, file = here::here("Results_WOMEN_600K", "AttritionReport2.xlsx"))
