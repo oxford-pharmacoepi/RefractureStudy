@@ -78,35 +78,35 @@ patientID <- patientID[!sapply(patientID, is.null)]
 zeroPatientID <- zeroPatientID[!sapply(zeroPatientID, is.null)]
 reEntryTable <- reEntryTable[!sapply(reEntryTable, is.null)]
 
-totalLength <- list()
-for (i in (1:length(reEntryTable))){
-  totalLength[[i]] <- sum(reEntryTable[[i]]$follow_up_time) 
-}
+ObservedTime <- list()
 
 for (i in (1:length(reEntryTable))){
-reEntryTable[[i]] <- reEntryTable[[i]] %>% mutate(fracture_in_obs = as.integer(condition_start_date<=follow_up_end))  
+  ObservedTime[[i]] <- reEntryTable[[i]] %>% 
+    select(subject_id, follow_up_time) %>% 
+    distinct() %>% 
+    summarise(total_time = sum(follow_up_time))
 }
 
-totalFracture <- list()
+totalObservedTime <- 0
+for (i in (1:length(ObservedTime))){
+  totalObservedTime <- totalObservedTime + ObservedTime[[i]]
+}
+
+totalObservedTimeYears <- as.integer(totalObservedTime)/365.25
+
 for (i in (1:length(reEntryTable))){
-  totalFracture[[i]] <- sum(reEntryTable[[i]]$fracture_in_obs)
+  reEntryTable[[i]] <- reEntryTable[[i]] %>% mutate(fracture_in_obs = as.integer(condition_start_date==follow_up_end)*as.integer(condition_start_date>index_date))  
 }
 
-total_amount_time <- 0
+totalFracture <- 0
 for (i in (1:length(reEntryTable))){
-  total_amount_time <- total_amount_time + totalLength[[i]]
+  totalFracture <- totalFracture + sum(reEntryTable[[i]]$fracture_in_obs)
 }
 
-total_amount_time_years <- as.integer(total_amount_time)/365.25
+inc_results <- tibble(fracture = totalFracture, 
+                      py = totalObservedTimeYears)
 
-total_amount_fracture <- 0
-for (i in (1:length(reEntryTable))){
-  total_amount_fracture <- total_amount_fracture + totalFracture[[i]]
-}
-
-inc_results <- tibble(fracture = total_amount_fracture, 
-                      py = total_amount_time_years)
-
-confidenceInterval <- PoissonCI(x=total_amount_fracture, n=total_amount_time_years, method = "exact")
+confidenceInterval <- PoissonCI(x=totalFracture, n=totalObservedTimeYears, method = "exact")
 confidenceInterval <- as.data.frame(confidenceInterval) %>% mutate(est = round(est * 1000,2), lower = round(lwr.ci * 1000, 2), upper = round(upr.ci*1000,2)) %>% select(c(-lwr.ci, -upr.ci))
-inc_results <- cbind(inc_results, confidenceInterval) 
+inc_results <- cbind(inc_results, confidenceInterval, tibble(database_name=db_name)) 
+
