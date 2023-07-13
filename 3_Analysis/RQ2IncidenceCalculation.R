@@ -23,28 +23,15 @@ fracture_table_follow_up <- addInDeath(fracture_table_follow_up)
 # Add in FOLLOWUPEND
 fracture_table_follow_up <- addInFollowUpEnd(fracture_table_follow_up)
 
-### Relevant counts
+# Add in immFracture
+fracture_table_follow_up <- immFracture(fracture_table_follow_up)
+
 fracture_table_follow_up_back_up <- fracture_table_follow_up
 
-counts <- 
-    tibble(
-      number_records = fracture_table_follow_up_back_up %>% tally() %>% pull(),
-      number_subjects = fracture_table_follow_up_back_up %>% distinct(subject_id) %>% tally() %>% pull(),
-      cohort_number_records = fracture_table_follow_up_back_up %>% filter(follow_up_time < 730) %>% tally() %>% pull(),
-      cohort_number_subjects = fracture_table_follow_up_back_up %>% filter(follow_up_time < 730) %>% distinct(subject_id) %>% tally() %>% pull(),
-      cohort_number_fracture_records = fracture_table_follow_up_back_up %>% filter(follow_up_time < 730 & follow_up_end == fracture_after_index) %>% tally() %>% pull(),
-      cohort_number_fracture_subjects = fracture_table_follow_up_back_up %>% filter(follow_up_time < 730 & follow_up_end == fracture_after_index) %>% distinct(subject_id) %>% tally() %>% pull(),
-      zero_days = fracture_table_follow_up_back_up %>% filter (follow_up_time == 0) %>% distinct(subject_id) %>% tally() %>% pull()
-    )
-  
-patientID <- list()
-zeroPatientID <- list()
-reEntryTable <- list()
+reverseEntryTable <- list()
 
 while (nrow(fracture_table_follow_up_back_up) > 0){
-  reEntryTable[[nrow(fracture_table_follow_up_back_up)]] <- fracture_table_follow_up_back_up %>% filter(follow_up_time > 0)
-  patientID[[nrow(fracture_table_follow_up_back_up)]] <- fracture_table_follow_up_back_up %>% filter(follow_up_time > 0) %>% distinct(subject_id) %>% pull()
-  zeroPatientID[[nrow(fracture_table_follow_up_back_up)]] <- fracture_table_follow_up_back_up %>% filter(follow_up_time == 0) %>% distinct(subject_id) %>% pull()
+  reverseEntryTable[[nrow(fracture_table_follow_up_back_up)]] <- fracture_table_follow_up_back_up %>% filter(follow_up_time > 0)
   fracture_table_follow_up_back_up <- fracture_table_follow_up_back_up %>% filter(follow_up_time > 0)
   fracture_table_follow_up_back_up <- nextFractureClean(fracture_table_follow_up_back_up)
   fracture_table_follow_up_back_up <- addIndex(fracture_table_follow_up_back_up)
@@ -59,29 +46,21 @@ while (nrow(fracture_table_follow_up_back_up) > 0){
   fracture_table_follow_up_back_up <- addInDeath(fracture_table_follow_up_back_up)
   fracture_table_follow_up_back_up <- addInFollowUpEnd(fracture_table_follow_up_back_up)
   fracture_table_follow_up_back_up <- fracture_table_follow_up_back_up %>% ungroup()
-  
-  counts <- counts %>%
-    union_all(
-      tibble(
-        number_records = fracture_table_follow_up_back_up %>% tally() %>% pull(),
-        number_subjects = fracture_table_follow_up_back_up %>% distinct(subject_id) %>% tally() %>% pull(),
-        cohort_number_records = fracture_table_follow_up_back_up %>% filter(follow_up_time < 730) %>% tally() %>% pull(),
-        cohort_number_subjects = fracture_table_follow_up_back_up %>% filter(follow_up_time < 730) %>% distinct(subject_id) %>% tally() %>% pull(),
-        cohort_number_fracture_records = fracture_table_follow_up_back_up %>% filter(follow_up_time < 730 & follow_up_end == fracture_after_index) %>% tally() %>% pull(),
-        cohort_number_fracture_subjects = fracture_table_follow_up_back_up %>% filter(follow_up_time < 730 & follow_up_end == fracture_after_index) %>% distinct(subject_id) %>% tally() %>% pull(),
-        zero_days = fracture_table_follow_up_back_up %>% filter (follow_up_time == 0) %>% distinct(subject_id) %>% tally() %>% pull()
-      )
-    )
+  fracture_table_follow_up_back_up <- immFracture(fracture_table_follow_up_back_up)
 }
 
-patientID <- patientID[!sapply(patientID, is.null)]
-zeroPatientID <- zeroPatientID[!sapply(zeroPatientID, is.null)]
-reEntryTable <- reEntryTable[!sapply(reEntryTable, is.null)]
+reverseEntryTable <- reverseEntryTable[!sapply(reverseEntryTable, is.null)]
+
+#entryTable serves as a table recording people who entered the cohort at least once, twice etc..
+entryTable <- list()
+for (i in (1:length(reverseEntryTable))){
+  entryTable[[i]]<-reverseEntryTable[[length(reverseEntryTable)+1-i]]
+}
 
 ObservedTime <- list()
 
-for (i in (1:length(reEntryTable))){
-  ObservedTime[[i]] <- reEntryTable[[i]] %>% 
+for (i in (1:length(entryTable))){
+  ObservedTime[[i]] <- entryTable[[i]] %>% 
     select(subject_id, follow_up_time) %>% 
     distinct() %>% 
     summarise(total_time = sum(follow_up_time))
@@ -94,19 +73,64 @@ for (i in (1:length(ObservedTime))){
 
 totalObservedTimeYears <- as.integer(totalObservedTime)/365.25
 
-for (i in (1:length(reEntryTable))){
-  reEntryTable[[i]] <- reEntryTable[[i]] %>% mutate(fracture_in_obs = as.integer(condition_start_date==follow_up_end)*as.integer(condition_start_date>index_date))  
-}
-
 totalFracture <- 0
-for (i in (1:length(reEntryTable))){
-  totalFracture <- totalFracture + sum(reEntryTable[[i]]$fracture_in_obs)
+for (i in (1:length(reverseEntryTable))){
+  totalFracture <- totalFracture + sum(entryTable[[i]]$imminentFracture)
 }
 
 inc_results <- tibble(fracture = totalFracture, 
                       py = totalObservedTimeYears)
 
-confidenceInterval <- PoissonCI(x=totalFracture, n=totalObservedTimeYears, method = "exact")
-confidenceInterval <- as.data.frame(confidenceInterval) %>% mutate(est = round(est * 1000,2), lower = round(lwr.ci * 1000, 2), upper = round(upr.ci*1000,2)) %>% select(c(-lwr.ci, -upr.ci))
+confidenceInterval <- PoissonCI(x=totalFracture, n=totalObservedTimeYears/1000, method = "exact")
+confidenceInterval <- as.data.frame(confidenceInterval) %>% mutate(est = round(est,2), lower = round(lwr.ci, 2), upper = round(upr.ci,2)) %>% select(c(-lwr.ci, -upr.ci))
 inc_results <- cbind(inc_results, confidenceInterval, tibble(database_name=db_name)) 
 
+### Stratifying by the number of times someone enters the cohort
+stratifiedCohort <- list()
+for (i in (1:(length(entryTable)-1))){
+  stratifiedCohort[[i]] <- entryTable[[i]] %>% anti_join(entryTable[[i+1]], by = "subject_id")
+}
+
+stratifiedCohort[[length(entryTable)]] <- entryTable[[length(entryTable)]]
+
+stratifiedTime <- c()
+for (i in (1: length(stratifiedCohort))){
+  stratifiedTime[[i]] <- stratifiedCohort[[i]] %>% 
+    select(subject_id, follow_up_time) %>% 
+    distinct() %>% 
+    summarise(total_time = sum(follow_up_time))
+  stratifiedTime[[i]]<-as.integer(stratifiedTime[[i]] %>% pull())/365.25
+}
+
+stratifiedFractures <- c()
+for (i in (1:length(stratifiedCohort))){
+  stratifiedFractures[[i]] <- sum(stratifiedCohort[[i]]$imminentFracture)
+}
+
+stratifiedIncidenceResults <- list()
+for (i in (1:length(stratifiedCohort))){
+  stratifiedIncidenceResults[[i]] <- tibble(fracture = stratifiedFractures[[i]], py = stratifiedTime[[i]])
+  stratifiedIncidenceResults[[i]] <- cbind(as.data.frame(PoissonCI(x=stratifiedFractures[[i]], n=stratifiedTime[[i]]/1000, method = "exact")) %>% mutate(est = round(est,2), lower = round(lwr.ci, 2), upper = round(upr.ci,2)) %>% select(c(-lwr.ci, -upr.ci)), stratifiedIncidenceResults[[i]], tibble(database_name=db_name), tibble(cohort_entering_counter = i))
+}
+
+stratifiedIncidenceResultsTable <- data.frame()
+for (i in (1:length(stratifiedIncidenceResults))){
+  stratifiedIncidenceResultsTable<-rbind(stratifiedIncidenceResultsTable, stratifiedIncidenceResults[[i]])
+}
+
+percentage <- list()
+number_of_subjects <- list()
+for (i in (1:length(stratifiedCohort))){
+  number_of_subjects[[i]] <- stratifiedCohort[[i]] %>% distinct(subject_id) %>% tally()
+}
+
+for (i in (1:length(stratifiedCohort))){
+  percentage[[i]] <- tibble(percent = stratifiedFractures[[i]]/number_of_subjects[[i]]*100, tibble(database_name=db_name), tibble(cohort_entering_counter = i))
+}
+
+percentageTable <- data.frame()
+for (i in (1:length(stratifiedIncidenceResults))){
+  percentageTable<-rbind(percentageTable, percentage[[i]])
+}
+
+### cumulative incidence function
