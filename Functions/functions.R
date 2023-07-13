@@ -104,10 +104,16 @@ addInFollowUpEnd <- function(fractureTable){
 # clean out fractures based on their follow up period, used to further analysis 
 nextFractureClean <- function (fractureTable){
   fractureTable %>% 
-    filter(follow_up_time == 730) %>%
+    anti_join(fractureTable %>% filter(imminentFracture==1), by = "subject_id") %>%
     group_by(subject_id) %>%
     arrange(condition_start_date, .by_group = T) %>%
     filter(!(row_number()==1)) %>%
     select(subject_id, cohort_start_date, cohort_end_date, condition_concept_id, condition_start_date, fracture_site) %>%
     ungroup()
+}
+
+# add in immFracture, a function that indicates which fracture is considered imminent in relation to the current index fracture
+immFracture <- function (fractureTable){
+  fractureTable %>%
+    mutate(imminentFracture = as.integer(condition_start_date == follow_up_end))
 }
