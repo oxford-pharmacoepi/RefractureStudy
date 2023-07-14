@@ -344,5 +344,5 @@ fracture_table <- fracture_table %>%
   ungroup() %>%
   arrange(subject_id)
 
-write.xlsx(AttritionReportDenom, file = here::here("Results_WOMEN_600K", "AttritionReport1.xlsx"))
-write.xlsx(AttritionReportFrac, file = here::here("Results_WOMEN_600K", "AttritionReport2.xlsx"))
+write.xlsx(AttritionReportDenom, file = here::here(output_folder, "AttritionReport1.xlsx"))
+write.xlsx(AttritionReportFrac, file = here::here(output_folder, "AttritionReport2.xlsx"))

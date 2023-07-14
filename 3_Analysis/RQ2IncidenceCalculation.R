@@ -83,7 +83,7 @@ inc_results <- tibble(fracture = totalFracture,
 
 confidenceInterval <- PoissonCI(x=totalFracture, n=totalObservedTimeYears/1000, method = "exact")
 confidenceInterval <- as.data.frame(confidenceInterval) %>% mutate(est = round(est,2), lower = round(lwr.ci, 2), upper = round(upr.ci,2)) %>% select(c(-lwr.ci, -upr.ci))
-inc_results <- cbind(inc_results, confidenceInterval, tibble(database_name=db_name)) 
+inc_results <- cbind(inc_results, tibble(n_person = entryTable[[1]] %>% distinct(subject_id) %>% tally() %>% pull()), confidenceInterval, tibble(database_name=db_name)) 
 
 ### Stratifying by the number of times someone enters the cohort
 stratifiedCohort <- list()
@@ -109,7 +109,7 @@ for (i in (1:length(stratifiedCohort))){
 
 stratifiedIncidenceResults <- list()
 for (i in (1:length(stratifiedCohort))){
-  stratifiedIncidenceResults[[i]] <- tibble(fracture = stratifiedFractures[[i]], py = stratifiedTime[[i]])
+  stratifiedIncidenceResults[[i]] <- tibble(fracture = stratifiedFractures[[i]], py = stratifiedTime[[i]], tibble(n_person = stratifiedCohort[[i]] %>% distinct(subject_id) %>% tally() %>% pull()))
   stratifiedIncidenceResults[[i]] <- cbind(as.data.frame(PoissonCI(x=stratifiedFractures[[i]], n=stratifiedTime[[i]]/1000, method = "exact")) %>% mutate(est = round(est,2), lower = round(lwr.ci, 2), upper = round(upr.ci,2)) %>% select(c(-lwr.ci, -upr.ci)), stratifiedIncidenceResults[[i]], tibble(database_name=db_name), tibble(cohort_entering_counter = i))
 }
 
@@ -118,19 +118,20 @@ for (i in (1:length(stratifiedIncidenceResults))){
   stratifiedIncidenceResultsTable<-rbind(stratifiedIncidenceResultsTable, stratifiedIncidenceResults[[i]])
 }
 
-percentage <- list()
-number_of_subjects <- list()
-for (i in (1:length(stratifiedCohort))){
-  number_of_subjects[[i]] <- stratifiedCohort[[i]] %>% distinct(subject_id) %>% tally()
-}
+# obscuring according to min cell count
+stratifiedIncidenceResultsTable <- stratifiedIncidenceResultsTable %>% 
+  mutate(obscured = n_person < minimum_counts)
 
-for (i in (1:length(stratifiedCohort))){
-  percentage[[i]] <- tibble(percent = stratifiedFractures[[i]]/number_of_subjects[[i]]*100, tibble(database_name=db_name), tibble(cohort_entering_counter = i))
-}
+stratifiedIncidenceResultsTable <- stratifiedIncidenceResultsTable %>%
+  mutate(est = ifelse(obscured == T, NA, est),
+         lower = ifelse(obscured == T, NA, lower),
+         upper = ifelse(obscured == T, NA, upper),
+         fracture = ifelse(obscured == T, NA, fracture),
+         py = ifelse(obscured == T, NA, py),
+         n_person = ifelse(obscured == T, NA, n_person))
 
-percentageTable <- data.frame()
-for (i in (1:length(stratifiedIncidenceResults))){
-  percentageTable<-rbind(percentageTable, percentage[[i]])
-}
+# Export Incidence Results
+write.xlsx(inc_results, file = here::here(output_folder, "IncidenceResults.xlsx"))
+write.xlsx(stratifiedIncidenceResultsTable, file = here::here("Results_WOMEN_600K", "StratifiedIncidenceResults.xlsx"))
 
 ### cumulative incidence function
