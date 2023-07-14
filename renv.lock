@@ -255,6 +255,18 @@
       ],
       "Hash": "e749cae40fa9ef469b6050959517453c"
     },
+    "SqlRender": {
+      "Package": "SqlRender",
+      "Version": "1.15.1",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "checkmate",
+        "rJava",
+        "rlang"
+      ],
+      "Hash": "e506a1b16cd84c16c762b039b70c8eaa"
+    },
     "arrow": {
       "Package": "arrow",
       "Version": "12.0.0",
