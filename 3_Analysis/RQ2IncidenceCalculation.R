@@ -132,6 +132,6 @@ stratifiedIncidenceResultsTable <- stratifiedIncidenceResultsTable %>%
 
 # Export Incidence Results
 write.xlsx(inc_results, file = here::here(output_folder, "IncidenceResults.xlsx"))
-write.xlsx(stratifiedIncidenceResultsTable, file = here::here("Results_WOMEN_600K", "StratifiedIncidenceResults.xlsx"))
+write.xlsx(stratifiedIncidenceResultsTable, file = here::here(output_folder, "StratifiedIncidenceResults.xlsx"))
 
 ### cumulative incidence function
