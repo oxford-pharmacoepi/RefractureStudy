@@ -13,6 +13,8 @@ library(IncidencePrevalence)
 library(readxl)
 library(DescTools)
 library(openxlsx)
+library(CirceR) #remotes::install_github("ohdsi/CirceR")
+library(testthat)
 
 # database metadata and connection details -----
 # The name/ acronym for the database
