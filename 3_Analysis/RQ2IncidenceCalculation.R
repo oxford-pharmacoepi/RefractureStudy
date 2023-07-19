@@ -98,7 +98,7 @@ for (i in (1: length(stratifiedCohort))){
   stratifiedTime[[i]] <- stratifiedCohort[[i]] %>% 
     select(subject_id, follow_up_time) %>% 
     distinct() %>% 
-    summarise(total_time = sum(follow_up_time))
+    summarise(total_time = sum(follow_up_time+730*(i-1)))
   stratifiedTime[[i]]<-as.integer(stratifiedTime[[i]] %>% pull())/365.25
 }
 
