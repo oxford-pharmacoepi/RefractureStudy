@@ -74,3 +74,10 @@ imminentFractureCohortTotal <-data.frame()
 for (i in 1:length(imminentFractureCohort)){
   imminentFractureCohortTotal<-rbind(imminentFractureCohortTotal, imminentFractureCohort[[i]])
 }
+
+withoutImminentFractureCohortTotal <- entryTable[[1]] %>%
+  anti_join(imminentFractureCohortTotal, by = "subject_id") %>%
+  select(subject_id) %>%
+  distinct()
+
+#### characterisation 
