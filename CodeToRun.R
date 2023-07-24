@@ -16,6 +16,7 @@ library(openxlsx)
 library(CirceR) #remotes::install_github("ohdsi/CirceR")
 library(testthat)
 library(SqlRender)
+library(lubridate)
 
 # database metadata and connection details -----
 # The name/ acronym for the database

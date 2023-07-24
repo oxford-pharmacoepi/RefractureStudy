@@ -26,8 +26,8 @@ cdm <- generateDenominatorCohortSet(
 AttritionReportDenom<-cohortAttrition(cdm$denominator)
 
 ### Loading fracture codes
-conditions_sheet1 <- read_excel("~/RefractureStudy/FracturesCandidateCodes/fracture_sites_conditions.xlsx", sheet = 1)
-trauma <- read_excel("~/RefractureStudy/FracturesCandidateCodes/Trauma Codes.xlsx")
+conditions_sheet1 <- read_excel(paste0(here(), "/FracturesCandidateCodes/fracture_sites_conditions.xlsx"), sheet = 1) #"~/RefractureStudy/FracturesCandidateCodes/fracture_sites_conditions.xlsx"
+trauma <- read_excel(paste0(here(), "/FracturesCandidateCodes/Trauma Codes.xlsx")) #"~/RefractureStudy/FracturesCandidateCodes/Trauma Codes.xlsx"
 trauma_condition <- trauma %>% filter(Domain == "Condition") %>% select(Id) %>% pull()
 trauma_observation <- trauma %>% filter(Domain == "Observation") %>% select(Id) %>% pull()
 
