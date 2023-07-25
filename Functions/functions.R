@@ -13,6 +13,13 @@ noDeathOnIndex <- function (fractureTable){
   fractureTable %>% anti_join(cdm[["death"]], by = c("subject_id" = "person_id", "index_date" = "death_date"), copy = T)
 }
 
+noDeathOnOrAfterIndex <- function(fractureTable){
+  fractureTable %>%
+    left_join(cdm[["death"]], by = c("subject_id"= "person_id"), copy = T) %>% 
+    filter(death_date >= index_date |is.na(death_date)) %>%
+    select(colnames(fractureTable))
+}
+
 # for a fracture table, removing individuals with cancer before or on the same day as the index fracture
 noCancerPriorOrOnIndex <- function (fractureTable){
   fractureTable %>% 
