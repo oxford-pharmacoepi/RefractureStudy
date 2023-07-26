@@ -9,6 +9,11 @@ info(logger, "RUNNING NECESSARY FUNCTIONS")
 source(here("Functions", "functions.R"))
 info(logger, "RUNNING NECESSARY FUNCTIONS IS DONE")
 
+# cleaning fractures
+info(logger, "CLEANING FRACTURES")
+source(here("2_CohortCreation", "CleaningFractures.R"))
+info(logger, "CLEANING FRACTURES IS DONE")
+
 # generating cohorts for Research Question 1 and 2
 info(logger, "GENERATING COHORTS FOR RESEARCH QUESTION 1 AND 2")
 source(here("2_CohortCreation", "CohortRQ1&2.R"))
@@ -31,5 +36,5 @@ info(logger, "CARRYING OUT ANALYSES FOR RESEARCH QUESTION 2 IS DONE")
 
 # # carrying out analyses for Research Question 3
 # info(logger, "CARRYING OUT ANALYSES FOR RESEARCH QUESTION 3")
-# source(here("3_Analysis", "RQ3PropensityScores.R"))
+# source(here("3_Analysis", "RQ3PSMatching.R"))
 # info(logger, "CARRYING OUT ANALYSES FOR RESEARCH QUESTION 3 IS DONE")
