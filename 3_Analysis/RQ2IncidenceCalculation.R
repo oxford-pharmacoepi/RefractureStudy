@@ -1,6 +1,6 @@
 # Creating follow up time
 info(logger, "CREATING FOLLOW UP TIME: FOLLOWUPEND")
-fracture_table_follow_up <- fracture_table
+fracture_table_follow_up <- fracture_table_rq2
 
 # 730 days after the index date
 fracture_table_follow_up <- addInTwoYearsAfter(fracture_table_follow_up)
