@@ -81,3 +81,24 @@ withoutImminentFractureCohortTotal <- entryTable[[1]] %>%
   distinct()
 
 #### characterisation 
+cdm[["imminentFractureCohort"]] <- cdm[["denominator"]] %>%
+  inner_join(imminentFractureCohortTotal, by = "subject_id", copy = T) %>%
+  left_join(entryTable[[1]] %>% select(subject_id, index_date), by = "subject_id", copy = T) %>%
+  select(-cohort_start_date, -cohort_end_date) %>%
+  rename(cohort_start_date = index_date) %>% 
+  mutate(cohort_end_date = cohort_start_date) %>%
+  compute()
+
+cdm[["noImminentFractureCohort"]] <- cdm[["denominator"]] %>%
+  inner_join(withoutImminentFractureCohortTotal, by = "subject_id", copy = T) %>%
+  left_join(entryTable[[1]] %>% select(subject_id, index_date), by = "subject_id", copy = T) %>%
+  select(-cohort_start_date, -cohort_end_date) %>%
+  rename(cohort_start_date = index_date) %>% 
+  mutate(cohort_end_date = cohort_start_date) %>%
+  compute()
+
+cdm[["imminentFractureCohort"]]<-
+  addDemographics(x = cdm[["imminentFractureCohort"]], cdm = cdm)
+
+cdm[["noImminentFractureCohort"]]<-
+  addDemographics(x = cdm[["noImminentFractureCohort"]], cdm = cdm)
