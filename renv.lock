@@ -195,6 +195,32 @@
       ],
       "Hash": "539dc0c0c05636812f1080f473d2c177"
     },
+    "PatientProfiles": {
+      "Package": "PatientProfiles",
+      "Version": "0.3.0",
+      "Source": "GitHub",
+      "RemoteType": "github",
+      "RemoteHost": "api.github.com",
+      "RemoteRepo": "PatientProfiles",
+      "RemoteUsername": "darwin-eu-dev",
+      "RemoteRef": "HEAD",
+      "RemoteSha": "bd0031b47dccd197c718cfbcb4ee60187d277c4d",
+      "Requirements": [
+        "CDMConnector",
+        "DBI",
+        "R",
+        "checkmate",
+        "cli",
+        "dplyr",
+        "lubridate",
+        "magrittr",
+        "pillar",
+        "rlang",
+        "stringr",
+        "tidyr"
+      ],
+      "Hash": "8e0ad259825c417928fae94cbe21dc2f"
+    },
     "R6": {
       "Package": "R6",
       "Version": "2.5.1",
