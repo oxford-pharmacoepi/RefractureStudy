@@ -18,7 +18,7 @@
     },
     "CDMConnector": {
       "Package": "CDMConnector",
-      "Version": "0.6.0",
+      "Version": "1.0.0",
       "Source": "Repository",
       "Repository": "CRAN",
       "Requirements": [
@@ -40,11 +40,12 @@
         "readr",
         "rlang",
         "stringr",
+        "tidyr",
         "tidyselect",
         "waldo",
         "withr"
       ],
-      "Hash": "8ac6d500d77bb2cc083dc8d16f61aa74"
+      "Hash": "41f9500b3ff924dfba7f8563b7523e40"
     },
     "CirceR": {
       "Package": "CirceR",
@@ -122,6 +123,30 @@
         "withr"
       ],
       "Hash": "5b8c32722dadfb21a851e099444ba0ac"
+    },
+    "DrugUtilisation": {
+      "Package": "DrugUtilisation",
+      "Version": "0.2.0",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "CDMConnector",
+        "DBI",
+        "PatientProfiles",
+        "R",
+        "RJSONIO",
+        "checkmate",
+        "cli",
+        "dbplyr",
+        "dplyr",
+        "glue",
+        "lubridate",
+        "magrittr",
+        "purrr",
+        "rlang",
+        "tidyr"
+      ],
+      "Hash": "301c22d34b0debca34cbed8a3669b137"
     },
     "Exact": {
       "Package": "Exact",
