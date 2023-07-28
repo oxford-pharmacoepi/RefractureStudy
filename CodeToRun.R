@@ -17,7 +17,6 @@ library(CirceR) #remotes::install_github("ohdsi/CirceR")
 library(testthat)
 library(SqlRender)
 library(lubridate)
-library(LargeScaleCharacteristics)
 library(PatientProfiles)
 
 # database metadata and connection details -----
