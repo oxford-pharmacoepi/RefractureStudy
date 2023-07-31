@@ -105,6 +105,8 @@ AttritionReportRQ2<- AttritionReportRQ2 %>%
     )
   )
 
+fracture_table_rq1 <- fracture_table_rq2
+
 ### Finalise attrition
 AttritionReportRQ2 <- AttritionReportRQ2 %>% 
   mutate(subjects_excluded = -(number_subjects-lag(number_subjects)), records_excluded = -(number_records - lag(number_records)))

@@ -1,6 +1,6 @@
 # Creating follow up time
 info(logger, "CREATING FOLLOW UP TIME: FOLLOWUPEND")
-fracture_table_follow_up <- fracture_table
+fracture_table_follow_up <- fracture_table_rq1
 
 # 730 days after the index date
 fracture_table_follow_up <- addInTwoYearsAfter(fracture_table_follow_up)
@@ -81,24 +81,62 @@ withoutImminentFractureCohortTotal <- entryTable[[1]] %>%
   distinct()
 
 #### characterisation 
-cdm[["imminentFractureCohort"]] <- cdm[["denominator"]] %>%
-  inner_join(imminentFractureCohortTotal, by = "subject_id", copy = T) %>%
-  left_join(entryTable[[1]] %>% select(subject_id, index_date), by = "subject_id", copy = T) %>%
-  select(-cohort_start_date, -cohort_end_date) %>%
-  rename(cohort_start_date = index_date) %>% 
-  mutate(cohort_end_date = cohort_start_date) %>%
-  compute()
-
 cdm[["noImminentFractureCohort"]] <- cdm[["denominator"]] %>%
   inner_join(withoutImminentFractureCohortTotal, by = "subject_id", copy = T) %>%
   left_join(entryTable[[1]] %>% select(subject_id, index_date), by = "subject_id", copy = T) %>%
   select(-cohort_start_date, -cohort_end_date) %>%
   rename(cohort_start_date = index_date) %>% 
   mutate(cohort_end_date = cohort_start_date) %>%
+  compute() %>%
+  distinct()
+
+cdm[["imminentFractureCohort"]] <-cdm[["denominator"]] %>%
+  inner_join(imminentFractureCohortTotal, by = "subject_id", copy = T) %>%
+  left_join(entryTable[[1]] %>% select(subject_id, index_date), by = "subject_id", copy = T) %>%
+  select(-cohort_start_date, -cohort_end_date) %>%
+  rename(cohort_start_date = index_date) %>% 
+  mutate(cohort_end_date = cohort_start_date) %>%
+  compute() %>%
+  distinct()
+
+imminentCohortSet <- cdm[["imminentFractureCohort"]] %>% 
+  select("cohort_definition_id") %>% 
+  distinct() %>% 
+  mutate(cohort_name = if_else(cohort_definition_id == 1, "imminent_fracture", "else"))
+
+noImminentCohortSet <- cdm[["noImminentFractureCohort"]] %>% 
+  select("cohort_definition_id") %>% 
+  distinct() %>% 
+  mutate(cohort_name = if_else(cohort_definition_id == 1, "no_imminent_fracture", "else"))
+
+imminent_cohort_count <- cdm[["imminentFractureCohort"]] %>%
+  group_by(cohort_definition_id) %>%
+  tally() %>%
+  compute() %>%
+  rename(number_records = n) %>%
+  mutate(number_subjects = number_records) %>%
   compute()
 
-cdm[["imminentFractureCohort"]]<-
-  addDemographics(x = cdm[["imminentFractureCohort"]], cdm = cdm)
+noimminent_cohort_count <- cdm[["noImminentFractureCohort"]] %>%
+  group_by(cohort_definition_id) %>%
+  tally() %>%
+  compute() %>%
+  rename(number_records = n) %>%
+  mutate(number_subjects = number_records) %>%
+  compute()
+ 
+cdm[["imminentFractureCohort"]] <- newGeneratedCohortSet(cohortRef = cdm[["imminentFractureCohort"]],
+                                                         cohortSetRef = imminentCohortSet,
+                                                         cohortCountRef = imminent_cohort_count)
 
-cdm[["noImminentFractureCohort"]]<-
-  addDemographics(x = cdm[["noImminentFractureCohort"]], cdm = cdm)
+cdm[["noImminentFractureCohort"]] <- newGeneratedCohortSet(cohortRef = cdm[["noImminentFractureCohort"]],
+                                                           cohortSetRef = noImminentCohortSet,
+                                                           cohortCountRef = noimminent_cohort_count)
+
+# cdm[["imminentFractureCohort"]]<-
+#   addDemographics(x = cdm[["imminentFractureCohort"]], cdm = cdm)
+# 
+# cdm[["noImminentFractureCohort"]]<-
+#   addDemographics(x = cdm[["noImminentFractureCohort"]], cdm = cdm)
+
+summariseLargeScaleCharacteristics(cdm[["imminentFractureCohort"]], cdm)
