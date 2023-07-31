@@ -196,6 +196,61 @@ for (i in (1:length(compCohort2))){
     )
 }
 
+### Exclusion based on index date must lie within the cohort start and cohort end date 
+for (i in (1:length(targetCohort))){
+  targetCohort[[i]] <- targetCohort[[i]] %>% filter(index_date>=cohort_start_date & index_date <=cohort_end_date)
+}
+
+for (i in (1:length(compCohort1))){
+  compCohort1[[i]] <- compCohort1[[i]] %>% filter(index_date>=cohort_start_date & index_date <=cohort_end_date)
+}
+
+for (i in (1:length(compCohort2))){
+  compCohort2[[i]] <- compCohort2[[i]] %>% filter(index_date>=cohort_start_date & index_date <=cohort_end_date)
+}
+
+for (i in (1:length(targetCohort))){
+  AttritionReportRQ3 <- AttritionReportRQ3 %>%
+    union_all(
+      tibble(
+        reason_id = 3,
+        cohort_definition = "Target cohort",
+        number_records = targetCohort[[i]] %>% tally() %>% pull(),
+        number_subjects = targetCohort[[i]] %>% distinct(subject_id) %>% tally() %>% pull(),
+        reason = "Excluding based on index must lie within cohort start and cohort end date",
+        period = i
+      )
+    )
+}
+
+for (i in (1:length(compCohort1))){
+  AttritionReportRQ3 <- AttritionReportRQ3 %>%
+    union_all(
+      tibble(
+        reason_id = 3,
+        cohort_definition = "Comparator Cohort 1",
+        number_records = compCohort1[[i]] %>% tally() %>% pull(),
+        number_subjects = compCohort1[[i]] %>% distinct(subject_id) %>% tally() %>% pull(),
+        reason = "Excluding based on index must lie within cohort start and cohort end date",
+        period = i
+      )
+    )
+}
+
+for (i in (1:length(compCohort2))){
+  AttritionReportRQ3 <- AttritionReportRQ3 %>%
+    union_all(
+      tibble(
+        reason_id = 3,
+        cohort_definition = "Comparator Cohort 2",
+        number_records = compCohort2[[i]] %>% tally() %>% pull(),
+        number_subjects = compCohort2[[i]] %>% distinct(subject_id) %>% tally() %>% pull(),
+        reason = "Excluding based on index must lie within cohort start and cohort end date",
+        period = i
+      )
+    )
+}
+
 ### Exclusion based on prior cancer 
 for (i in (1:length(targetCohort))){
   targetCohort[[i]] <- noCancerPriorOrOnIndex(targetCohort[[i]])
@@ -213,7 +268,7 @@ for (i in (1:length(targetCohort))){
   AttritionReportRQ3 <- AttritionReportRQ3 %>%
     union_all(
       tibble(
-        reason_id = 3,
+        reason_id = 4 ,
         cohort_definition = "Target cohort",
         number_records = targetCohort[[i]] %>% tally() %>% pull(),
         number_subjects = targetCohort[[i]] %>% distinct(subject_id) %>% tally() %>% pull(),
@@ -227,7 +282,7 @@ for (i in (1:length(compCohort1))){
   AttritionReportRQ3 <- AttritionReportRQ3 %>%
     union_all(
       tibble(
-        reason_id = 3,
+        reason_id = 4,
         cohort_definition = "Comparator Cohort 1",
         number_records = compCohort1[[i]] %>% tally() %>% pull(),
         number_subjects = compCohort1[[i]] %>% distinct(subject_id) %>% tally() %>% pull(),
@@ -241,7 +296,7 @@ for (i in (1:length(compCohort2))){
   AttritionReportRQ3 <- AttritionReportRQ3 %>%
     union_all(
       tibble(
-        reason_id = 3,
+        reason_id = 4,
         cohort_definition = "Comparator Cohort 2",
         number_records = compCohort2[[i]] %>% tally() %>% pull(),
         number_subjects = compCohort2[[i]] %>% distinct(subject_id) %>% tally() %>% pull(),
@@ -268,7 +323,7 @@ for (i in (1:length(targetCohort))){
   AttritionReportRQ3 <- AttritionReportRQ3 %>%
     union_all(
       tibble(
-        reason_id = 4,
+        reason_id = 5,
         cohort_definition = "Target cohort",
         number_records = targetCohort[[i]] %>% tally() %>% pull(),
         number_subjects = targetCohort[[i]] %>% distinct(subject_id) %>% tally() %>% pull(),
@@ -282,7 +337,7 @@ for (i in (1:length(compCohort1))){
   AttritionReportRQ3 <- AttritionReportRQ3 %>%
     union_all(
       tibble(
-        reason_id = 4,
+        reason_id = 5,
         cohort_definition = "Comparator Cohort 1",
         number_records = compCohort1[[i]] %>% tally() %>% pull(),
         number_subjects = compCohort1[[i]] %>% distinct(subject_id) %>% tally() %>% pull(),
@@ -296,7 +351,7 @@ for (i in (1:length(compCohort2))){
   AttritionReportRQ3 <- AttritionReportRQ3 %>%
     union_all(
       tibble(
-        reason_id = 4,
+        reason_id = 5,
         cohort_definition = "Comparator Cohort 2",
         number_records = compCohort2[[i]] %>% tally() %>% pull(),
         number_subjects = compCohort2[[i]] %>% distinct(subject_id) %>% tally() %>% pull(),
@@ -339,7 +394,7 @@ for (i in (1:length(targetCohort))){
   AttritionReportRQ3 <- AttritionReportRQ3 %>%
     union_all(
       tibble(
-        reason_id = 5,
+        reason_id = 6,
         cohort_definition = "Target cohort",
         number_records = targetCohort[[i]] %>% tally() %>% pull(),
         number_subjects = targetCohort[[i]] %>% distinct(subject_id) %>% tally() %>% pull(),
@@ -353,7 +408,7 @@ for (i in (1:length(compCohort1))){
   AttritionReportRQ3 <- AttritionReportRQ3 %>%
     union_all(
       tibble(
-        reason_id = 5,
+        reason_id = 6,
         cohort_definition = "Comparator Cohort 1",
         number_records = compCohort1[[i]] %>% tally() %>% pull(),
         number_subjects = compCohort1[[i]] %>% distinct(subject_id) %>% tally() %>% pull(),
@@ -367,7 +422,7 @@ for (i in (1:length(compCohort2))){
   AttritionReportRQ3 <- AttritionReportRQ3 %>%
     union_all(
       tibble(
-        reason_id = 5,
+        reason_id = 6,
         cohort_definition = "Comparator Cohort 2",
         number_records = compCohort2[[i]] %>% tally() %>% pull(),
         number_subjects = compCohort2[[i]] %>% distinct(subject_id) %>% tally() %>% pull(),
