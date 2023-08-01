@@ -14,8 +14,10 @@ for (i in (1:length(targetCohort))){
                        compCohort2[[i]] %>% select(subject_id, index_date) %>% distinct())
 }
 
+allSubjectsSample <- allSubjects %>% sample_frac(0.001) #sample because it takes too long
+
 features <- cdm$condition_occurrence %>%
-  inner_join(allSubjects, by = c("person_id" = "subject_id"), copy = T) %>%
+  inner_join(allSubjectsSample, by = c("person_id" = "subject_id"), copy = T) %>%
   select(
     "subject_id" = "person_id",
     "index_date",
@@ -30,7 +32,7 @@ features <- cdm$condition_occurrence %>%
   distinct() %>%
   union_all(
     cdm$drug_era %>%
-      inner_join(allSubjects, by = c("person_id" = "subject_id"), copy = T) %>%
+      inner_join(allSubjectsSample, by = c("person_id" = "subject_id"), copy = T) %>%
       select(
         "subject_id" = "person_id", 
         "index_date",
@@ -48,7 +50,7 @@ features <- cdm$condition_occurrence %>%
   ) %>%
   union_all(
     cdm$procedure_occurrence %>%
-      inner_join(allSubjects, by = c("person_id" = "subject_id"), copy = T) %>%
+      inner_join(allSubjectsSample, by = c("person_id" = "subject_id"), copy = T) %>%
       select(
         "subject_id" = "person_id", 
         "index_date",
@@ -66,7 +68,7 @@ features <- cdm$condition_occurrence %>%
   ) %>%
   union_all(
     cdm$measurement %>%
-      inner_join(allSubjects, by = c("person_id" = "subject_id"), copy = T) %>%
+      inner_join(allSubjectsSample, by = c("person_id" = "subject_id"), copy = T) %>%
       select(
         "subject_id" = "person_id", 
         "index_date",
@@ -88,19 +90,21 @@ save(features, file = here(output_folder, "tempData", "features.RData"))
 rm(features)
 
 ### Using Patient Profiles and pre-defined functions
-allSubjectsSample <- allSubjects %>% sample_frac(0.01) #sample because it takes too long
-
 cdm[["all_subjects"]] <- cdm[["denominator"]] %>%
   mutate(cohort_start_date = as.Date(as.character(cohort_start_date)),
          cohort_end_date = as.Date(as.character(cohort_end_date))) %>%
-  inner_join(allSubjectsSample, by = "subject_id", copy = T)
+  inner_join(allSubjectsSample, by = "subject_id", copy = T) %>%
+  select(cohort_definition_id, subject_id, index_date) %>% 
+  rename(cohort_start_date = index_date) %>%
+  mutate(cohort_end_date = cohort_start_date) %>%
+  compute()
 
-rm(allSubjects)
-
-cdm[["all_subjects"]] <- 
+allSubjectsCohort <- 
   cdm[["all_subjects"]] %>% 
-  addAge(cdm, indexDate = "index_date", ageGroup = list(
+  addAge(cdm, ageGroup = list(
     c(50,54), c(55,59), c(60,64), c(65,69), c(70,74), c(75,79), c(80,84),
-    c(85,89), c(90,150))) %>%
-  addPriorObservation(indexDate = index_date)
+    c(85,89), c(90,150))) %>% 
+  addPriorObservation()
   
+testtable <- allSubjectsCohort %>% addNumberVisit(cdm, c(NA, -366), "number_visit_3") %>%
+  collect()

@@ -124,3 +124,51 @@ immFracture <- function (fractureTable){
   fractureTable %>%
     mutate(imminentFracture = as.integer(condition_start_date == follow_up_end))
 }
+
+##################################################################################
+#                                                                                #
+#                  Following functions are due to Nuria and Marti                #
+#                                                                                #
+##################################################################################
+addNumberVisit <- function(x, cdm, window = c(NA, NA), name = "number_visit", compute = TRUE) {
+  result <- cdm[["visit_occurrence"]] %>%
+    dplyr::select(
+      "subject_id" = "person_id", "visit_concept_id", "visit_start_date"
+    ) %>%
+    dplyr::inner_join(
+      x %>%
+        dplyr::select("subject_id", "cohort_start_date") %>%
+        dplyr::distinct(),
+      by = "subject_id"
+    )
+  if (!is.na(window[1])) {
+    result <- result %>%
+      dplyr::filter(
+        CDMConnector::dateadd("cohort_start_date", window[1]) <=
+          .data$visit_start_date
+      )
+  }
+  if (!is.na(window[2])) {
+    result <- result %>%
+      dplyr::filter(
+        CDMConnector::dateadd("cohort_start_date", window[2]) >=
+          .data$visit_start_date
+      )
+  }
+  result <- result %>%
+    dplyr::group_by(
+      .data$subject_id, .data$cohort_start_date
+    ) %>%
+    dplyr::summarise(!!name := dplyr::n(), .groups = "drop") %>%
+    dplyr::compute() %>%
+    dplyr::right_join(
+      x,
+      by = c("subject_id", "cohort_start_date")
+    ) %>%
+    dplyr::mutate(!!name := dplyr::if_else(is.na(.data[[name]]), 0, .data[[name]])) %>%
+    dplyr::select(dplyr::all_of(c(colnames(x), name)))
+  if (isTRUE(compute)) {
+    result <- result %>% dplyr::compute()
+  }
+  return(result)
+}
