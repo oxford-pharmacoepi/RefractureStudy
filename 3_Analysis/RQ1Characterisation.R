@@ -140,5 +140,3 @@ cdm[["noImminentFractureCohort"]] <- newGeneratedCohortSet(cohortRef = cdm[["noI
 # 
 # cdm[["noImminentFractureCohort"]]<-
 #   addDemographics(x = cdm[["noImminentFractureCohort"]], cdm = cdm)
-
-lsc <- summariseLargeScaleCharacteristics(cdm[["imminentFractureCohort"]], cdm)

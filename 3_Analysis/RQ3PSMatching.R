@@ -86,3 +86,21 @@ features <- cdm$condition_occurrence %>%
 
 save(features, file = here(output_folder, "tempData", "features.RData"))
 rm(features)
+
+### Using Patient Profiles and pre-defined functions
+allSubjectsSample <- allSubjects %>% sample_frac(0.01) #sample because it takes too long
+
+cdm[["all_subjects"]] <- cdm[["denominator"]] %>%
+  mutate(cohort_start_date = as.Date(as.character(cohort_start_date)),
+         cohort_end_date = as.Date(as.character(cohort_end_date))) %>%
+  inner_join(allSubjectsSample, by = "subject_id", copy = T)
+
+rm(allSubjects)
+
+cdm[["all_subjects"]] <- 
+  cdm[["all_subjects"]] %>% 
+  addAge(cdm, indexDate = "index_date", ageGroup = list(
+    c(50,54), c(55,59), c(60,64), c(65,69), c(70,74), c(75,79), c(80,84),
+    c(85,89), c(90,150))) %>%
+  addPriorObservation(indexDate = index_date)
+  
