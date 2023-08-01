@@ -87,8 +87,8 @@ cdm[["noImminentFractureCohort"]] <- cdm[["denominator"]] %>%
   select(-cohort_start_date, -cohort_end_date) %>%
   rename(cohort_start_date = index_date) %>% 
   mutate(cohort_end_date = cohort_start_date) %>%
-  compute() %>%
-  distinct()
+  distinct() %>%
+  compute()
 
 cdm[["imminentFractureCohort"]] <-cdm[["denominator"]] %>%
   inner_join(imminentFractureCohortTotal, by = "subject_id", copy = T) %>%
@@ -96,18 +96,20 @@ cdm[["imminentFractureCohort"]] <-cdm[["denominator"]] %>%
   select(-cohort_start_date, -cohort_end_date) %>%
   rename(cohort_start_date = index_date) %>% 
   mutate(cohort_end_date = cohort_start_date) %>%
-  compute() %>%
-  distinct()
+  distinct() %>%
+  compute()
 
 imminentCohortSet <- cdm[["imminentFractureCohort"]] %>% 
   select("cohort_definition_id") %>% 
   distinct() %>% 
-  mutate(cohort_name = if_else(cohort_definition_id == 1, "imminent_fracture", "else"))
+  mutate(cohort_name = if_else(cohort_definition_id == 1, "imminent_fracture", "else")) %>%
+  compute()
 
 noImminentCohortSet <- cdm[["noImminentFractureCohort"]] %>% 
   select("cohort_definition_id") %>% 
   distinct() %>% 
-  mutate(cohort_name = if_else(cohort_definition_id == 1, "no_imminent_fracture", "else"))
+  mutate(cohort_name = if_else(cohort_definition_id == 1, "no_imminent_fracture", "else")) %>%
+  compute()
 
 imminent_cohort_count <- cdm[["imminentFractureCohort"]] %>%
   group_by(cohort_definition_id) %>%
@@ -138,13 +140,3 @@ cdm[["noImminentFractureCohort"]] <- newGeneratedCohortSet(cohortRef = cdm[["noI
 # 
 # cdm[["noImminentFractureCohort"]]<-
 #   addDemographics(x = cdm[["noImminentFractureCohort"]], cdm = cdm)
-
-lsc_results_imminent_fractures <- summariseLargeScaleCharacteristics(cohort = cdm[["imminentFractureCohort"]], 
-                                                                     cdm = cdm,
-                                                                     window = list(c(-Inf, -731), c(-730, -181), c(-180, -1), c(0, 0)),
-                                                                     tablesToCharacterize = c("condition_occurrence", "drug_era"))
-
-lsc_results_no_imminent_fractures <- summariseLargeScaleCharacteristics(cohort = cdm[["noImminentFractureCohort"]], 
-                                                                        cdm = cdm,
-                                                                        window = list(c(-Inf, -731), c(-730, -181), c(-180, -1), c(0, 0)),
-                                                                        tablesToCharacterize = c("condition_occurrence", "drug_era"))
