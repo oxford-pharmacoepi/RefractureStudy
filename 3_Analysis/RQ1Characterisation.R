@@ -139,4 +139,12 @@ cdm[["noImminentFractureCohort"]] <- newGeneratedCohortSet(cohortRef = cdm[["noI
 # cdm[["noImminentFractureCohort"]]<-
 #   addDemographics(x = cdm[["noImminentFractureCohort"]], cdm = cdm)
 
-summariseLargeScaleCharacteristics(cdm[["imminentFractureCohort"]], cdm)
+lsc_results_imminent_fractures <- summariseLargeScaleCharacteristics(cohort = cdm[["imminentFractureCohort"]], 
+                                                                     cdm = cdm,
+                                                                     window = list(c(-Inf, -731), c(-730, -181), c(-180, -1), c(0, 0)),
+                                                                     tablesToCharacterize = c("condition_occurrence", "drug_era"))
+
+lsc_results_no_imminent_fractures <- summariseLargeScaleCharacteristics(cohort = cdm[["noImminentFractureCohort"]], 
+                                                                        cdm = cdm,
+                                                                        window = list(c(-Inf, -731), c(-730, -181), c(-180, -1), c(0, 0)),
+                                                                        tablesToCharacterize = c("condition_occurrence", "drug_era"))
