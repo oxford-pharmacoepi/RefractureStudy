@@ -2,6 +2,16 @@
 info(logger, "DEFINING INDEX DATE FOR EACH INDIVIDUAL")
 fracture_table_rq2 <- addIndex(fracture_table) 
 
+AttritionReportRQ2<- AttritionReportFrac[,1:4] %>% 
+  union_all(  
+    tibble(
+      cohort_definition_id = as.integer(1),
+      number_records = fracture_table_rq2 %>% tally() %>% pull(),
+      number_subjects = fracture_table_rq2 %>% distinct(subject_id) %>% tally() %>% pull(),
+      reason = "Excluding individuals who do not have a fracture within the study period"
+    )
+  ) 
+
 ### Exclusion criteria
 # At least 730 days prior obs
 info(logger, "EXCLUDING INDIVIDUALS WHO DO NOT HAVE SUFFICIENT PRIOR OBSERVATION")
@@ -12,7 +22,7 @@ fracture_table_rq2 <-fracture_table_rq2 %>%
   filter(days_prior_obs >= prior_observation, days_after_obs >= 0) %>%
   select(subject_id, cohort_start_date, cohort_end_date, condition_concept_id, condition_start_date, fracture_site, index_date)
 
-AttritionReportRQ2<- AttritionReportFrac[,1:4] %>% 
+AttritionReportRQ2<- AttritionReportRQ2 %>% 
   union_all(  
     tibble(
       cohort_definition_id = as.integer(1),
@@ -102,6 +112,22 @@ AttritionReportRQ2<- AttritionReportRQ2 %>%
       number_records = fracture_table_rq2 %>% tally() %>% pull(),
       number_subjects = fracture_table_rq2 %>% distinct(subject_id) %>% tally() %>% pull(),
       reason = "Excluding individuals who had a record of fractures within 2 years before the index date"
+    )
+  )
+
+# Excluding individuals who has index date same as obs period end date
+info(logger, "EXCLUDING INDIVIDUALS WHO HAS INDEX DATE ON THE SAME DATE AS THE OBSERVATION PERIOD END DATE")
+
+fracture_table_rq2 <- fracture_table_rq2 %>% 
+  anti_join(cdm[["observation_period"]], by = c("subject_id" = "person_id", "index_date" = "observation_period_end_date"), copy = T)
+
+AttritionReportRQ2<- AttritionReportRQ2 %>% 
+  union_all(  
+    tibble(
+      cohort_definition_id = as.integer(1),
+      number_records = fracture_table_rq2 %>% tally() %>% pull(),
+      number_subjects = fracture_table_rq2 %>% distinct(subject_id) %>% tally() %>% pull(),
+      reason = "Excluding individuals who has index date same as observation period end date"
     )
   )
 
