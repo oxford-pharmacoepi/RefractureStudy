@@ -21,6 +21,7 @@ cdm <- generateDenominatorCohortSet(
   cdm,
   name = "denominator",
   cohortDateRange = c(study_start_date, study_end_date),
+  sex = "Female",
   ageGroup = list(c(50, 150)))
 
 AttritionReportDenom<-cohortAttrition(cdm$denominator)
