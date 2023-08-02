@@ -115,14 +115,5 @@ allSubjectsCohort <- allSubjectsCohort %>%
     nameStyle = "number_visits_{window_name}"
   ) 
 
-  
-# allSubjectsCohort <- allSubjectsCohort %>% 
-#   addNumberVisit(cdm, c(NA, -731), "number_visit_3")
-# 
-# cdm[["visit_occurrence"]] <- cdm[["visit_occurrence"]] %>%
-#   dplyr::filter(lubridate::year(.data$visit_start_date) >= as.integer(year(study_start_date-years(2)))) %>%
-#   dplyr::compute()
-# 
-# allSubjectsCohort <- allSubjectsCohort %>%
-#   addNumberVisit(cdm, c(-730, -181), "number_visit_2") %>%
-#   addNumberVisit(cdm, c(-180, -1), "number_visit_1")
+save(allSubjectsCohort, file = here(output_folder, "tempData", "cohort.RData"))
+rm(allSubjectsCohort)
