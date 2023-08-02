@@ -90,6 +90,7 @@ save(features, file = here(output_folder, "tempData", "features.RData"))
 rm(features)
 
 ### Using Patient Profiles and pre-defined functions
+
 cdm[["all_subjects"]] <- cdm[["denominator"]] %>%
   mutate(cohort_start_date = as.Date(as.character(cohort_start_date)),
          cohort_end_date = as.Date(as.character(cohort_end_date))) %>%
@@ -105,6 +106,23 @@ allSubjectsCohort <-
     c(50,54), c(55,59), c(60,64), c(65,69), c(70,74), c(75,79), c(80,84),
     c(85,89), c(90,150))) %>% 
   addPriorObservation()
+
+allSubjectsCohort <- allSubjectsCohort %>%
+  addIntersect(
+    tableName = "visit_occurrence",
+    value = "count",
+    window = list(c(-Inf, -731), c(-730, -181), c(-181, -1)),
+    nameStyle = "number_visits_{window_name}"
+  ) 
+
   
-testtable <- allSubjectsCohort %>% addNumberVisit(cdm, c(NA, -366), "number_visit_3") %>%
-  collect()
+# allSubjectsCohort <- allSubjectsCohort %>% 
+#   addNumberVisit(cdm, c(NA, -731), "number_visit_3")
+# 
+# cdm[["visit_occurrence"]] <- cdm[["visit_occurrence"]] %>%
+#   dplyr::filter(lubridate::year(.data$visit_start_date) >= as.integer(year(study_start_date-years(2)))) %>%
+#   dplyr::compute()
+# 
+# allSubjectsCohort <- allSubjectsCohort %>%
+#   addNumberVisit(cdm, c(-730, -181), "number_visit_2") %>%
+#   addNumberVisit(cdm, c(-180, -1), "number_visit_1")
