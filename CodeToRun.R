@@ -19,6 +19,8 @@ library(SqlRender)
 library(lubridate)
 library(PatientProfiles)
 library(DrugUtilisation)
+library(tidyr)
+library(glmnet)
 
 # database metadata and connection details -----
 # The name/ acronym for the database
