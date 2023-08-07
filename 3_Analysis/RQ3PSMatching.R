@@ -8,10 +8,16 @@ info(logger, "EXTRACTING FEATURES")
 allSubjects <- tibble()
 
 for (i in (1:length(targetCohort))){
+   targetCohort[[i]] <- targetCohort[[i]] %>% mutate(group = "target", period = i)
+   compCohort1[[i]] <- compCohort1[[i]] %>% mutate(group = "comparator 1", period = i)
+   compCohort2[[i]] <- compCohort2[[i]] %>% mutate(group = "comparator 2", period = i)
+}
+
+for (i in (1:length(targetCohort))){
   allSubjects <- rbind(allSubjects,
-                       targetCohort[[i]] %>% select(subject_id, index_date) %>% distinct(),
-                       compCohort1[[i]] %>% select(subject_id, index_date) %>% distinct(),
-                       compCohort2[[i]] %>% select(subject_id, index_date) %>% distinct())
+                       targetCohort[[i]] %>% select(subject_id, index_date, group, period) %>% distinct(),
+                       compCohort1[[i]] %>% select(subject_id, index_date, group, period) %>% distinct(),
+                       compCohort2[[i]] %>% select(subject_id, index_date, group, period) %>% distinct())
 }
 
 allSubjectsSample <- allSubjects %>% sample_frac(0.001) #sample because it takes too long
@@ -95,16 +101,14 @@ cdm[["all_subjects"]] <- cdm[["denominator"]] %>%
   mutate(cohort_start_date = as.Date(as.character(cohort_start_date)),
          cohort_end_date = as.Date(as.character(cohort_end_date))) %>%
   inner_join(allSubjectsSample, by = "subject_id", copy = T) %>%
-  select(cohort_definition_id, subject_id, index_date) %>% 
+  select(cohort_definition_id, subject_id, index_date, group, period) %>% 
   rename(cohort_start_date = index_date) %>%
   mutate(cohort_end_date = cohort_start_date) %>%
   compute()
 
 allSubjectsCohort <- 
   cdm[["all_subjects"]] %>% 
-  addAge(cdm, ageGroup = list(
-    c(50,54), c(55,59), c(60,64), c(65,69), c(70,74), c(75,79), c(80,84),
-    c(85,89), c(90,150))) %>% 
+  addAge() %>% 
   addPriorObservation()
 
 allSubjectsCohort <- allSubjectsCohort %>%
@@ -113,7 +117,29 @@ allSubjectsCohort <- allSubjectsCohort %>%
     value = "count",
     window = list(c(-Inf, -731), c(-730, -181), c(-181, -1)),
     nameStyle = "number_visits_{window_name}"
-  ) 
+  ) %>%
+  collect()
 
-save(allSubjectsCohort, file = here(output_folder, "tempData", "cohort.RData"))
-rm(allSubjectsCohort)
+save(allSubjectsCohort, file = here(output_folder, "tempData", "allSubjectsCohort.RData"))
+
+load(here(output_folder, "tempData", "features.RData"))
+
+features_lasso <- features %>% 
+  mutate(value = 1) %>%
+  pivot_wider(names_from = "feature", values_from = "value", values_fill = 0) %>%
+  inner_join(allSubjectsCohort %>% select(-c("cohort_definition_id", "cohort_end_date")), by = c("subject_id", "index_date" = "cohort_start_date")) %>% 
+  select(-"index_date")
+
+features_lasso <- features_lasso %>% 
+  mutate(groups = paste0(group," period ", period)) %>%
+  select(-c("group", "period"))
+
+features_lasso <- features_lasso %>% 
+  filter(groups %in% c("comparator 2 period 6", "comparator 1 period 6")) %>%
+  mutate(groups = factor(groups, c("comparator 1 period 6", "comparator 2 period 6")))
+
+x <- data.matrix(features_lasso %>% select(-c("subject_id", "groups")))
+y <- features_lasso$groups
+lambdas <- 10^seq(2, -3, by = -.1)
+set.seed(1000)
+lasso_reg <- cv.glmnet(x, y, lambda = lambdas, standardize = TRUE, nfolds = 5, family = "binomial", alpha = 1)
