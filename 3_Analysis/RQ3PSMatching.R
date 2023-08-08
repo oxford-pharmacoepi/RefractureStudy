@@ -21,7 +21,7 @@ for (i in (1:length(targetCohort))){
 }
 
 cdm[["condition_occurrence_2"]] <- cdm[["condition_occurrence"]] %>% 
-  filter(condition_concept_id %!in% any_fracture_id) %>% compute()
+  filter(!(condition_concept_id %in% any_fracture_id)) %>% compute()
 
 features <- cdm$condition_occurrence %>%
   inner_join(allSubjects, by = c("person_id" = "subject_id"), copy = T) %>%
