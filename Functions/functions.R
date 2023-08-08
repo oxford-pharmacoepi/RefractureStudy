@@ -124,5 +124,3 @@ immFracture <- function (fractureTable){
   fractureTable %>%
     mutate(imminentFracture = as.integer(condition_start_date == follow_up_end))
 }
-
-'%!in%' <- Negate("%in%")
