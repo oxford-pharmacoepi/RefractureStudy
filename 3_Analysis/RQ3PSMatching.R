@@ -20,10 +20,11 @@ for (i in (1:length(targetCohort))){
                        compCohort2[[i]] %>% select(subject_id, index_date, group, period) %>% distinct())
 }
 
-allSubjectsSample <- allSubjects %>% sample_frac(0.001) #sample because it takes too long
+cdm[["condition_occurrence_2"]] <- cdm[["condition_occurrence"]] %>% 
+  filter(condition_concept_id %!in% any_fracture_id) %>% compute()
 
 features <- cdm$condition_occurrence %>%
-  inner_join(allSubjectsSample, by = c("person_id" = "subject_id"), copy = T) %>%
+  inner_join(allSubjects, by = c("person_id" = "subject_id"), copy = T) %>%
   select(
     "subject_id" = "person_id",
     "index_date",
@@ -38,7 +39,7 @@ features <- cdm$condition_occurrence %>%
   distinct() %>%
   union_all(
     cdm$drug_era %>%
-      inner_join(allSubjectsSample, by = c("person_id" = "subject_id"), copy = T) %>%
+      inner_join(allSubjects, by = c("person_id" = "subject_id"), copy = T) %>%
       select(
         "subject_id" = "person_id", 
         "index_date",
@@ -56,7 +57,7 @@ features <- cdm$condition_occurrence %>%
   ) %>%
   union_all(
     cdm$procedure_occurrence %>%
-      inner_join(allSubjectsSample, by = c("person_id" = "subject_id"), copy = T) %>%
+      inner_join(allSubjects, by = c("person_id" = "subject_id"), copy = T) %>%
       select(
         "subject_id" = "person_id", 
         "index_date",
@@ -74,7 +75,7 @@ features <- cdm$condition_occurrence %>%
   ) %>%
   union_all(
     cdm$measurement %>%
-      inner_join(allSubjectsSample, by = c("person_id" = "subject_id"), copy = T) %>%
+      inner_join(allSubjects, by = c("person_id" = "subject_id"), copy = T) %>%
       select(
         "subject_id" = "person_id", 
         "index_date",
@@ -92,11 +93,17 @@ features <- cdm$condition_occurrence %>%
   ) %>%
   collect()
 
+# features_count <- features %>% 
+#   group_by(feature) %>%
+#   count() %>%
+#   filter(n<100)
+# 
+# features <- features %>% anti_join(features_count, by = "feature")
+
 save(features, file = here(output_folder, "tempData", "features.RData"))
 rm(features)
 
 ### Using Patient Profiles and pre-defined functions
-
 cdm[["all_subjects"]] <- cdm[["denominator"]] %>%
   mutate(cohort_start_date = as.Date(as.character(cohort_start_date)),
          cohort_end_date = as.Date(as.character(cohort_end_date))) %>%
@@ -127,19 +134,29 @@ load(here(output_folder, "tempData", "features.RData"))
 features_lasso <- features %>% 
   mutate(value = 1) %>%
   pivot_wider(names_from = "feature", values_from = "value", values_fill = 0) %>%
-  inner_join(allSubjectsCohort %>% select(-c("cohort_definition_id", "cohort_end_date")), by = c("subject_id", "index_date" = "cohort_start_date")) %>% 
+  inner_join(allSubjectsCohort %>% select(-c("cohort_definition_id", "cohort_end_date")), by = c("subject_id", "index_date" = "cohort_start_date"), copy = T) %>% 
   select(-"index_date")
 
 features_lasso <- features_lasso %>% 
   mutate(groups = paste0(group," period ", period)) %>%
   select(-c("group", "period"))
 
-features_lasso <- features_lasso %>% 
-  filter(groups %in% c("comparator 2 period 6", "comparator 1 period 6")) %>%
-  mutate(groups = factor(groups, c("comparator 1 period 6", "comparator 2 period 6")))
+features_lasso_test <- features_lasso %>% 
+  filter(groups %in% c("target period 1", "comparator 1 period 1")) 
 
-x <- data.matrix(features_lasso %>% select(-c("subject_id", "groups")))
-y <- features_lasso$groups
+lasso_num <- features_lasso_test %>% summarise_all(n_distinct)
+features_lasso_test<- features_lasso_test[,colnames(lasso_num[, (lasso_num[1, ] > 1)[1,]])]
+features_lasso_test$prior_observation <- as.double(features_lasso_test$prior_observation)
+features_lasso_test <- features_lasso_test %>%
+  mutate(groups = factor(groups, c("target period 1", "comparator 1 period 1")))
+
+features_lasso_test$groups <- as.double(features_lasso_test$groups)
+
+features_lasso_test <- features_lasso_test %>% select(-subject_id)
+
+x <- features_lasso_test %>% select(-groups)
+y <- features_lasso_test$groups
+y<-as.integer(y)
 lambdas <- 10^seq(2, -3, by = -.1)
 set.seed(1000)
-lasso_reg <- cv.glmnet(x, y, lambda = lambdas, standardize = TRUE, nfolds = 5, family = "binomial", alpha = 1)
+lasso_reg <- cv.glmnet(x, y, family = "binomial")
