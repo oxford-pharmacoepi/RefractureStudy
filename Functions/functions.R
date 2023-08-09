@@ -25,9 +25,8 @@ noCancerPriorOrOnIndex <- function (fractureTable){
   fractureTable %>% 
     anti_join(fractureTable %>% 
                 select(-cohort_start_date, -cohort_end_date) %>%
-                inner_join(cdm[[exclusionCohortTableName]] %>% 
-                             filter(cohort_definition_id == cancerId), by = "subject_id", copy = T, relationship = "many-to-many") %>%
-                filter(cohort_start_date<=index_date), by = "subject_id")
+                inner_join(cdm[["cancer"]], by = "subject_id", copy = T, relationship = "many-to-many") %>%
+                filter(cancer_date<=index_date), by = "subject_id")
 }
 
 # for a fracture table, removing individuals with bone disease before or on the same day as the index fracture
@@ -35,8 +34,7 @@ noBoneDiseasePriorOrOnIndex <- function (fractureTable){
   fractureTable %>% 
     anti_join(fractureTable %>% 
                 select(-cohort_start_date, -cohort_end_date) %>%
-                inner_join(cdm[[exclusionCohortTableName]] %>% 
-                             filter(cohort_definition_id == BoneDiseaseId), by = "subject_id", copy = T, relationship = "many-to-many") %>%
+                inner_join(cdm[["mbd"]], by = "subject_id", copy = T, relationship = "many-to-many") %>%
                 filter(cohort_start_date<=index_date), by = "subject_id")
 }
 
@@ -56,35 +54,32 @@ addInObsEndDate <- function (fractureTable){
 # add in a column indicating the date of cancer after the index date
 addInCancerPostIndex <- function (fractureTable){
   fractureTable %>% left_join(fractureTable %>% 
-                                inner_join(cdm[[exclusionCohortTableName]] %>%
-                                             filter(cohort_definition_id == cancerId) %>%
-                                             rename(cancer_start_date = cohort_start_date, cancer_end_date = cohort_end_date), 
-                                           by = "subject_id", 
+                                inner_join(cdm[["cancer"]] %>% rename(cancer_concept_id = condition_concept_id), 
+                                           by = c("subject_id", "cohort_start_date", "cohort_end_date"), 
                                            copy = T, 
                                            relationship = "many-to-many") %>%
-                                filter(index_date < cancer_start_date) %>%   
+                                filter(index_date < cancer_date) %>%   
                                 group_by(subject_id, cohort_start_date, cohort_end_date, condition_concept_id, condition_start_date, fracture_site, index_date, observation_period_end_date) %>%
-                                arrange(cancer_start_date) %>%
+                                arrange(cancer_date) %>%
                                 filter(row_number()==1) %>%
                                 ungroup(), by = c("subject_id", "cohort_start_date", "cohort_end_date", "condition_concept_id", "condition_start_date", "fracture_site", "index_date", "after_index", "observation_period_end_date")) %>%
-    select(-cohort_definition_id, - cancer_end_date) 
+    select(-cancer_concept_id) 
 }
 
 # add in a column indicating the date of bone disease after the index date (has to be done after the cancer one)
 addInBoneDiseasePostIndex <- function (fractureTable){
   fractureTable %>% left_join(fractureTable %>% 
-                                inner_join(cdm[[exclusionCohortTableName]] %>% 
-                                             filter(cohort_definition_id == BoneDiseaseId) %>%
-                                             rename(bone_disease_start_date = cohort_start_date, bone_disease_end_date = cohort_end_date), 
-                                           by = "subject_id", 
+                                inner_join(cdm[["mbd"]] %>%
+                                             rename(bone_disease_concept_id = condition_concept_id), 
+                                           by = c("subject_id", "cohort_start_date", "cohort_end_date"),
                                            copy = T, 
                                            relationship = "many-to-many") %>%
-                                filter(index_date < bone_disease_start_date) %>%   
+                                filter(index_date < mbd_date) %>%   
                                 group_by(subject_id, cohort_start_date, cohort_end_date, condition_concept_id, condition_start_date, fracture_site, index_date, observation_period_end_date) %>%
-                                arrange(cohort_start_date) %>%
+                                arrange(mbd_date) %>%
                                 filter(row_number()==1) %>%
-                                ungroup(), by = c("subject_id", "cohort_start_date", "cohort_end_date", "condition_concept_id", "condition_start_date", "fracture_site", "index_date", "after_index", "observation_period_end_date", "cancer_start_date")) %>%
-    select(-cohort_definition_id, -bone_disease_end_date) 
+                                ungroup(), by = c("subject_id", "cohort_start_date", "cohort_end_date", "condition_concept_id", "condition_start_date", "fracture_site", "index_date", "after_index", "observation_period_end_date", "cancer_date")) %>%
+    select(-bone_disease_concept_id) 
 }
 
 # add a column of next fracture after the index one
@@ -98,13 +93,13 @@ addInDeath <- function(fractureTable){
   fractureTable %>% 
     left_join(cdm[["death"]], by = c("subject_id" = "person_id"), copy = T) %>%
     filter(death_date > index_date | is.na(death_date)) %>%
-    select(subject_id, cohort_start_date, cohort_end_date, condition_concept_id, condition_start_date, fracture_site, index_date, after_index, observation_period_end_date, cancer_start_date, bone_disease_start_date, fracture_after_index, death_date)
+    select(subject_id, cohort_start_date, cohort_end_date, condition_concept_id, condition_start_date, fracture_site, index_date, after_index, observation_period_end_date, cancer_date, mbd_date, fracture_after_index, death_date)
 }
 
 # add in FOLLOWUPEND - only after the relevant columns are added
 addInFollowUpEnd <- function(fractureTable){
   fractureTable %>% 
-    mutate(follow_up_end = pmin(after_index, observation_period_end_date, cancer_start_date, bone_disease_start_date, fracture_after_index, death_date, na.rm = T)) %>%
+    mutate(follow_up_end = pmin(after_index, observation_period_end_date, cancer_date, mbd_date, fracture_after_index, death_date, na.rm = T)) %>%
     mutate(follow_up_time = follow_up_end-index_date) 
 }
 
