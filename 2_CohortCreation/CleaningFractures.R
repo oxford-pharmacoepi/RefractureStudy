@@ -85,6 +85,40 @@ mbd <- read_excel(paste0(here(), "/1_InstantiateCohorts/mbd_codes.xlsx"))
 cancer_codes <- cancer %>% select(Id) %>% pull()
 mbd_codes <- mbd %>% select(Id) %>% pull()
 
+cdm[["cancer"]] <- cdm[["denominator"]] %>% 
+  left_join(cdm[["condition_occurrence"]], by = c("subject_id" = "person_id")) %>%
+  filter(condition_concept_id %in% cancer_codes) %>%
+  select(subject_id, cohort_start_date, cohort_end_date, condition_concept_id, condition_start_date) %>%
+  mutate(cohort_start_date = as.Date(as.character(cohort_start_date))) %>%
+  mutate(cohort_end_date = as.Date(as.character(cohort_end_date))) %>%
+  rename(cancer_date =condition_start_date) %>%
+  compute()
+
+cdm[["mbd"]] <- cdm[["denominator"]] %>% 
+  left_join(cdm[["condition_occurrence"]], by = c("subject_id" = "person_id")) %>%
+  filter(condition_concept_id %in% mbd_codes) %>%
+  select(subject_id, cohort_start_date, cohort_end_date, condition_concept_id, condition_start_date) %>%
+  mutate(cohort_start_date = as.Date(as.character(cohort_start_date))) %>%
+  mutate(cohort_end_date = as.Date(as.character(cohort_end_date))) %>%
+  rename(mbd_date =condition_start_date) %>%
+  compute()
+
+### Removing cancer records before the birth year
+cdm[["cancer"]] <- cdm[["cancer"]] %>%
+  left_join(cdm[["person"]], by = c("subject_id" = "person_id"), copy = T) %>%
+  mutate(cancer_year = lubridate::year(cancer_date)) %>%
+  filter(cancer_year >= year_of_birth) %>%
+  select(subject_id, cohort_start_date, cohort_end_date, condition_concept_id, cancer_date) %>%
+  compute()
+
+### Removing bone disease records before the birth year
+cdm[["mbd"]] <- cdm[["mbd"]] %>%
+  left_join(cdm[["person"]], by = c("subject_id" = "person_id"), copy = T) %>%
+  mutate(mbd_year = lubridate::year(mbd_date)) %>%
+  filter(mbd_year >= year_of_birth) %>%
+  select(subject_id, cohort_start_date, cohort_end_date, condition_concept_id, mbd_date) %>%
+  compute()
+
 ### Removing fractures before the birth year
 info(logger, "REMOVING FRACTURES BEFORE THE BIRTH YEAR")
 fracture_table <- fracture_table %>%
