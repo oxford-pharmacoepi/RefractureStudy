@@ -122,3 +122,4 @@ fracture_table <- fracture_table %>%
   arrange(subject_id)
 
 write.xlsx(AttritionReportRQ2, file = here::here(output_folder, "AttritionReportRQ2.xlsx"))
+
