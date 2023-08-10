@@ -22,6 +22,7 @@ library(DrugUtilisation)
 library(tidyr)
 library(glmnet)
 library(readr)
+library(CodelistGenerator)
 
 # database metadata and connection details -----
 # The name/ acronym for the database
