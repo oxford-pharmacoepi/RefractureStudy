@@ -135,11 +135,13 @@ cdm[["noImminentFractureCohort"]] <- newGeneratedCohortSet(cohortRef = cdm[["noI
                                                            cohortSetRef = noImminentCohortSet,
                                                            cohortCountRef = noimminent_cohort_count)
 
-# cdm[["imminentFractureCohort"]]<-
-#   addDemographics(x = cdm[["imminentFractureCohort"]], cdm = cdm)
-# 
-# cdm[["noImminentFractureCohort"]]<-
-#   addDemographics(x = cdm[["noImminentFractureCohort"]], cdm = cdm)
+cdm[["imminentFractureCohort"]]<-
+  addDemographics(x = cdm[["imminentFractureCohort"]], cdm = cdm, sex = F) %>%
+  compute()
+
+cdm[["noImminentFractureCohort"]]<-
+  addDemographics(x = cdm[["noImminentFractureCohort"]], cdm = cdm, sex = F) %>%
+  compute()
 
 #lsc <- summariseLargeScaleCharacteristics(cdm[["imminentFractureCohort"]], cdm)
 lsc_results_imminent_fractures <- summariseLargeScaleCharacteristics(cohort = cdm[["imminentFractureCohort"]], 
