@@ -21,6 +21,7 @@ library(PatientProfiles)
 library(DrugUtilisation)
 library(tidyr)
 library(glmnet)
+library(readr)
 
 # database metadata and connection details -----
 # The name/ acronym for the database
