@@ -154,3 +154,15 @@ cdm_char_imm[["imminentFractureCohort"]] <- newGeneratedCohortSet(cohortRef = cd
 
 cdm_char_imm <- cdmSubsetCohort(cdm_char_imm, "imminentFractureCohort")
 
+### 2. Without imminent fractures
+cdm_char_no_imm<-CDMConnector::cdm_from_con(
+  con = db,
+  cdm_schema = cdm_database_schema,
+  write_schema = results_database_schema
+)
+
+cdm_char_no_imm[["noImminentFractureCohort"]] <- newGeneratedCohortSet(cohortRef = cdm[["noImminentFractureCohort"]],
+                                                                  cohortSetRef = noImminentCohortSet,
+                                                                  cohortCountRef = noimminent_cohort_count)
+
+cdm_char_no_imm <- cdmSubsetCohort(cdm_char_no_imm, "noImminentFractureCohort")
