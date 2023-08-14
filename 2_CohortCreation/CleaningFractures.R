@@ -24,6 +24,8 @@ cdm <- generateDenominatorCohortSet(
   sex = "Female",
   ageGroup = list(c(50, 150)))
 
+denom_count <-cdm[["denominator"]] %>% tally() %>% pull()
+
 AttritionReportDenom<-cohortAttrition(cdm$denominator)
 
 ### Loading fracture codes
