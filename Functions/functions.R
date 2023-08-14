@@ -84,7 +84,7 @@ addInBoneDiseasePostIndex <- function (fractureTable){
 
 # add a column of next fracture after the index one
 addInNextFracture <- function(fractureTable){
-  fractureTable %>% left_join(fractureTable %>% group_by(subject_id) %>% filter(condition_start_date> index_date) %>% summarise(fracture_after_index = min(condition_start_date, na.rm =  T)),
+  fractureTable %>% left_join(fractureTable %>% filter(condition_start_date> index_date) %>% group_by(subject_id) %>% summarise(fracture_after_index = min(condition_start_date, na.rm =  T, .groups = "drop")),
                               by = "subject_id")
 }
 
@@ -103,15 +103,20 @@ addInFollowUpEnd <- function(fractureTable){
     mutate(follow_up_time = follow_up_end-index_date) 
 }
 
-# clean out fractures based on their follow up period, used to further analysis 
+# clean out fractures based on their follow up period, used for further analysis 
 nextFractureClean <- function (fractureTable){
-  fractureTable %>% 
-    anti_join(fractureTable %>% filter(imminentFracture==1), by = "subject_id") %>%
+  fractureTable %>%
+    anti_join(fractureTable %>% filter(imminentFracture==1|follow_up_time <730), by = "subject_id") %>%
     group_by(subject_id) %>%
     arrange(condition_start_date, .by_group = T) %>%
-    filter(!(row_number()==1)) %>%
+    filter(condition_start_date>index_date) %>%
     select(subject_id, cohort_start_date, cohort_end_date, condition_concept_id, condition_start_date, fracture_site) %>%
-    ungroup()
+    ungroup()%>%
+    anti_join(fractureTable %>% 
+                         mutate(within = condition_start_date<=cohort_end_date) %>%
+                         group_by(subject_id) %>%
+                         summarise(tot = sum(within), .groups = "drop") %>%
+                         filter(tot == 0), by = "subject_id") 
 }
 
 # add in immFracture, a function that indicates which fracture is considered imminent in relation to the current index fracture
