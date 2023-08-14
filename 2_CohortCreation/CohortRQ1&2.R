@@ -50,10 +50,6 @@ AttritionReportRQ2<- AttritionReportRQ2 %>%
 # No records of cancer before or on the index date
 info(logger, "EXCLUDING INDIVIDUALS WHO HAS A RECORD OF CANCER OF INTEREST BEFORE THE INDEX DATE")
 
-cancerId <- exclusionCohortSet %>%
-  filter(cohort_name == "Malignant neoplastic disease excluding non-melanoma skin cancer") %>%
-  pull("cohort_definition_id")
-
 fracture_table_rq2 <- noCancerPriorOrOnIndex(fracture_table_rq2)
 
 AttritionReportRQ2<- AttritionReportRQ2 %>% 
@@ -69,10 +65,6 @@ AttritionReportRQ2<- AttritionReportRQ2 %>%
 # No records of metabolic bone disease
 info(logger, "EXCLUDING INDIVIDUALS WHO HAS A RECORD OF METABOLIC BONE DISEASE OF INTEREST BEFORE THE INDEX DATE")
 
-BoneDiseaseId <- exclusionCohortSet %>%
-  filter(cohort_name == "Metabolic bone diseases") %>%
-  pull("cohort_definition_id")
-
 fracture_table_rq2 <- noBoneDiseasePriorOrOnIndex(fracture_table_rq2)
 
 AttritionReportRQ2<- AttritionReportRQ2 %>% 
@@ -85,25 +77,11 @@ AttritionReportRQ2<- AttritionReportRQ2 %>%
     )
   ) 
 
-# Excluding records that happened two years before the index date
-info(logger, "EXCLUDING FRACTURE RECORDS THAT HAPPENED 2 YEARS BEFORE THE INDEX DATE")
-fracture_table_rq2 <- fracture_table_rq2 %>% filter(!(condition_start_date < index_date - 730))
-
-AttritionReportRQ2<- AttritionReportRQ2 %>% 
-  union_all(  
-    tibble(
-      cohort_definition_id = as.integer(1),
-      number_records = fracture_table_rq2 %>% tally() %>% pull(),
-      number_subjects = fracture_table_rq2 %>% distinct(subject_id) %>% tally() %>% pull(),
-      reason = "Excluding records that happened two years before the index date"
-    )
-  ) 
-
 # Excluding individuals who had a fracture within 2 years before the index date
 info(logger, "EXCLUDING INDIVIDUALS WHO HAD A FRACTURE THAT HAPPENED WITHIN 2 YEARS BEFORE THE INDEX DATE")
 
 fracture_table_rq2 <- fracture_table_rq2 %>%
-  anti_join(fracture_table_rq2 %>% filter(condition_start_date < index_date), by = "subject_id") 
+  anti_join(fracture_table_rq2 %>% filter(condition_start_date < index_date & condition_start_date>=index_date-730), by = "subject_id") 
 
 AttritionReportRQ2<- AttritionReportRQ2 %>% 
   union_all(  
@@ -144,3 +122,4 @@ fracture_table <- fracture_table %>%
   arrange(subject_id)
 
 write.xlsx(AttritionReportRQ2, file = here::here(output_folder, "AttritionReportRQ2.xlsx"))
+

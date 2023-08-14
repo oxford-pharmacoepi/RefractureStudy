@@ -1,20 +1,3 @@
-# generate table names
-info(logger, "GENERATE TABLE NAMES FOR EXCLUSION CRITERIA")
-exclusionCohortTableName <- paste0(stem_table, "_exclusion_cohorts")
-
-# instantiate necessary cohorts
-info(logger, "INSTANTIATE COHORTS - EXCLUSION CRITERIA")
-exclusionCohortSet <- readCohortSet(
-  path = here("1_InstantiateCohorts", "Cohorts")
-)
-
-cdm <- generateCohortSet(
-  cdm = cdm,
-  cohortSet = exclusionCohortSet,
-  name = exclusionCohortTableName,
-  overwrite = TRUE
-)
-
 ### Create a cohort of women only, age above 50 between 2010/04/01 and 2018/03/31
 info(logger, "CREATING DENOMINATOR - WOMEN WHO ARE ABOVE 50 WITHIN THE STUDY PERIOD")
 cdm <- generateDenominatorCohortSet(
@@ -29,8 +12,9 @@ denom_count <-cdm[["denominator"]] %>% tally() %>% pull()
 AttritionReportDenom<-cohortAttrition(cdm$denominator)
 
 ### Loading fracture codes
-conditions_sheet1 <- read_excel(paste0(here(), "/FracturesCandidateCodes/fracture_sites_conditions.xlsx"), sheet = 1) #"~/RefractureStudy/FracturesCandidateCodes/fracture_sites_conditions.xlsx"
-trauma <- read_excel(paste0(here(), "/FracturesCandidateCodes/Trauma Codes.xlsx")) #"~/RefractureStudy/FracturesCandidateCodes/Trauma Codes.xlsx"
+info(logger, "LOADING FRACTURE CODES")
+conditions_sheet1 <- read_excel(paste0(here(), "/1_InstantiateCohorts/fracture_sites_conditions_codes.xlsx"), sheet = 1) 
+trauma <- read_excel(paste0(here(), "/1_InstantiateCohorts/trauma_codes.xlsx")) 
 trauma_condition <- trauma %>% filter(Domain == "Condition") %>% select(Id) %>% pull()
 trauma_observation <- trauma %>% filter(Domain == "Observation") %>% select(Id) %>% pull()
 
@@ -96,6 +80,47 @@ AttritionReportFrac<-tibble(
   reason = "Starting Population"
 )
 
+### Loading exclusion criteria tables
+info(logger, "LOADING EXCLUSION CRITERIA TABLES")
+cancer <- read_excel(paste0(here(), "/1_InstantiateCohorts/cancer_codes.xlsx"))
+mbd <- read_excel(paste0(here(), "/1_InstantiateCohorts/mbd_codes.xlsx"))
+cancer_codes <- cancer %>% select(Id) %>% pull()
+mbd_codes <- mbd %>% select(Id) %>% pull()
+
+cdm[["cancer"]] <- cdm[["denominator"]] %>% 
+  left_join(cdm[["condition_occurrence"]], by = c("subject_id" = "person_id")) %>%
+  filter(condition_concept_id %in% cancer_codes) %>%
+  select(subject_id, cohort_start_date, cohort_end_date, condition_concept_id, condition_start_date) %>%
+  mutate(cohort_start_date = as.Date(as.character(cohort_start_date))) %>%
+  mutate(cohort_end_date = as.Date(as.character(cohort_end_date))) %>%
+  rename(cancer_date =condition_start_date) %>%
+  compute()
+
+cdm[["mbd"]] <- cdm[["denominator"]] %>% 
+  left_join(cdm[["condition_occurrence"]], by = c("subject_id" = "person_id")) %>%
+  filter(condition_concept_id %in% mbd_codes) %>%
+  select(subject_id, cohort_start_date, cohort_end_date, condition_concept_id, condition_start_date) %>%
+  mutate(cohort_start_date = as.Date(as.character(cohort_start_date))) %>%
+  mutate(cohort_end_date = as.Date(as.character(cohort_end_date))) %>%
+  rename(mbd_date =condition_start_date) %>%
+  compute()
+
+### Removing cancer records before the birth year
+cdm[["cancer"]] <- cdm[["cancer"]] %>%
+  left_join(cdm[["person"]], by = c("subject_id" = "person_id"), copy = T) %>%
+  mutate(cancer_year = lubridate::year(cancer_date)) %>%
+  filter(cancer_year >= year_of_birth) %>%
+  select(subject_id, cohort_start_date, cohort_end_date, condition_concept_id, cancer_date) %>%
+  compute()
+
+### Removing bone disease records before the birth year
+cdm[["mbd"]] <- cdm[["mbd"]] %>%
+  left_join(cdm[["person"]], by = c("subject_id" = "person_id"), copy = T) %>%
+  mutate(mbd_year = lubridate::year(mbd_date)) %>%
+  filter(mbd_year >= year_of_birth) %>%
+  select(subject_id, cohort_start_date, cohort_end_date, condition_concept_id, mbd_date) %>%
+  compute()
+
 ### Removing fractures before the birth year
 info(logger, "REMOVING FRACTURES BEFORE THE BIRTH YEAR")
 fracture_table <- fracture_table %>%
@@ -137,39 +162,6 @@ AttritionReportFrac<- AttritionReportFrac %>%
       reason = "fracture happening on the same day as a trauma code"
     )
   ) 
-
-# ### Removing fractures outside of cohort period and outside of observation period
-# info(logger, "REMOVING FRACTURES OUTSIDE THE COHORT START DATE")
-# fracture_table <- fracture_table %>% 
-#   filter(condition_start_date >= cohort_start_date-730) %>%
-#   filter(condition_start_date <= cohort_end_date+730)
-# 
-# AttritionReportFrac<- AttritionReportFrac %>% 
-#   union_all(  
-#     tibble(
-#       cohort_definition_id = as.integer(1),
-#       number_records = fracture_table %>% tally() %>% pull(),
-#       number_subjects = fracture_table %>% distinct(subject_id) %>% tally() %>% pull(),
-#       reason = "fracture happening outside of study period"
-#     )
-#   ) 
-# 
-# info(logger, "REMOVING FRACTURES OUTSIDE THE OBSERVATION PERIOD")
-# fracture_table <- fracture_table %>% 
-#   left_join(cdm[["observation_period"]], by = c("subject_id" = "person_id"), copy = T) %>%
-#   filter(condition_start_date>=observation_period_start_date) %>%
-#   filter(condition_start_date<=observation_period_end_date) %>%
-#   select(subject_id, cohort_start_date, cohort_end_date, condition_concept_id, condition_start_date, fracture_site)
-# 
-# AttritionReportFrac<- AttritionReportFrac %>% 
-#   union_all(  
-#     tibble(
-#       cohort_definition_id = as.integer(1),
-#       number_records = fracture_table %>% tally() %>% pull(),
-#       number_subjects = fracture_table %>% distinct(subject_id) %>% tally() %>% pull(),
-#       reason = "fracture happening outside of observation period"
-#     )
-#   ) 
 
 ### Washout 
 info(logger, "APPLYING WASHOUT PERIOD")
