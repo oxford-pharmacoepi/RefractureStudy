@@ -23,7 +23,7 @@ for (i in (1:length(targetCohort))){
 cdm[["condition_occurrence_2"]] <- cdm[["condition_occurrence"]] %>% 
   filter(!(condition_concept_id %in% any_fracture_id)) %>% compute()
 
-features <- cdm$condition_occurrence %>%
+features <- cdm$condition_occurrence_2 %>%
   inner_join(allSubjects, by = c("person_id" = "subject_id"), copy = T) %>%
   select(
     "subject_id" = "person_id",
@@ -93,25 +93,31 @@ features <- cdm$condition_occurrence %>%
   ) %>%
   collect()
 
-# features_count <- features %>% 
-#   group_by(feature) %>%
-#   count() %>%
-#   filter(n<100)
-# 
-# features <- features %>% anti_join(features_count, by = "feature")
+features_count <- features %>% 
+   group_by(feature) %>%
+   tally()
+ 
+features_count_threshold <- features_count %>%
+  filter(n<as.integer(denom_count)/200)
+
+subfeatures <- features %>% anti_join(features_count_threshold, by = "feature")
 
 save(features, file = here(output_folder, "tempData", "features.RData"))
+save(subfeatures, file = here(output_folder, "tempData", "subfeatures.RData"))
 rm(features)
+rm(subfeatures)
 
 ### Using Patient Profiles and pre-defined functions
 cdm[["all_subjects"]] <- cdm[["denominator"]] %>%
   mutate(cohort_start_date = as.Date(as.character(cohort_start_date)),
          cohort_end_date = as.Date(as.character(cohort_end_date))) %>%
-  inner_join(allSubjectsSample, by = "subject_id", copy = T) %>%
+  inner_join(allSubjects, by = "subject_id", copy = T) %>%
   select(cohort_definition_id, subject_id, index_date, group, period) %>% 
   rename(cohort_start_date = index_date) %>%
   mutate(cohort_end_date = cohort_start_date) %>%
   compute()
+
+rm(allSubjects)
 
 allSubjectsCohort <- 
   cdm[["all_subjects"]] %>% 
@@ -122,14 +128,16 @@ allSubjectsCohort <- allSubjectsCohort %>%
   addIntersect(
     tableName = "visit_occurrence",
     value = "count",
-    window = list(c(-Inf, -731), c(-730, -181), c(-181, -1)),
+    window = list(c(-Inf, -731), c(-730, -181), c(-180, -1)),
     nameStyle = "number_visits_{window_name}"
   ) %>%
   collect()
 
 save(allSubjectsCohort, file = here(output_folder, "tempData", "allSubjectsCohort.RData"))
+rm(allSubjectsCohort)
 
 load(here(output_folder, "tempData", "features.RData"))
+load(here(output_folder, "tempData", "allSubjectsCohort.RData"))
 
 features_lasso <- features %>% 
   mutate(value = 1) %>%

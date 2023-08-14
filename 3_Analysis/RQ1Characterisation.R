@@ -81,6 +81,7 @@ withoutImminentFractureCohortTotal <- entryTable[[1]] %>%
   distinct()
 
 #### characterisation 
+info(logger, "CHARACTERISATION: DEMOGRAPHICS")
 cdm[["noImminentFractureCohort"]] <- cdm[["denominator"]] %>%
   inner_join(withoutImminentFractureCohortTotal, by = "subject_id", copy = T) %>%
   left_join(entryTable[[1]] %>% select(subject_id, index_date), by = "subject_id", copy = T) %>%
@@ -127,29 +128,41 @@ noimminent_cohort_count <- cdm[["noImminentFractureCohort"]] %>%
   mutate(number_subjects = number_records) %>%
   compute()
  
-cdm[["imminentFractureCohort"]] <- newGeneratedCohortSet(cohortRef = cdm[["imminentFractureCohort"]],
-                                                         cohortSetRef = imminentCohortSet,
-                                                         cohortCountRef = imminent_cohort_count)
-
-cdm[["noImminentFractureCohort"]] <- newGeneratedCohortSet(cohortRef = cdm[["noImminentFractureCohort"]],
-                                                           cohortSetRef = noImminentCohortSet,
-                                                           cohortCountRef = noimminent_cohort_count)
-
-cdm[["imminentFractureCohort"]]<-
+imm_demographics<-
   addDemographics(x = cdm[["imminentFractureCohort"]], cdm = cdm, sex = F) %>%
   compute()
 
-cdm[["noImminentFractureCohort"]]<-
+no_imm_demographics<-
   addDemographics(x = cdm[["noImminentFractureCohort"]], cdm = cdm, sex = F) %>%
   compute()
 
-#lsc <- summariseLargeScaleCharacteristics(cdm[["imminentFractureCohort"]], cdm)
-lsc_results_imminent_fractures <- summariseLargeScaleCharacteristics(cohort = cdm[["imminentFractureCohort"]], 
-                                                                     cdm = cdm,
-                                                                     window = list(c(-Inf, -731), c(-730, -181), c(-180, -1), c(0, 0)),
-                                                                     tablesToCharacterize = c("condition_occurrence", "drug_era"))
+#### commodity and medications
+info(logger, "CHARACTERISATION: COMORBIDITIES AND MEDICAL HISTORY")
+conditions <- paste0(stem_table, "_conditions")
+medications <- paste0(stem_table, "_medications")
 
-lsc_results_no_imminent_fractures <- summariseLargeScaleCharacteristics(cohort = cdm[["noImminentFractureCohort"]], 
-                                                                        cdm = cdm,
-                                                                        window = list(c(-Inf, -731), c(-730, -181), c(-180, -1), c(0, 0)),
-                                                                        tablesToCharacterize = c("condition_occurrence", "drug_era"))
+### 1. With imminent fractures
+cdm_char_imm<-CDMConnector::cdm_from_con(
+  con = db,
+  cdm_schema = cdm_database_schema,
+  write_schema = results_database_schema
+)
+
+cdm_char_imm[["imminentFractureCohort"]] <- newGeneratedCohortSet(cohortRef = cdm[["imminentFractureCohort"]],
+                                                         cohortSetRef = imminentCohortSet,
+                                                         cohortCountRef = imminent_cohort_count)
+
+cdm_char_imm <- cdmSubsetCohort(cdm_char_imm, "imminentFractureCohort")
+
+### 2. Without imminent fractures
+cdm_char_no_imm<-CDMConnector::cdm_from_con(
+  con = db,
+  cdm_schema = cdm_database_schema,
+  write_schema = results_database_schema
+)
+
+cdm_char_no_imm[["noImminentFractureCohort"]] <- newGeneratedCohortSet(cohortRef = cdm[["noImminentFractureCohort"]],
+                                                                  cohortSetRef = noImminentCohortSet,
+                                                                  cohortCountRef = noimminent_cohort_count)
+
+cdm_char_no_imm <- cdmSubsetCohort(cdm_char_no_imm, "noImminentFractureCohort")

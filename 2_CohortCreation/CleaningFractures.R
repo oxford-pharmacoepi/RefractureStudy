@@ -7,6 +7,8 @@ cdm <- generateDenominatorCohortSet(
   sex = "Female",
   ageGroup = list(c(50, 150)))
 
+denom_count <-cdm[["denominator"]] %>% tally() %>% pull()
+
 AttritionReportDenom<-cohortAttrition(cdm$denominator)
 
 ### Loading fracture codes
@@ -147,7 +149,11 @@ fracture_table <- fracture_table %>%
 
 fracture_table<-fracture_table %>%
   anti_join(
-    fracture_table %>% filter(!fracture_site=="Nonspecific") %>% group_by(subject_id, condition_start_date) %>% summarise(number_site = n_distinct(fracture_site)) %>% filter(number_site>=3),
+    fracture_table %>% 
+      filter(!fracture_site=="Nonspecific") %>% 
+      group_by(subject_id, condition_start_date) %>% 
+      summarise(number_site = n_distinct(fracture_site), .groups = "drop") %>% 
+      filter(number_site>=3),
     by = c("subject_id", "condition_start_date")
   )
 
@@ -215,6 +221,7 @@ AttritionReportFrac<- AttritionReportFrac %>%
       reason = "Clean out using washout period"
     )
   ) 
+rm(index_fractures)
 
 # Applying Hierarchy to multiple records on the same day
 info(logger, "APPLYING HIERARCHY TO PREVENT MORE THAN ONE RECORD ON THE SAME DAY FOR THE SAME PERSON")
