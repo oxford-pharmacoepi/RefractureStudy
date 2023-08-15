@@ -152,27 +152,23 @@ features_lasso <- subfeatures_periods %>%
   mutate(value = 1) %>%
   pivot_wider(names_from = "feature", values_from = "value", values_fill = 0)
 
-test <- features_lasso %>%
-  inner_join(allSubjectsCohort %>% select(-c("cohort_definition_id", "cohort_end_date")), by = "subject_id", copy = T) %>% 
-  mutate(groups = paste0(group," period ", period)) %>%
-  select(-c("group", "period")) %>%
-  distinct()
+asc_periods <- allSubjectsCohort %>% select(-c("cohort_definition_id", "cohort_end_date", "cohort_start_date")) %>%
+  filter(period == 1) %>%
+  select(-"period")
 
-features_lasso_test <- features_lasso %>% 
-  filter(groups %in% c("target period 1", "comparator 1 period 1")) 
+features_lasso_test <- asc_periods %>%
+  inner_join(features_lasso, by = "subject_id") 
 
-lasso_num <- features_lasso_test %>% summarise_all(n_distinct)
-features_lasso_test<- features_lasso_test[,colnames(lasso_num[, (lasso_num[1, ] > 1)[1,]])]
+# lasso_num <- features_lasso_test %>% summarise_all(n_distinct)
+# features_lasso_test<- features_lasso_test[,colnames(lasso_num[, (lasso_num[1, ] > 1)[1,]])]
 features_lasso_test$prior_observation <- as.double(features_lasso_test$prior_observation)
-features_lasso_test <- features_lasso_test %>%
-  mutate(groups = factor(groups, c("target period 1", "comparator 1 period 1")))
+features_lasso_test <- features_lasso_test %>% 
+  mutate(group = factor(group, c("target", "comparator 1", "comparator 2")))
 
-features_lasso_test$groups <- as.double(features_lasso_test$groups)
+features_lasso_test_12 <- features_lasso_test %>% filter(group %in% c("target", "comparator 1"))
 
-features_lasso_test <- features_lasso_test %>% select(-subject_id)
-
-x <- features_lasso_test %>% select(-groups)
-y <- features_lasso_test$groups
+x <- features_lasso_test_12 %>% select(-c("group", "subject_id"))
+y <- features_lasso_test_12$group
 y<-as.integer(y)
 lambdas <- 10^seq(2, -3, by = -.1)
 set.seed(1000)
