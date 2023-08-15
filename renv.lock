@@ -66,23 +66,27 @@
     },
     "CodelistGenerator": {
       "Package": "CodelistGenerator",
-      "Version": "1.2.0",
+      "Version": "1.6.0",
       "Source": "Repository",
       "Repository": "CRAN",
       "Requirements": [
         "CDMConnector",
         "DBI",
+        "PatientProfiles",
+        "RJSONIO",
         "checkmate",
         "cli",
         "dplyr",
         "glue",
+        "lubridate",
         "magrittr",
+        "purrr",
         "rlang",
         "stringr",
         "tidyr",
         "tidyselect"
       ],
-      "Hash": "41041ebe4e9eced9e076e07cc6486325"
+      "Hash": "2b67a62528bdaae6c6aa3ff003d137e6"
     },
     "DBI": {
       "Package": "DBI",
