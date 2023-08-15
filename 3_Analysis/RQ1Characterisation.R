@@ -154,6 +154,16 @@ cdm_char_imm[["imminentFractureCohort"]] <- newGeneratedCohortSet(cohortRef = cd
 
 cdm_char_imm <- cdmSubsetCohort(cdm_char_imm, "imminentFractureCohort")
 
+# instantiate medications
+info(logger, "INSTANTIATE MEDICATIONS")
+codelistMedications <- codesFromConceptSet(here("Cohorts", "Medications"), cdm_char_imm)
+cdm_char_imm <- generateConceptCohortSet(cdm_char_imm, medications, codelistMedications)
+
+# instantiate conditions
+info(logger, "INSTANTIATE CONDITIONS")
+codelistConditions <- codesFromConceptSet(here("Cohorts", "Conditions"), cdm_char_imm)
+cdm_char_imm <- generateConceptCohortSet(cdm_char_imm, conditions, codelistConditions)
+
 ### 2. Without imminent fractures
 cdm_char_no_imm<-CDMConnector::cdm_from_con(
   con = db,
