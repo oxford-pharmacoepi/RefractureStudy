@@ -136,18 +136,27 @@ allSubjectsCohort <- allSubjectsCohort %>%
 save(allSubjectsCohort, file = here(output_folder, "tempData", "allSubjectsCohort.RData"))
 rm(allSubjectsCohort)
 
-load(here(output_folder, "tempData", "features.RData"))
+load(here(output_folder, "tempData", "subfeatures.RData"))
 load(here(output_folder, "tempData", "allSubjectsCohort.RData"))
 
-features_lasso <- features %>% 
-  mutate(value = 1) %>%
-  pivot_wider(names_from = "feature", values_from = "value", values_fill = 0) %>%
-  inner_join(allSubjectsCohort %>% select(-c("cohort_definition_id", "cohort_end_date")), by = c("subject_id", "index_date" = "cohort_start_date"), copy = T) %>% 
-  select(-"index_date")
+subfeatures_periods <- subfeatures %>% 
+  inner_join(rbind(targetCohort[[1]] %>% select(subject_id, index_date), 
+                   compCohort1[[1]] %>% select(subject_id, index_date), 
+                   compCohort2[[1]] %>% select(subject_id, index_date)), 
+             by = c("subject_id", "index_date"))
+  
 
-features_lasso <- features_lasso %>% 
+features_lasso <- subfeatures_periods %>% 
+  select(-"index_date") %>%
+  distinct() %>%
+  mutate(value = 1) %>%
+  pivot_wider(names_from = "feature", values_from = "value", values_fill = 0)
+
+test <- features_lasso %>%
+  inner_join(allSubjectsCohort %>% select(-c("cohort_definition_id", "cohort_end_date")), by = "subject_id", copy = T) %>% 
   mutate(groups = paste0(group," period ", period)) %>%
-  select(-c("group", "period"))
+  select(-c("group", "period")) %>%
+  distinct()
 
 features_lasso_test <- features_lasso %>% 
   filter(groups %in% c("target period 1", "comparator 1 period 1")) 
