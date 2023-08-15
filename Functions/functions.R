@@ -84,8 +84,12 @@ addInBoneDiseasePostIndex <- function (fractureTable){
 
 # add a column of next fracture after the index one
 addInNextFracture <- function(fractureTable){
-  fractureTable %>% left_join(fractureTable %>% filter(condition_start_date> index_date) %>% group_by(subject_id) %>% summarise(fracture_after_index = min(condition_start_date, na.rm =  T, .groups = "drop")),
-                              by = "subject_id")
+  fractureTable %>% 
+    left_join(fractureTable %>% 
+                filter(condition_start_date> index_date) %>% 
+                group_by(subject_id) %>% 
+                summarise(fracture_after_index = min(condition_start_date, na.rm =  T)),
+              by = "subject_id")
 }
 
 # add a column of death record date after the index date
