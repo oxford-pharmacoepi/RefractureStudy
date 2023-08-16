@@ -127,7 +127,7 @@ noimminent_cohort_count <- cdm[["noImminentFractureCohort"]] %>%
   rename(number_records = n) %>%
   mutate(number_subjects = number_records) %>%
   compute()
- 
+
 imm_demographics<-
   addDemographics(x = cdm[["imminentFractureCohort"]], cdm = cdm, sex = F) %>%
   compute()
@@ -149,20 +149,39 @@ cdm_char_imm<-CDMConnector::cdm_from_con(
 )
 
 cdm_char_imm[["imminentFractureCohort"]] <- newGeneratedCohortSet(cohortRef = cdm[["imminentFractureCohort"]],
-                                                         cohortSetRef = imminentCohortSet,
-                                                         cohortCountRef = imminent_cohort_count)
+                                                                  cohortSetRef = imminentCohortSet,
+                                                                  cohortCountRef = imminent_cohort_count)
 
-cdm_char_imm <- cdmSubsetCohort(cdm_char_imm, "imminentFractureCohort")
+cdm_char_imm <- cdmSubsetCohort(cdm_char_imm, "imminentFractureCohort", verbose = T)
 
 # instantiate medications
 info(logger, "INSTANTIATE MEDICATIONS")
-codelistMedications <- codesFromConceptSet(here("Cohorts", "Medications"), cdm_char_imm)
+codelistMedications <- codesFromConceptSet(here("1_InstantiateCohorts", "Medications"), cdm_char_imm)
 cdm_char_imm <- generateConceptCohortSet(cdm_char_imm, medications, codelistMedications)
 
 # instantiate conditions
 info(logger, "INSTANTIATE CONDITIONS")
-codelistConditions <- codesFromConceptSet(here("Cohorts", "Conditions"), cdm_char_imm)
+codelistConditions <- codesFromConceptSet(here("1_InstantiateCohorts", "Conditions"), cdm_char_imm)
 cdm_char_imm <- generateConceptCohortSet(cdm_char_imm, conditions, codelistConditions)
+
+# create table summary
+info(logger, "CREATE SUMMARY")
+result_imm <- cdm_char_imm[["imminentFractureCohort"]] %>%
+  summariseCharacteristics(
+    tableIntersect = list(
+      "Visits" = list(
+        tableName = "visit_occurrence", value = "count", window = c(-365, 0)
+      )
+    ),
+    cohortIntersect = list(
+      "Medications" = list(
+        targetCohortTable = medications, value = "flag", window = c(-365, 0)
+      ),
+      "Conditions" = list(
+        targetCohortTable = conditions, value = "flag", window = c(-Inf, 0)
+      )
+    )
+  )
 
 ### 2. Without imminent fractures
 cdm_char_no_imm<-CDMConnector::cdm_from_con(
@@ -172,7 +191,51 @@ cdm_char_no_imm<-CDMConnector::cdm_from_con(
 )
 
 cdm_char_no_imm[["noImminentFractureCohort"]] <- newGeneratedCohortSet(cohortRef = cdm[["noImminentFractureCohort"]],
-                                                                  cohortSetRef = noImminentCohortSet,
-                                                                  cohortCountRef = noimminent_cohort_count)
+                                                                       cohortSetRef = noImminentCohortSet,
+                                                                       cohortCountRef = noimminent_cohort_count)
 
-cdm_char_no_imm <- cdmSubsetCohort(cdm_char_no_imm, "noImminentFractureCohort")
+cdm_char_no_imm <- cdmSubsetCohort(cdm_char_no_imm, "noImminentFractureCohort", verbose = T)
+
+# instantiate medications
+info(logger, "INSTANTIATE MEDICATIONS")
+codelistMedications <- codesFromConceptSet(here("1_InstantiateCohorts", "Medications"), cdm_char_no_imm)
+cdm_char_no_imm <- generateConceptCohortSet(cdm_char_no_imm, medications, codelistMedications)
+
+# instantiate conditions
+info(logger, "INSTANTIATE CONDITIONS")
+codelistConditions <- codesFromConceptSet(here("1_InstantiateCohorts", "Conditions"), cdm_char_no_imm)
+cdm_char_no_imm <- generateConceptCohortSet(cdm_char_no_imm, conditions, codelistConditions)
+
+# create table summary
+info(logger, "CREATE SUMMARY")
+result_no_imm <- cdm_char_no_imm[["imminentFractureCohort"]] %>%
+  summariseCharacteristics(
+    tableIntersect = list(
+      "Visits" = list(
+        tableName = "visit_occurrence", value = "count", window = c(-365, 0)
+      )
+    ),
+    cohortIntersect = list(
+      "Medications" = list(
+        targetCohortTable = medications, value = "flag", window = c(-365, 0)
+      ),
+      "Conditions" = list(
+        targetCohortTable = conditions, value = "flag", window = c(-Inf, 0)
+      )
+    )
+  )
+
+# export results
+info(logger, "EXPORT RESULTS")
+write_csv(result_imm, here(output_folder, "table_one_imm.csv"))
+write_csv(result_no_imm, here(output_folder, "table_one_no_imm.csv"))
+
+# create zip file
+info(logger, "ZIPPING RESULTS")
+output_folder <- basename(output_folder)
+zip(
+  zipfile = file.path(paste0(output_folder, "/Results_", db_name, ".zip")),
+  files = list.files(output_folder, full.names = TRUE)
+)
+
+info(logger, "DONE")
