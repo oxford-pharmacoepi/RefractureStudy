@@ -139,37 +139,80 @@ rm(allSubjectsCohort)
 load(here(output_folder, "tempData", "subfeatures.RData"))
 load(here(output_folder, "tempData", "allSubjectsCohort.RData"))
 
-subfeatures_periods <- subfeatures %>% 
+### lasso between target and comparator cohort 1
+lambdas <- 10^seq(2, -3, by = -.1)
+set.seed(1000)
+for (i in (1:length(targetCohort))){
+  subfeatures_01 <- subfeatures %>% 
+    inner_join(rbind(targetCohort[[i]] %>% select(subject_id, index_date), 
+                     compCohort1[[i]] %>% select(subject_id, index_date)), 
+               by = c("subject_id", "index_date"))
+  
+  features_lasso01 <- subfeatures_01 %>% 
+    select(-"index_date") %>%
+    distinct() %>%
+    mutate(value = 1) %>%
+    pivot_wider(names_from = "feature", values_from = "value", values_fill = 0)
+  
+  asc_periods01 <- allSubjectsCohort %>% select(-c("cohort_definition_id", "cohort_end_date", "cohort_start_date")) %>%
+    filter(period == i) %>%
+    select(-"period") %>%
+    filter(group %in% c("target", "comparator 1"))
+  
+  features_lasso_01 <- asc_periods01 %>%
+    inner_join(features_lasso01, by = "subject_id")
+  
+  features_lasso_01 <- features_lasso_01[lowerBoundLasso01(features_lasso_01 = features_lasso_01, lower_bound = 50)]
+    
+  features_lasso_01$prior_observation <- as.double(features_lasso_01$prior_observation)
+  features_lasso_01 <- features_lasso_01 %>% 
+    mutate(group = factor(group, c("target", "comparator 1")))
+  
+  x <- data.matrix(features_lasso_01 %>% select(-c("group", "subject_id")))
+  y <- features_lasso_01$group
+  y<-as.integer(y)
+  lasso_reg <- cv.glmnet(x, y, lambda = lambdas, standardize = TRUE, nfolds = 5, family = "binomial", alpha = 1)
+}
+
+
+
+
+
+
+
+subfeatures_01 <- subfeatures %>% 
   inner_join(rbind(targetCohort[[1]] %>% select(subject_id, index_date), 
-                   compCohort1[[1]] %>% select(subject_id, index_date), 
+                   compCohort1[[1]] %>% select(subject_id, index_date)), 
+             by = c("subject_id", "index_date"))
+
+features_lasso12 <- subfeatures_01 %>% 
+  select(-"index_date") %>%
+  distinct() %>%
+  mutate(value = 1) %>%
+  pivot_wider(names_from = "feature", values_from = "value", values_fill = 0)
+  
+subfeatures_12 <- subfeatures %>%
+  inner_join(rbind(compCohort1[[1]] %>% select(subject_id, index_date), 
                    compCohort2[[1]] %>% select(subject_id, index_date)), 
              by = c("subject_id", "index_date"))
-  
 
-features_lasso <- subfeatures_periods %>% 
+features_lasso01 <- subfeatures_01 %>% 
   select(-"index_date") %>%
   distinct() %>%
   mutate(value = 1) %>%
   pivot_wider(names_from = "feature", values_from = "value", values_fill = 0)
 
-asc_periods <- allSubjectsCohort %>% select(-c("cohort_definition_id", "cohort_end_date", "cohort_start_date")) %>%
+asc_periods01 <- allSubjectsCohort %>% select(-c("cohort_definition_id", "cohort_end_date", "cohort_start_date")) %>%
   filter(period == 1) %>%
-  select(-"period")
+  select(-"period") %>%
+  filter(group %in% c("target", "comparator 1"))
 
-features_lasso_test <- asc_periods %>%
-  inner_join(features_lasso, by = "subject_id") 
+features_lasso_01 <- asc_periods01 %>%
+  inner_join(features_lasso01, by = "subject_id")
 
-# lasso_num <- features_lasso_test %>% summarise_all(n_distinct)
-# features_lasso_test<- features_lasso_test[,colnames(lasso_num[, (lasso_num[1, ] > 1)[1,]])]
+rm(list=setdiff(ls(), "features_lasso_test"))
+
 features_lasso_test$prior_observation <- as.double(features_lasso_test$prior_observation)
 features_lasso_test <- features_lasso_test %>% 
-  mutate(group = factor(group, c("target", "comparator 1", "comparator 2")))
+  mutate(group = factor(group, c("comparator 1", "comparator 2")))
 
-features_lasso_test_12 <- features_lasso_test %>% filter(group %in% c("target", "comparator 1"))
-
-x <- features_lasso_test_12 %>% select(-c("group", "subject_id"))
-y <- features_lasso_test_12$group
-y<-as.integer(y)
-lambdas <- 10^seq(2, -3, by = -.1)
-set.seed(1000)
-lasso_reg <- cv.glmnet(x, y, family = "binomial")

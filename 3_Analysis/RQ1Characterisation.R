@@ -269,4 +269,5 @@ zip(
   files = list.files(output_folder, full.names = TRUE)
 )
 
+rm(fracture_table_rq1)
 info(logger, "DONE")

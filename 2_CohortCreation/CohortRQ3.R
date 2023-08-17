@@ -433,3 +433,10 @@ for (i in (1:length(compCohort2))){
 }
 
 write.xlsx(AttritionReportRQ3, file = here::here(output_folder, "AttritionReportRQ3.xlsx"))
+rm(AttritionReportRQ3,
+   accumulativeTargetCohort,
+   denom_by_periods,
+   periodEnd, 
+   periodStart,
+   fractureCohorts,
+   imminentFractures)

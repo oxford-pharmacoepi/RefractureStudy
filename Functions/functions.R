@@ -128,3 +128,29 @@ immFracture <- function (fractureTable){
   fractureTable %>%
     mutate(imminentFracture = as.integer(condition_start_date == follow_up_end))
 }
+
+# finding the common columns of target cohort and comp cohort 1 where each has at least lower_bound of covariates 
+lowerBoundLasso01 <- function(features_lasso_01, lower_bound){
+  features_lasso_0 <- features_lasso_01 %>% filter (group == "target")
+  features_lasso_1 <- features_lasso_01 %>% filter (group == "comparator 1")
+  features_lasso_0 <- features_lasso_0[8:ncol(features_lasso_0)]
+  features_lasso_1 <- features_lasso_1[8:ncol(features_lasso_1)]
+  features_lasso_0 <- features_lasso_0[,colSums(features_lasso_0)>=lower_bound]
+  features_lasso_1 <- features_lasso_1[,colSums(features_lasso_1)>=lower_bound]
+  colnames_comm <- c(colnames(features_lasso_01[1:7]),
+                     intersect(features_lasso_0 %>% colnames(),features_lasso_1 %>% colnames()))
+  return(colnames_comm)
+}
+
+# finding the common columns of target cohort and comp cohort 1 where each has at least lower_bound of covariates 
+lowerBoundLasso12 <- function(features_lasso_12, lower_bound){
+  features_lasso_1 <- features_lasso_12 %>% filter (group == "comparator 1")
+  features_lasso_2 <- features_lasso_12 %>% filter (group == "comparator 2")
+  features_lasso_1 <- features_lasso_1[8:ncol(features_lasso_1)]
+  features_lasso_2 <- features_lasso_2[8:ncol(features_lasso_2)]
+  features_lasso_1 <- features_lasso_1[,colSums(features_lasso_1)>=lower_bound]
+  features_lasso_2 <- features_lasso_2[,colSums(features_lasso_2)>=lower_bound]
+  colnames_comm <- c(colnames(features_lasso_12[1:7]),
+                     intersect(features_lasso_1 %>% colnames(),features_lasso_2 %>% colnames()))
+  return(colnames_comm)
+}

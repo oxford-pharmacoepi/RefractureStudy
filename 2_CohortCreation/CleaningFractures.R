@@ -70,7 +70,7 @@ cdm[["fracture"]] <- cdm[["denominator"]] %>%
     "Nonspecific"
   }
   )
-
+rm(hip_fracture_id, femur_fracture_id, foot_fracture_id, tib_fracture_id, rib_fracture_id, forearm_fracture_id, vert_fracture_id, pelvic_fracture_id, humerus_fracture_id, nonspecific_fracture_id)
 fracture_table <- cdm[["fracture"]] %>% collect()
 
 AttritionReportFrac<-tibble(
@@ -250,3 +250,5 @@ AttritionReportFrac <- AttritionReportFrac %>%
 
 write.xlsx(AttritionReportDenom, file = here::here(output_folder, "AttritionReport1.xlsx"))
 write.xlsx(AttritionReportFrac, file = here::here(output_folder, "AttritionReport2.xlsx"))
+
+rm(AttritionReportFrac, AttritionReportDenom, cancer, mbd, trauma, conditions_sheet1)

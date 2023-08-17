@@ -133,5 +133,26 @@ stratifiedIncidenceResultsTable <- stratifiedIncidenceResultsTable %>%
 # Export Incidence Results
 write.xlsx(inc_results, file = here::here(output_folder, "IncidenceResults.xlsx"))
 write.xlsx(stratifiedIncidenceResultsTable, file = here::here(output_folder, "StratifiedIncidenceResults.xlsx"))
+save(fracture_table, file = here(output_folder, "tempData", "fracture_table.RData"))
 
+rm(inc_results, 
+   reverseEntryTable, 
+   stratifiedIncidenceResultsTable,
+   AttritionReportRQ2,
+   confidenceInterval,
+   fracture_correction_nonspecific,
+   fracture_correction,
+   fracture_table,
+   fracture_table_rq2,
+   totalObservedTime,
+   ObservedTime,
+   stratifiedIncidenceResultsTable, 
+   stratifiedIncidenceResults,
+   stratifiedTime,
+   stratifiedFractures,
+   stratifiedCohort,
+   entryTable,
+   fracture_table_back_up,
+   fracture_table_follow_up,
+   fracture_table_follow_up_back_up)
 ### cumulative incidence function
