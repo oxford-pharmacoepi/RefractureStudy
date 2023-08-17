@@ -129,11 +129,11 @@ noimminent_cohort_count <- cdm[["noImminentFractureCohort"]] %>%
   compute()
 
 imm_demographics<-
-  addDemographics(x = cdm[["imminentFractureCohort"]], cdm = cdm, sex = F) %>%
+  addDemographics(x = cdm[["imminentFractureCohort"]], cdm = cdm) %>%
   compute()
 
 no_imm_demographics<-
-  addDemographics(x = cdm[["noImminentFractureCohort"]], cdm = cdm, sex = F) %>%
+  addDemographics(x = cdm[["noImminentFractureCohort"]], cdm = cdm) %>%
   compute()
 
 #### commodity and medications
@@ -166,13 +166,28 @@ cdm_char_imm <- generateConceptCohortSet(cdm_char_imm, conditions, codelistCondi
 
 # create table summary
 info(logger, "CREATE SUMMARY")
+
+cdm_char_imm[["drug_era2"]] <- cdm_char_imm[["drug_era"]] %>% 
+  inner_join(cdm_char_imm[["concept"]] %>% filter(concept_class_id == "Ingredient", standard_concept == "S"), by = c("drug_concept_id" = "concept_id")) %>%
+  select(colnames(cdm_char_imm[["drug_era"]])) %>%
+  dplyr::filter(lubridate::year(.data$drug_era_start_date) >= 2009) %>%
+  dplyr::compute()
+  
+cdm_char_imm[["visit_occurence2"]] <- cdm_char_imm[["visit_occurrence"]] %>%  
+  dplyr::filter(lubridate::year(.data$visit_start_date) >= 2009) %>%
+  dplyr::compute()
+
 result_imm <- cdm_char_imm[["imminentFractureCohort"]] %>%
   summariseCharacteristics(
+    ageGroup = list(c(50, 54), c(55, 59), c(60, 64), c(65, 69), c(70, 74), c(75,79), c(80,84), c(85,89), c(90,94), c(95,99), c(100,150)),
     tableIntersect = list(
       "Visits" = list(
-        tableName = "visit_occurrence", value = "count", window = c(-365, 0)
+        tableName = "visit_occurrence2", value = "count", window = c(-365, 0)
+      ),
+      "Medications" = list(
+        tableName = "drug_era2", value = "count", window = c(-365, 0)
       )
-    ),
+    ), 
     cohortIntersect = list(
       "Medications" = list(
         targetCohortTable = medications, value = "flag", window = c(-365, 0)
@@ -208,13 +223,28 @@ cdm_char_no_imm <- generateConceptCohortSet(cdm_char_no_imm, conditions, codelis
 
 # create table summary
 info(logger, "CREATE SUMMARY")
+
+cdm_char_no_imm[["drug_era2"]] <- cdm_char_no_imm[["drug_era"]] %>% 
+  inner_join(cdm_char_no_imm[["concept"]] %>% filter(concept_class_id == "Ingredient", standard_concept == "S"), by = c("drug_concept_id" = "concept_id")) %>%
+  select(colnames(cdm_char_no_imm[["drug_era"]])) %>%
+  dplyr::filter(lubridate::year(.data$drug_era_start_date) >= 2009) %>%
+  dplyr::compute()
+
+cdm_char_no_imm[["visit_occurence2"]] <- cdm_char_no_imm[["visit_occurrence"]] %>%  
+  dplyr::filter(lubridate::year(.data$visit_start_date) >= 2009) %>%
+  dplyr::compute()
+
 result_no_imm <- cdm_char_no_imm[["imminentFractureCohort"]] %>%
   summariseCharacteristics(
+    ageGroup = list(c(50, 54), c(55, 59), c(60, 64), c(65, 69), c(70, 74), c(75,79), c(80,84), c(85,89), c(90,94), c(95,99), c(100,150)),
     tableIntersect = list(
       "Visits" = list(
-        tableName = "visit_occurrence", value = "count", window = c(-365, 0)
+        tableName = "visit_occurrence2", value = "count", window = c(-365, 0)
+      ),
+      "Medications" = list(
+        tableName = "drug_era2", value = "count", window = c(-365, 0)
       )
-    ),
+    ), 
     cohortIntersect = list(
       "Medications" = list(
         targetCohortTable = medications, value = "flag", window = c(-365, 0)
@@ -224,6 +254,7 @@ result_no_imm <- cdm_char_no_imm[["imminentFractureCohort"]] %>%
       )
     )
   )
+
 
 # export results
 info(logger, "EXPORT RESULTS")
