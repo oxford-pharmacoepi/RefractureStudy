@@ -143,14 +143,24 @@ lowerBoundLasso01 <- function(features_lasso_01, lower_bound){
 }
 
 # finding the common columns of target cohort and comp cohort 1 where each has at least lower_bound of covariates 
-lowerBoundLasso12 <- function(features_lasso_12, lower_bound){
-  features_lasso_1 <- features_lasso_12 %>% filter (group == "comparator 1")
-  features_lasso_2 <- features_lasso_12 %>% filter (group == "comparator 2")
-  features_lasso_1 <- features_lasso_1[8:ncol(features_lasso_1)]
-  features_lasso_2 <- features_lasso_2[8:ncol(features_lasso_2)]
-  features_lasso_1 <- features_lasso_1[,colSums(features_lasso_1)>=lower_bound]
-  features_lasso_2 <- features_lasso_2[,colSums(features_lasso_2)>=lower_bound]
-  colnames_comm <- c(colnames(features_lasso_12[1:7]),
-                     intersect(features_lasso_1 %>% colnames(),features_lasso_2 %>% colnames()))
-  return(colnames_comm)
+lowerBoundLasso12 <- function(subfeatures_12, lower_bound){
+  subfeatures_12_1 <- subfeatures_12 %>% 
+    inner_join(compCohort1[[i]] %>% select(subject_id, index_date), by = c("subject_id", "index_date")) %>%
+    distinct() %>%
+    group_by(feature) %>%
+    tally() %>% filter(n>=lower_bound) %>% 
+    pull(feature)
+  
+  subfeatures_12_2 <- subfeatures_12 %>%
+    inner_join(compCohort2[[i]] %>% select(subject_id, index_date), by = c("subject_id", "index_date")) %>%
+    distinct() %>%
+    group_by(feature) %>%
+    tally() %>% filter(n>=lower_bound) %>% 
+    pull(feature)
+  
+  comms <- intersect(subfeatures_12_1, subfeatures_12_2)
+  rm(subfeatures_12_1, subfeatures_12_2)
+  subfeatures_12 <- subfeatures_12 %>%
+    filter(feature %in% comms)
+  return(subfeatures_12)
 }
