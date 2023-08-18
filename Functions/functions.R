@@ -130,16 +130,26 @@ immFracture <- function (fractureTable){
 }
 
 # finding the common columns of target cohort and comp cohort 1 where each has at least lower_bound of covariates 
-lowerBoundLasso01 <- function(features_lasso_01, lower_bound){
-  features_lasso_0 <- features_lasso_01 %>% filter (group == "target")
-  features_lasso_1 <- features_lasso_01 %>% filter (group == "comparator 1")
-  features_lasso_0 <- features_lasso_0[8:ncol(features_lasso_0)]
-  features_lasso_1 <- features_lasso_1[8:ncol(features_lasso_1)]
-  features_lasso_0 <- features_lasso_0[,colSums(features_lasso_0)>=lower_bound]
-  features_lasso_1 <- features_lasso_1[,colSums(features_lasso_1)>=lower_bound]
-  colnames_comm <- c(colnames(features_lasso_01[1:7]),
-                     intersect(features_lasso_0 %>% colnames(),features_lasso_1 %>% colnames()))
-  return(colnames_comm)
+lowerBoundLasso01 <- function(subfeatures_01, lower_bound){
+  subfeatures_01_0 <- subfeatures_01 %>% 
+    inner_join(targetCohort[[i]] %>% select(subject_id, index_date), by = c("subject_id", "index_date")) %>%
+    distinct() %>%
+    group_by(feature) %>%
+    tally() %>% filter(n>=lower_bound) %>% 
+    pull(feature)
+  
+  subfeatures_01_1 <- subfeatures_01 %>%
+    inner_join(compCohort1[[i]] %>% select(subject_id, index_date), by = c("subject_id", "index_date")) %>%
+    distinct() %>%
+    group_by(feature) %>%
+    tally() %>% filter(n>=lower_bound) %>% 
+    pull(feature)
+  
+  comms <- intersect(subfeatures_01_0, subfeatures_01_1)
+  rm(subfeatures_01_0, subfeatures_01_1)
+  subfeatures_01 <- subfeatures_01 %>%
+    filter(feature %in% comms)
+  return(subfeatures_01)
 }
 
 # finding the common columns of target cohort and comp cohort 1 where each has at least lower_bound of covariates 
