@@ -254,10 +254,8 @@ for (i in (1:length(compCohort1))){
   
   features_lasso12 <- features_lasso12 %>%
     select(all_of(c("subject_id", "group", selectedLassoFeatures12[[i]])))
-  glm_results_12[[i]] <- glm(group ~ . - subject_id, data = features_lasso12, family = binomial(link = "logit"))
-  save(glm_results_12, file = here(output_folder, "tempData", "glm_results_12.RData"))
   
-  match_results_12[[i]] <- matchit(group ~ .-"", 
+  match_results_12[[i]] <- matchit(group ~ .-subject_id, 
                                    data=features_lasso12,
                                    method="nearest", 
                                    caliper= c(0.20, age = 5), 
