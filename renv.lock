@@ -213,6 +213,24 @@
       ],
       "Hash": "26570ae748e78cb2b0f56019dd2ba354"
     },
+    "MatchIt": {
+      "Package": "MatchIt",
+      "Version": "4.5.4",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "R",
+        "Rcpp",
+        "RcppProgress",
+        "backports",
+        "chk",
+        "graphics",
+        "rlang",
+        "stats",
+        "utils"
+      ],
+      "Hash": "4cd83143d686ecfcd5bea80fc2455efc"
+    },
     "Matrix": {
       "Package": "Matrix",
       "Version": "1.5-1",
@@ -328,6 +346,13 @@
         "utils"
       ],
       "Hash": "1e035db628cefb315c571202d70202fe"
+    },
+    "RcppProgress": {
+      "Package": "RcppProgress",
+      "Version": "0.4.2",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "1c0aa18b97e6aaa17f93b8b866c0ace5"
     },
     "SqlRender": {
       "Package": "SqlRender",
@@ -484,6 +509,20 @@
         "utils"
       ],
       "Hash": "ca9c113196136f4a9ca9ce6079c2c99e"
+    },
+    "chk": {
+      "Package": "chk",
+      "Version": "0.9.0",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "R",
+        "lifecycle",
+        "methods",
+        "rlang",
+        "tools"
+      ],
+      "Hash": "bccdb88efae005f6b9785a5fdfaaeb16"
     },
     "class": {
       "Package": "class",
