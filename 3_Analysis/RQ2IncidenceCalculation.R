@@ -151,7 +151,6 @@ rm(inc_results,
    stratifiedTime,
    stratifiedFractures,
    stratifiedCohort,
-   entryTable,
    fracture_table_back_up,
    fracture_table_follow_up,
    fracture_table_follow_up_back_up)

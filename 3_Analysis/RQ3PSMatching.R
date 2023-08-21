@@ -141,8 +141,9 @@ rm(allSubjectsCohort)
 #lasso regression, ps and matching between target and comp cohort 1
 lasso_reg_01 <- list()
 selectedLassoFeatures01 <- list()
-glm_results_01<-list()
 match_results_01 <- list()
+subclasses01 <- list()
+summary01 <- list()
 
 for (i in (1:length(targetCohort))){
   load(here(output_folder, "tempData", "subfeatures.RData"))
@@ -166,12 +167,12 @@ for (i in (1:length(targetCohort))){
   features_lasso01 <- allSubjectsCohort %>% select(-c("cohort_definition_id", "cohort_end_date", "cohort_start_date")) %>%
     filter(period == i) %>%
     select(-"period") %>%
-    filter(group %in% c("target", "comparator 1")) %>%
+    filter(group %in% c("comparator 1", "target")) %>%
     inner_join(features_lasso01, by = "subject_id")
   
   features_lasso01$prior_observation <- as.double(features_lasso01$prior_observation)
   features_lasso01 <- features_lasso01 %>% 
-    mutate(group = factor(group, c("target", "comparator 1")))
+    mutate(group = factor(group, c("comparator 1", "target")))
   
   x <- data.matrix(features_lasso01 %>% select(-c("group", "subject_id")))
   y <- features_lasso01$group
@@ -186,28 +187,15 @@ for (i in (1:length(targetCohort))){
   
   features_lasso01 <- features_lasso01 %>%
     select(all_of(c("subject_id", "group", selectedLassoFeatures01[[i]])))
-  glm_results_01[[i]] <- glm(group ~ . - subject_id, data = features_lasso01, family = binomial(link = "logit"))
-  save(glm_results_01, file = here(output_folder, "tempData", "glm_results_01.RData"))
   
-  ps <- features_lasso01  %>%
-    select("subject_id", "group") %>%
-    bind_cols(
-      predict.glm(glm_results_01[[i]], features_lasso01, "response") %>%
-        as_tibble() %>%
-        rename("ps" = "value")
-    )
-  
-  features_lasso01 <- ps %>% 
-    inner_join(features_lasso01, by = c("subject_id", "group"), 
-               relationship = "many-to-many") %>%
-    distinct()
-  
-  match_results_01[[i]] <- matchit(group ~ ps, 
+  match_results_01[[i]] <- matchit(group ~ . -subject_id, 
                                    data=features_lasso01,
                                    method="nearest", 
                                    caliper= c(0.20, age = 5), 
                                    std.caliper = c(TRUE, FALSE),
                                    ratio=5)
+  subclasses01[[i]] <- match.data(match_results_01[[i]])
+  summary01[[i]] <- summary(match_results_01[[i]])
 }
 
 save(lasso_reg_01, file = here(output_folder, "tempData", "lasso_reg_01.RData"))
@@ -220,8 +208,9 @@ rm(match_results_01)
 #lasso regression, ps and matching between comp cohort 1 and 2
 lasso_reg_12 <- list()
 selectedLassoFeatures12 <- list()
-glm_results_12<-list()
 match_results_12 <- list()
+subclasses12 <- list()
+summary12 <- list()
 
 for (i in (1:length(compCohort1))){
   load(here(output_folder, "tempData", "subfeatures.RData"))
@@ -245,12 +234,12 @@ for (i in (1:length(compCohort1))){
   features_lasso12 <- allSubjectsCohort %>% select(-c("cohort_definition_id", "cohort_end_date", "cohort_start_date")) %>%
     filter(period == i) %>%
     select(-"period") %>%
-    filter(group %in% c("comparator 1", "comparator 2")) %>%
+    filter(group %in% c("comparator 2", "comparator 1")) %>%
     inner_join(features_lasso12, by = "subject_id")
 
   features_lasso12$prior_observation <- as.double(features_lasso12$prior_observation)
   features_lasso12 <- features_lasso12 %>% 
-    mutate(group = factor(group, c("comparator 1", "comparator 2")))
+    mutate(group = factor(group, c("comparator 2", "comparator 1")))
   
   x <- data.matrix(features_lasso12 %>% select(-c("group", "subject_id")))
   y <- features_lasso12$group
@@ -268,25 +257,14 @@ for (i in (1:length(compCohort1))){
   glm_results_12[[i]] <- glm(group ~ . - subject_id, data = features_lasso12, family = binomial(link = "logit"))
   save(glm_results_12, file = here(output_folder, "tempData", "glm_results_12.RData"))
   
-  ps <- features_lasso12  %>%
-    select("subject_id", "group") %>%
-    bind_cols(
-      predict.glm(glm_results_12[[i]], features_lasso12, "response") %>%
-        as_tibble() %>%
-        rename("ps" = "value")
-    )
-  
-  features_lasso12 <- ps %>% 
-    inner_join(features_lasso12, by = c("subject_id", "group"), 
-               relationship = "many-to-many") %>%
-    distinct()
-  
-  match_results_12[[i]] <- matchit(group ~ ps, 
+  match_results_12[[i]] <- matchit(group ~ .-"", 
                                    data=features_lasso12,
                                    method="nearest", 
                                    caliper= c(0.20, age = 5), 
                                    std.caliper = c(TRUE, FALSE),
                                    ratio=5)
+  subclasses12[[i]] <- match.data(match_results_12[[i]])
+  summary12[[i]] <- summary(match_results_12[[i]])
 }
 
 save(lasso_reg_12, file = here(output_folder, "tempData", "lasso_reg_12.RData"))
