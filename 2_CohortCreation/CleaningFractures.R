@@ -251,4 +251,4 @@ AttritionReportFrac <- AttritionReportFrac %>%
 write.xlsx(AttritionReportDenom, file = here::here(output_folder, "AttritionReport1.xlsx"))
 write.xlsx(AttritionReportFrac, file = here::here(output_folder, "AttritionReport2.xlsx"))
 
-rm(AttritionReportFrac, AttritionReportDenom, cancer, mbd, trauma, conditions_sheet1)
+rm(AttritionReportDenom, cancer, mbd, trauma, conditions_sheet1)

@@ -133,7 +133,7 @@ stratifiedIncidenceResultsTable <- stratifiedIncidenceResultsTable %>%
 # Export Incidence Results
 write.xlsx(inc_results, file = here::here(output_folder, "IncidenceResults.xlsx"))
 write.xlsx(stratifiedIncidenceResultsTable, file = here::here(output_folder, "StratifiedIncidenceResults.xlsx"))
-save(fracture_table, file = here(output_folder, "tempData", "fracture_table.RData"))
+save(fracture_table, file = here(output_folder, "fracture_table.RData"))
 
 rm(inc_results, 
    reverseEntryTable, 
