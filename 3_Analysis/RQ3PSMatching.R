@@ -139,6 +139,8 @@ rm(allSubjectsCohort)
 
 ################################################################
 #lasso regression, ps and matching between target and comp cohort 1
+set.seed(12345)
+
 lasso_reg_01 <- list()
 selectedLassoFeatures01 <- list()
 match_results_01 <- list()
