@@ -82,58 +82,88 @@ withoutImminentFractureCohortTotal <- entryTable[[1]] %>%
 
 #### characterisation 
 info(logger, "CHARACTERISATION: DEMOGRAPHICS")
-cdm[["noImminentFractureCohort"]] <- cdm[["denominator"]] %>%
+cdm[["no_imminent_fracture_cohort"]] <- cdm[["denominator"]] %>%
   inner_join(withoutImminentFractureCohortTotal, by = "subject_id", copy = T) %>%
   left_join(entryTable[[1]] %>% select(subject_id, index_date), by = "subject_id", copy = T) %>%
   select(-cohort_start_date, -cohort_end_date) %>%
   rename(cohort_start_date = index_date) %>% 
   mutate(cohort_end_date = cohort_start_date) %>%
   distinct() %>%
-  compute()
+  computeQuery(
+    name = "no_imminent_fracture_cohort", 
+    temporary = FALSE, 
+    schema = attr(cdm, "write_schema"), 
+    overwrite = TRUE
+  )
 
-cdm[["imminentFractureCohort"]] <-cdm[["denominator"]] %>%
+cdm[["imminent_fracture_cohort"]] <-cdm[["denominator"]] %>%
   inner_join(imminentFractureCohortTotal, by = "subject_id", copy = T) %>%
   left_join(entryTable[[1]] %>% select(subject_id, index_date), by = "subject_id", copy = T) %>%
   select(-cohort_start_date, -cohort_end_date) %>%
   rename(cohort_start_date = index_date) %>% 
   mutate(cohort_end_date = cohort_start_date) %>%
   distinct() %>%
-  compute()
+  computeQuery(
+    name = "imminent_fracture_cohort", 
+    temporary = FALSE, 
+    schema = attr(cdm, "write_schema"), 
+    overwrite = TRUE
+  )
 
-imminentCohortSet <- cdm[["imminentFractureCohort"]] %>% 
-  select("cohort_definition_id") %>% 
-  distinct() %>% 
-  mutate(cohort_name = if_else(cohort_definition_id == 1, "imminent_fracture", "else")) %>%
-  compute()
-
-noImminentCohortSet <- cdm[["noImminentFractureCohort"]] %>% 
+no_imminent_fracture_cohort_set <- cdm[["no_imminent_fracture_cohort"]] %>% 
   select("cohort_definition_id") %>% 
   distinct() %>% 
   mutate(cohort_name = if_else(cohort_definition_id == 1, "no_imminent_fracture", "else")) %>%
-  compute()
+  computeQuery(
+    name = "no_imminent_fracture_cohort_set", 
+    temporary = FALSE, 
+    schema = attr(cdm, "write_schema"), 
+    overwrite = TRUE
+  )
 
-imminent_cohort_count <- cdm[["imminentFractureCohort"]] %>%
+imminent_fracture_cohort_set <- cdm[["imminent_fracture_cohort"]] %>% 
+  select("cohort_definition_id") %>% 
+  distinct() %>% 
+  mutate(cohort_name = if_else(cohort_definition_id == 1, "imminent_fracture", "else")) %>%
+  computeQuery(
+    name = "imminent_fracture_cohort_set", 
+    temporary = FALSE, 
+    schema = attr(cdm, "write_schema"), 
+    overwrite = TRUE
+  )
+
+no_imminent_fracture_cohort_count <- cdm[["no_imminent_fracture_cohort"]] %>%
   group_by(cohort_definition_id) %>%
   tally() %>%
   compute() %>%
   rename(number_records = n) %>%
   mutate(number_subjects = number_records) %>%
-  compute()
+  computeQuery(
+    name = "no_imminent_fracture_cohort_count", 
+    temporary = FALSE, 
+    schema = attr(cdm, "write_schema"), 
+    overwrite = TRUE
+  )
 
-noimminent_cohort_count <- cdm[["noImminentFractureCohort"]] %>%
+imminent_fracture_cohort_count <- cdm[["imminent_fracture_cohort"]] %>%
   group_by(cohort_definition_id) %>%
   tally() %>%
   compute() %>%
   rename(number_records = n) %>%
   mutate(number_subjects = number_records) %>%
+  computeQuery(
+    name = "imminent_fracture_cohort_count", 
+    temporary = FALSE, 
+    schema = attr(cdm, "write_schema"), 
+    overwrite = TRUE
+  )
+
+no_imm_demographics<-
+  addDemographics(x = cdm[["no_imminent_fracture_cohort"]], cdm = cdm) %>%
   compute()
 
 imm_demographics<-
-  addDemographics(x = cdm[["imminentFractureCohort"]], cdm = cdm) %>%
-  compute()
-
-no_imm_demographics<-
-  addDemographics(x = cdm[["noImminentFractureCohort"]], cdm = cdm) %>%
+  addDemographics(x = cdm[["imminent_fracture_cohort"]], cdm = cdm) %>%
   compute()
 
 #### commodity and medications
@@ -148,11 +178,11 @@ cdm_char_imm<-CDMConnector::cdm_from_con(
   write_schema = results_database_schema
 )
 
-cdm_char_imm[["imminentFractureCohort"]] <- newGeneratedCohortSet(cohortRef = cdm[["imminentFractureCohort"]],
-                                                                  cohortSetRef = imminentCohortSet,
-                                                                  cohortCountRef = imminent_cohort_count)
+cdm_char_imm[["imminent_fracture_cohort"]] <- newGeneratedCohortSet(cohortRef = cdm[["imminent_fracture_cohort"]],
+                                                                  cohortSetRef = imminent_fracture_cohort_set,
+                                                                  cohortCountRef = imminent_fracture_cohort_count)
 
-cdm_char_imm <- cdmSubsetCohort(cdm_char_imm, "imminentFractureCohort", verbose = T)
+cdm_char_imm <- cdmSubsetCohort(cdm_char_imm, "imminent_fracture_cohort", verbose = T)
 
 # instantiate medications
 info(logger, "INSTANTIATE MEDICATIONS")
@@ -205,11 +235,11 @@ cdm_char_no_imm<-CDMConnector::cdm_from_con(
   write_schema = results_database_schema
 )
 
-cdm_char_no_imm[["noImminentFractureCohort"]] <- newGeneratedCohortSet(cohortRef = cdm[["noImminentFractureCohort"]],
-                                                                       cohortSetRef = noImminentCohortSet,
-                                                                       cohortCountRef = noimminent_cohort_count)
+cdm_char_no_imm[["no_imminent_fracture_cohort"]] <- newGeneratedCohortSet(cohortRef = cdm[["no_imminent_fracture_cohort"]],
+                                                                       cohortSetRef = no_imminent_fracture_cohort_set,
+                                                                       cohortCountRef = no_imminent_fracture_cohort_count)
 
-cdm_char_no_imm <- cdmSubsetCohort(cdm_char_no_imm, "noImminentFractureCohort", verbose = T)
+cdm_char_no_imm <- cdmSubsetCohort(cdm_char_no_imm, "no_imminent_fracture_cohort", verbose = T)
 
 # instantiate medications
 info(logger, "INSTANTIATE MEDICATIONS")
