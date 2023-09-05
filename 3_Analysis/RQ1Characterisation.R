@@ -158,14 +158,6 @@ imminent_fracture_cohort_count <- cdm[["imminent_fracture_cohort"]] %>%
     overwrite = TRUE
   )
 
-no_imm_demographics<-
-  addDemographics(x = cdm[["no_imminent_fracture_cohort"]], cdm = cdm) %>%
-  compute()
-
-imm_demographics<-
-  addDemographics(x = cdm[["imminent_fracture_cohort"]], cdm = cdm) %>%
-  compute()
-
 #### commodity and medications
 info(logger, "CHARACTERISATION: COMORBIDITIES AND MEDICAL HISTORY")
 conditions <- paste0(stem_table, "_conditions")
