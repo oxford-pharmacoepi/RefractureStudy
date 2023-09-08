@@ -151,4 +151,22 @@ rm(inc_results,
    fracture_table_back_up,
    fracture_table_follow_up,
    fracture_table_follow_up_back_up)
+
 ### cumulative incidence function
+cif_data <- list()
+
+for (i in (1:length(stratifiedCohort))){
+  cif_data[[i]] <- stratifiedCohort[[i]] %>% 
+    select(subject_id, cohort_start_date, cohort_end_date, condition_start_date, fracture_site, index_date, follow_up_time) %>%
+    group_by(subject_id) %>%
+    arrange(condition_start_date, .by_group = T) %>%
+    filter(row_number()==1) %>%
+    ungroup() %>%
+    mutate(follow_up_time = follow_up_time + (i-1)*730) %>%
+    left_join(stratifiedCohort[[i]] %>% select(subject_id, imminentFracture) %>%
+                filter(imminentFracture == 1), 
+              by = "subject_id") %>%
+    mutate(imminentFracture = case_when(is.na(imminentFracture) ~ 0,
+                                        imminentFracture == 1 ~ 1))
+}
+
