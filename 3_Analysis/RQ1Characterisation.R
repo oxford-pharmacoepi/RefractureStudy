@@ -172,7 +172,8 @@ cdm_char_imm<-CDMConnector::cdm_from_con(
 
 cdm_char_imm[["imminent_fracture_cohort"]] <- newGeneratedCohortSet(cohortRef = cdm[["imminent_fracture_cohort"]],
                                                                   cohortSetRef = imminent_fracture_cohort_set,
-                                                                  cohortCountRef = imminent_fracture_cohort_count)
+                                                                  cohortCountRef = imminent_fracture_cohort_count,
+                                                                  overwrite = T)
 
 cdm_char_imm <- cdmSubsetCohort(cdm_char_imm, "imminent_fracture_cohort", verbose = T)
 
@@ -229,7 +230,8 @@ cdm_char_no_imm<-CDMConnector::cdm_from_con(
 
 cdm_char_no_imm[["no_imminent_fracture_cohort"]] <- newGeneratedCohortSet(cohortRef = cdm[["no_imminent_fracture_cohort"]],
                                                                        cohortSetRef = no_imminent_fracture_cohort_set,
-                                                                       cohortCountRef = no_imminent_fracture_cohort_count)
+                                                                       cohortCountRef = no_imminent_fracture_cohort_count,
+                                                                       overwrite = T)
 
 cdm_char_no_imm <- cdmSubsetCohort(cdm_char_no_imm, "no_imminent_fracture_cohort", verbose = T)
 
@@ -283,13 +285,4 @@ info(logger, "EXPORT RESULTS")
 write_csv(result_imm, here(output_folder, "table_one_imm.csv"))
 write_csv(result_no_imm, here(output_folder, "table_one_no_imm.csv"))
 
-# create zip file
-info(logger, "ZIPPING RESULTS")
-output_folder <- basename(output_folder)
-zip(
-  zipfile = file.path(paste0(output_folder, "/Results_", db_name, ".zip")),
-  files = list.files(output_folder, full.names = TRUE)
-)
-
 rm(fracture_table_rq1)
-info(logger, "DONE")

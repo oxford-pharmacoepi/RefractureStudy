@@ -23,10 +23,10 @@ info(logger, "GENERATING COHORTS FOR RESEARCH QUESTION 1 AND 2")
 source(here("2_CohortCreation", "CohortRQ1&2.R"))
 info(logger, "GENERATING COHORTS FOR RESEARCH QUESTION 1 AND 2 IS DONE")
 
-# # carrying out analyses for Research Question 1 
-# info(logger, "CARRYING OUT ANALYSES FOR RESEARCH QUESTION 1")
-# source(here("3_Analysis", "RQ1Characterisation.R"))
-# info(logger, "CARRYING OUT ANALYSES FOR RESEARCH QUESTION 1 IS DONE")
+# carrying out analyses for Research Question 1
+info(logger, "CARRYING OUT ANALYSES FOR RESEARCH QUESTION 1")
+source(here("3_Analysis", "RQ1Characterisation.R"))
+info(logger, "CARRYING OUT ANALYSES FOR RESEARCH QUESTION 1 IS DONE")
 
 # carrying out analyses for Research Question 2
 info(logger, "CARRYING OUT ANALYSES FOR RESEARCH QUESTION 2")
@@ -42,3 +42,11 @@ info(logger, "GENERATING COHORTS FOR RESEARCH QUESTION 3 IS DONE")
 # info(logger, "CARRYING OUT ANALYSES FOR RESEARCH QUESTION 3")
 # source(here("3_Analysis", "RQ3PSMatching.R"))
 # info(logger, "CARRYING OUT ANALYSES FOR RESEARCH QUESTION 3 IS DONE")
+
+# create zip file
+info(logger, "ZIPPING RESULTS")
+output_folder <- basename(output_folder)
+zip(
+  zipfile = file.path(paste0(output_folder, "/Results_", db_name, ".zip")),
+  files = list.files(output_folder, full.names = TRUE)
+)
