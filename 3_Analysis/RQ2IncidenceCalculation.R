@@ -203,6 +203,7 @@ cif_data_no_strat <- rbind(cif_data_no_strat %>% filter(!is.na(status)), cif_dat
 
 cif_data_no_strat <- cif_data_no_strat %>%
   mutate(status = case_when(status == 1 ~ 2,
-                            status == 2 ~1))
+                            status == 2 ~ 1, 
+                            status == 0 ~ 0))
 
 fit <- CumIncidence (cif_data_no_strat$follow_up_time, cif_data_no_strat$status, cencode = 0, xlab = "Days", level = 0.95)
