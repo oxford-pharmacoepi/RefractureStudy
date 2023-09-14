@@ -25,10 +25,11 @@ library(readr)
 library(CodelistGenerator)
 library(purrr)
 library(MatchIt)
+library(cmprsk)
 
 # database metadata and connection details -----
 # The name/ acronym for the database
-db_name <- "...."
+db_name <- "AURUM"
 
 # Set output folder location -----
 # the path to a folder where the results from this analysis will be saved
@@ -52,13 +53,22 @@ if (!dir.exists(output_folder)) {
 #   user = user,
 #   password = password
 # )
-db <- dbConnect("....")
+
+
+db <- dbConnect(
+  RPostgres::Postgres(),
+  dbname = Sys.getenv("DB_SERVER_cdm_aurum_women_dbi"),
+  port = Sys.getenv("DB_PORT"),
+  host = Sys.getenv("DB_HOST"),
+  user = Sys.getenv("DB_USER"),
+  password = Sys.getenv("DB_PASSWORD")
+)
 
 # The name of the schema that contains the OMOP CDM with patient-level data
-cdm_database_schema <- "...."
+cdm_database_schema <- "public"
 
 # The name of the schema where results tables will be created 
-results_database_schema <- "...."
+results_database_schema <- "results"
 
 # Name of stem outcome table in the result schema where the outcome cohorts will
 # be stored. 
@@ -67,7 +77,7 @@ results_database_schema <- "...."
 #   will be overwritten
 # - more than one cohort will be created
 # - name must be lower case
-stem_table <- "...."
+stem_table <- "ref"
 
 # minimum counts that can be displayed according to data governance
 minimum_counts <- 5
