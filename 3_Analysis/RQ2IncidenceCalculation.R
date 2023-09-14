@@ -153,20 +153,56 @@ rm(inc_results,
    fracture_table_follow_up_back_up)
 
 ### cumulative incidence function
-cif_data <- list()
+cif_data_no_strat <- data.frame()
 
 for (i in (1:length(stratifiedCohort))){
-  cif_data[[i]] <- stratifiedCohort[[i]] %>% 
-    select(subject_id, cohort_start_date, cohort_end_date, condition_start_date, fracture_site, index_date, follow_up_time) %>%
-    group_by(subject_id) %>%
-    arrange(condition_start_date, .by_group = T) %>%
-    filter(row_number()==1) %>%
-    ungroup() %>%
+  cif_data_no_strat <- rbind(cif_data_no_strat, 
+    stratifiedCohort[[i]] %>%
     mutate(follow_up_time = follow_up_time + (i-1)*730) %>%
-    left_join(stratifiedCohort[[i]] %>% select(subject_id, imminentFracture) %>%
-                filter(imminentFracture == 1), 
-              by = "subject_id") %>%
-    mutate(imminentFracture = case_when(is.na(imminentFracture) ~ 0,
-                                        imminentFracture == 1 ~ 1))
+    select(subject_id, follow_up_time) %>%
+    distinct())
 }
 
+censor_by_imminent <- data.frame()
+for (i in (1: length(stratifiedCohort))){
+  censor_by_imminent<-
+    rbind(censor_by_imminent, 
+          stratifiedCohort[[i]] %>%
+    group_by(subject_id) %>%
+    summarise(status = sum(condition_start_date == follow_up_end)) %>%
+    filter(status==1)
+    )
+}
+
+censor_by_death <- data.frame()
+for (i in (1: length(stratifiedCohort))){
+  censor_by_death<-
+    rbind(censor_by_death, 
+          stratifiedCohort[[i]] %>%
+            group_by(subject_id) %>%
+            summarise(status = sum(death_date == follow_up_end)) %>%
+            filter(status > 0) %>%
+            select(-status) %>%
+            mutate(status = 2)
+      
+    )
+}
+
+cif_data_no_strat <-
+  cif_data_no_strat %>%
+  left_join(censor_by_imminent, by = "subject_id")
+
+cif_data_no_strat2 <- cif_data_no_strat %>%
+  filter(is.na(status)) %>%
+  select(-status) %>%
+  left_join(censor_by_death, by = "subject_id") %>%
+  mutate(status = case_when(is.na(status) ~ 0,
+                   status == 2 ~ 2))
+
+cif_data_no_strat <- rbind(cif_data_no_strat %>% filter(!is.na(status)), cif_data_no_strat2)
+
+cif_data_no_strat <- cif_data_no_strat %>%
+  mutate(status = case_when(status == 1 ~ 2,
+                            status == 2 ~1))
+
+fit <- CumIncidence (cif_data_no_strat$follow_up_time, cif_data_no_strat$status, cencode = 0, xlab = "Days", level = 0.95)
