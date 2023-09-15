@@ -153,6 +153,7 @@ rm(inc_results,
    fracture_table_follow_up_back_up)
 
 ### cumulative incidence function
+#no strat
 cif_data_no_strat <- data.frame()
 
 for (i in (1:length(stratifiedCohort))){
@@ -201,10 +202,16 @@ cif_data_no_strat2 <- cif_data_no_strat %>%
                    status == 2 ~ 2))
 
 cif_data_no_strat <- rbind(cif_data_no_strat %>% filter(!is.na(status)), cif_data_no_strat2)
+rm(cif_data_no_strat2)
 
 cif_data_no_strat <- cif_data_no_strat %>%
-  mutate(status = case_when(status == 1 ~ 2,
-                            status == 2 ~ 1, 
-                            status == 0 ~ 0))
+  mutate(status = case_when(status == 1 ~ "imminent",
+                            status == 2 ~ "death", 
+                            status == 0 ~ "censor"))
 
-fit <- CumIncidence (cif_data_no_strat$follow_up_time, cif_data_no_strat$status, cencode = 0, xlab = "Years", level = 0.95)
+cif_data_no_strat$status <- factor(cif_data_no_strat$status, levels = c("censor", "imminent", "death"))
+
+fit_no_strat <- tidycmprsk::cuminc(Surv(follow_up_time, status) ~ 1, cif_data_no_strat)
+save(fit_no_strat, file = here(output_folder, "fit_no_strat.RData"))
+
+#stratify by the number of entries
