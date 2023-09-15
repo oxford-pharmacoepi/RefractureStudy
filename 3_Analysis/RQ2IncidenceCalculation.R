@@ -160,7 +160,8 @@ for (i in (1:length(stratifiedCohort))){
     stratifiedCohort[[i]] %>%
     mutate(follow_up_time = follow_up_time + (i-1)*730) %>%
     select(subject_id, follow_up_time) %>%
-    distinct())
+    distinct() %>%
+    mutate(follow_up_time = as.integer(follow_up_time)/365.25))
 }
 
 censor_by_imminent <- data.frame()
@@ -206,4 +207,4 @@ cif_data_no_strat <- cif_data_no_strat %>%
                             status == 2 ~ 1, 
                             status == 0 ~ 0))
 
-fit <- CumIncidence (cif_data_no_strat$follow_up_time, cif_data_no_strat$status, cencode = 0, xlab = "Days", level = 0.95)
+fit <- CumIncidence (cif_data_no_strat$follow_up_time, cif_data_no_strat$status, cencode = 0, xlab = "Years", level = 0.95)
