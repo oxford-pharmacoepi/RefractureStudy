@@ -8,9 +8,9 @@ info(logger, "EXTRACTING FEATURES")
 allSubjects <- tibble()
 
 for (i in (1:length(targetCohort))){
-   targetCohort[[i]] <- targetCohort[[i]] %>% mutate(group = "target", period = i)
-   compCohort1[[i]] <- compCohort1[[i]] %>% mutate(group = "comparator 1", period = i)
-   compCohort2[[i]] <- compCohort2[[i]] %>% mutate(group = "comparator 2", period = i)
+  targetCohort[[i]] <- targetCohort[[i]] %>% mutate(group = "target", period = i)
+  compCohort1[[i]] <- compCohort1[[i]] %>% mutate(group = "comparator 1", period = i)
+  compCohort2[[i]] <- compCohort2[[i]] %>% mutate(group = "comparator 2", period = i)
 }
 
 for (i in (1:length(targetCohort))){
@@ -94,9 +94,9 @@ features <- cdm$condition_occurrence_2 %>%
   collect()
 
 features_count <- features %>% 
-   group_by(feature) %>%
-   tally()
- 
+  group_by(feature) %>%
+  tally()
+
 features_count_threshold <- features_count %>%
   filter(n<as.integer(denom_count)/200)
 
@@ -139,8 +139,6 @@ rm(allSubjectsCohort)
 
 ################################################################
 #lasso regression, ps and matching between target and comp cohort 1
-set.seed(12345)
-
 lasso_reg_01 <- list()
 selectedLassoFeatures01 <- list()
 match_results_01 <- list()
@@ -148,6 +146,7 @@ subclasses01 <- list()
 summary01 <- list()
 
 for (i in (1:length(targetCohort))){
+  set.seed(12345)
   load(here(output_folder, "tempData", "subfeatures.RData"))
   subfeatures_01 <- subfeatures %>% 
     inner_join(rbind(targetCohort[[i]] %>% select(subject_id, index_date), 
@@ -219,6 +218,7 @@ subclasses12 <- list()
 summary12 <- list()
 
 for (i in (1:length(compCohort1))){
+  set.seed(12345)
   load(here(output_folder, "tempData", "subfeatures.RData"))
   subfeatures_12 <- subfeatures %>% 
     inner_join(rbind(compCohort1[[i]] %>% select(subject_id, index_date), 
@@ -242,7 +242,7 @@ for (i in (1:length(compCohort1))){
     select(-"period") %>%
     filter(group %in% c("comparator 2", "comparator 1")) %>%
     inner_join(features_lasso12, by = "subject_id")
-
+  
   features_lasso12$prior_observation <- as.double(features_lasso12$prior_observation)
   features_lasso12 <- features_lasso12 %>% 
     mutate(group = factor(group, c("comparator 2", "comparator 1")))
