@@ -25,7 +25,8 @@ library(readr)
 library(CodelistGenerator)
 library(purrr)
 library(MatchIt)
-library(cmprsk)
+library(ggsurvfit)
+library(tidycmprsk)
 
 # database metadata and connection details -----
 # The name/ acronym for the database

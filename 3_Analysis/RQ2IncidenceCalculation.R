@@ -1,3 +1,8 @@
+plotFolder <- here(output_folder, "plots")
+if (!dir.exists(plotFolder)) {
+  dir.create(plotFolder)
+}
+
 # Creating follow up time
 info(logger, "CREATING FOLLOW UP TIME: FOLLOWUPEND")
 fracture_table_follow_up <- fracture_table_rq2
@@ -212,6 +217,176 @@ cif_data_no_strat <- cif_data_no_strat %>%
 cif_data_no_strat$status <- factor(cif_data_no_strat$status, levels = c("censor", "imminent", "death"))
 
 fit_no_strat <- tidycmprsk::cuminc(Surv(follow_up_time, status) ~ 1, cif_data_no_strat)
-save(fit_no_strat, file = here(output_folder, "fit_no_strat.RData"))
+save(fit_no_strat, file = here::here(output_folder, "fit_no_strat.RData"))
+
+fit_no_strat_plots <- fit_no_strat %>% 
+  ggcuminc(outcome = c("imminent", "death")) +
+  add_confidence_interval()
+
+pdf(here::here(plotFolder, "fit_no_strat_plots.pdf"),
+    width = 10, height = 8)
+print(fit_no_strat_plots, newpage = FALSE)
+dev.off()
+
 
 #stratify by the number of entries
+cif_data_strat_entry <- data.frame()
+
+for (i in (1:length(stratifiedCohort))){
+  cif_data_strat_entry <- rbind(cif_data_strat_entry, 
+                                stratifiedCohort[[i]] %>%
+                                mutate(entry = i) %>%
+                                mutate(follow_up_time = follow_up_time + (i-1)*730) %>%
+                                select(subject_id, follow_up_time, entry) %>%
+                                distinct() %>%
+                                mutate(follow_up_time = as.integer(follow_up_time)/365.25))
+}
+
+cif_data_strat_entry <- cif_data_strat_entry %>% 
+  inner_join(cif_data_no_strat, by = c("subject_id", "follow_up_time"))
+
+fit_strat_by_entry <- tidycmprsk::cuminc(Surv(follow_up_time, status) ~ entry, cif_data_strat_entry)
+save(fit_strat_by_entry, file = here::here(output_folder, "fit_strat_by_entry.RData"))
+
+fit_strat_by_entry_plots <- fit_strat_by_entry %>% 
+  ggcuminc(outcome = c("imminent", "death")) +
+  add_confidence_interval()
+
+pdf(here::here(plotFolder, "fit_strat_by_entry_plots.pdf"),
+    width = 10, height = 8)
+print(fit_strat_by_entry_plots, newpage = FALSE)
+dev.off()
+
+#stratify by sites
+cif_data_strat_site <- data.frame()
+
+for (i in (1:length(stratifiedCohort))){
+  cif_data_strat_site <- rbind(cif_data_strat_site, 
+                               stratifiedCohort[[i]] %>%
+                               mutate(follow_up_time = follow_up_time + (i-1)*730) %>%
+                               select(subject_id, condition_start_date, fracture_site, index_date, follow_up_end, follow_up_time) %>%
+                               distinct() %>%
+                               mutate(follow_up_time = as.integer(follow_up_time)/365.25))
+}
+
+imminent_id <- censor_by_imminent %>% pull(subject_id)
+
+cif_data_strat_site2 <- 
+  cif_data_strat_site %>%
+  filter(subject_id %in% imminent_id) %>%
+  filter(condition_start_date == index_date | condition_start_date == follow_up_end) %>%
+  mutate(fracture_site = case_when(fracture_site == "Vertebra" ~ "Vertebra",
+                                   fracture_site == "Hip" ~ "Hip",
+                                   !(fracture_site %in% c("Vertebra", "Hip")) ~ "nhnv"
+                                     ))
+
+cif_data_strat_site_any_imm <- cif_data_strat_site2 %>%
+  group_by(subject_id) %>%
+  arrange(condition_start_date, .by_group = TRUE) %>% 
+  filter(row_number()==1) %>%
+  ungroup() %>%
+  rename(index_site = fracture_site) %>%
+  select(subject_id, index_site, follow_up_time)
+
+cif_data_strat_site_any_no_imm <- cif_data_strat_site %>%
+  filter(!subject_id %in% imminent_id) %>%
+  group_by(subject_id) %>%
+  arrange(condition_start_date, .by_group = TRUE) %>% 
+  filter(row_number()==1) %>%
+  ungroup() %>%
+  mutate(index_site = "None") %>%
+  select(subject_id, index_site, follow_up_time)
+
+cif_data_strat_site_any <- rbind(cif_data_strat_site_any_imm, cif_data_strat_site_any_no_imm)
+
+cif_data_strat_site_any$index_site <- factor(cif_data_strat_site_any$index_site, levels = c("None", "Hip", "Vertebra", "nhnv"))
+
+fit_strat_site_any <- tidycmprsk::cuminc(Surv(follow_up_time, index_site) ~ 1, cif_data_strat_site_any)
+save(fit_strat_site_any, file = here::here(output_folder, "fit_strat_site_any.RData"))
+
+fit_strat_site_any_plot <- fit_strat_site_any %>% 
+  ggcuminc(outcome = c("Hip", "Vertebra", "nhnv")) +
+  add_confidence_interval()
+
+pdf(here::here(plotFolder, "fit_strat_site_any_plot.pdf"),
+    width = 10, height = 8)
+print(fit_strat_site_any_plot, newpage = FALSE)
+dev.off()
+
+# vert 
+vert_id <- cif_data_strat_site_any %>%
+  filter (index_site == "Vertebra") %>%
+  pull(subject_id)
+
+cif_data_vert <- cif_data_strat_site2 %>% 
+  filter(subject_id %in% vert_id) %>%
+  group_by(subject_id) %>%
+  arrange(condition_start_date, .by_group = TRUE) %>% 
+  filter(row_number()==2) %>%
+  ungroup()
+
+cif_data_vert$fracture_site <- factor(cif_data_vert$fracture_site, levels = c("Vertebra", "Hip", "nhnv"))
+
+fit_strat_site_vert <- tidycmprsk::cuminc(Surv(follow_up_time, fracture_site) ~ 1, cif_data_vert)
+save(fit_strat_site_vert, file = here::here(output_folder, "fit_strat_site_vert.RData"))
+
+fit_strat_site_vert_plot <- fit_strat_site_vert %>% 
+  ggcuminc(outcome = c("Hip", "nhnv")) +
+  add_confidence_interval()
+
+pdf(here::here(plotFolder, "fit_strat_site_vert_plot.pdf"),
+    width = 10, height = 8)
+print(fit_strat_site_vert_plot, newpage = FALSE)
+dev.off()
+
+# hip 
+hip_id <- cif_data_strat_site_any %>%
+  filter (index_site == "Hip") %>%
+  pull(subject_id)
+
+cif_data_hip <- cif_data_strat_site2 %>% 
+  filter(subject_id %in% hip_id) %>%
+  group_by(subject_id) %>%
+  arrange(condition_start_date, .by_group = TRUE) %>% 
+  filter(row_number()==2) %>%
+  ungroup()
+
+cif_data_hip$fracture_site <- factor(cif_data_hip$fracture_site, levels = c("Hip", "Vertebra", "nhnv"))
+
+fit_strat_site_hip <- tidycmprsk::cuminc(Surv(follow_up_time, fracture_site) ~ 1, cif_data_hip)
+save(fit_strat_site_hip, file = here::here(output_folder, "fit_strat_site_hip.RData"))
+
+fit_strat_site_hip_plot <- fit_strat_site_hip %>% 
+  ggcuminc(outcome = c("Vertebra", "nhnv")) +
+  add_confidence_interval()
+
+pdf(here::here(plotFolder, "fit_strat_site_hip_plot.pdf"),
+    width = 10, height = 8)
+print(fit_strat_site_hip_plot, newpage = FALSE)
+dev.off()
+
+# nhnv
+nhnv_id <- cif_data_strat_site_any %>%
+  filter (index_site == "nhnv") %>%
+  pull(subject_id)
+
+cif_data_nhnv <- cif_data_strat_site2 %>% 
+  filter(subject_id %in% nhnv_id) %>%
+  group_by(subject_id) %>%
+  arrange(condition_start_date, .by_group = TRUE) %>% 
+  filter(row_number()==2) %>%
+  ungroup()
+
+cif_data_nhnv$fracture_site <- factor(cif_data_nhnv$fracture_site, levels = c("nhnv", "Vertebra", "Hip"))
+
+fit_strat_site_nhnv <- tidycmprsk::cuminc(Surv(follow_up_time, fracture_site) ~ 1, cif_data_nhnv)
+save(fit_strat_site_nhnv, file = here::here(output_folder, "fit_strat_site_nhnv.RData"))
+
+fit_strat_site_nhnv_plot <- fit_strat_site_nhnv %>% 
+  ggcuminc(outcome = c("Vertebra", "Hip")) +
+  add_confidence_interval()
+
+pdf(here::here(plotFolder, "fit_strat_site_nhnv_plot.pdf"),
+    width = 10, height = 8)
+print(fit_strat_site_nhnv_plot, newpage = FALSE)
+dev.off()
