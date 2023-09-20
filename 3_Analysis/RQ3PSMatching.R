@@ -135,7 +135,7 @@ allSubjectsCohort <- allSubjectsCohort %>%
   collect()
 
 save(allSubjectsCohort, file = here(output_folder, "tempData", "allSubjectsCohort.RData"))
-rm(allSubjectsCohort)
+rm(allSubjectsCohort, denom)
 
 ################################################################
 #lasso regression, ps and matching between target and comp cohort 1
@@ -178,6 +178,7 @@ for (i in (1:length(targetCohort))){
   x <- data.matrix(features_lasso01 %>% select(-c("group", "subject_id")))
   y <- features_lasso01$group
   y<-as.integer(y)
+  lambdas <- 10^seq(2, -3, by = -.1)
   lasso_reg_01[[i]] <- cv.glmnet(x, y, lambda = lambdas, standardize = TRUE, nfolds = 5, family = "binomial", alpha = 1)
   rm(x,y)
   
@@ -250,6 +251,7 @@ for (i in (1:length(compCohort1))){
   x <- data.matrix(features_lasso12 %>% select(-c("group", "subject_id")))
   y <- features_lasso12$group
   y<-as.integer(y)
+  lambdas <- 10^seq(2, -3, by = -.1)
   lasso_reg_12[[i]] <- cv.glmnet(x, y, lambda = lambdas, standardize = TRUE, nfolds = 5, family = "binomial", alpha = 1)
   rm(x,y)
   
