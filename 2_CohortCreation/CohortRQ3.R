@@ -36,6 +36,7 @@ compCohort1<-list()
 targetCohort <- list()
 
 for (i in (1:(numberPeriods+1))){
+  set.seed(12345)
   compCohort2[[i]] <- denom_by_periods[[i]] %>% 
     anti_join(fracture_table %>% filter(condition_start_date <= periodEnd[[i]]), by = "subject_id")
   compCohort2[[i]] <- compCohort2[[i]] %>% 
