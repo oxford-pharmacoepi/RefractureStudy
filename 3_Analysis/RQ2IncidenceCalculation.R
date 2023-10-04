@@ -289,7 +289,8 @@ save(fit_strat_index_site, file = here::here(output_folder, "fit_strat_index_sit
 
 fit_strat_site_index_plot_death <- fit_strat_index_site %>% 
   ggcuminc(outcome = c("death")) +
-  add_confidence_interval()
+  add_confidence_interval() +
+  add_risktable()
 
 pdf(here::here(plotFolder, "fit_strat_site_index_plot_death.pdf"),
     width = 10, height = 8)
@@ -298,9 +299,76 @@ dev.off()
 
 fit_strat_site_index_plot_imminent <- fit_strat_index_site %>% 
   ggcuminc(outcome = c("imminent")) +
-  add_confidence_interval()
+  add_confidence_interval() +
+  add_risktable()
 
 pdf(here::here(plotFolder, "fit_strat_site_index_plot_imminent.pdf"),
     width = 10, height = 8)
 print(fit_strat_site_index_plot_imminent, newpage = FALSE)
+dev.off()
+
+### breaking down imminent into different sites
+imminent_cohort <- data.frame()
+for (i in (1: length(entryTable))){
+  imminent_cohort <- rbind(imminent_cohort, entryTable[[i]] %>% filter(imminentFracture==1))
+}
+
+imminent_cohort <- imminent_cohort %>% 
+  select(subject_id, fracture_site) %>% 
+  mutate(fracture_site = case_when(fracture_site == "Vertebra" ~ "Vertebra",
+                                   fracture_site == "Hip" ~ "Hip",
+                                   !(fracture_site %in% c("Vertebra", "Hip")) ~ "nhnv"
+  )) %>%
+  rename(imminent_site = fracture_site)
+
+by_imminent_site <- cif_data_strat_site_index %>% 
+  filter(status == "imminent") %>%
+  select(-status) %>%
+  inner_join(imminent_cohort, by = "subject_id") %>%
+  rename(status = imminent_site) %>%
+  mutate(status = paste("imminent fracture by", status, "fracture", sep = " "))
+
+cif_data_strat_site_imminent <- rbind(cif_data_strat_site_index %>% 
+                                        filter(!status == "imminent"), by_imminent_site)
+rm(by_imminent_site, imminent_cohort)
+
+cif_data_strat_site_imminent$status <- factor(cif_data_strat_site_imminent$status, levels = c("censor", "imminent fracture by Hip fracture", "imminent fracture by Vertebra fracture", "imminent fracture by nhnv fracture", "death"))
+
+fit_strat_by_imminent_site <- tidycmprsk::cuminc(Surv(follow_up_time, status) ~ fracture_site, cif_data_strat_site_imminent)
+save(fit_strat_by_imminent_site, file = here::here(output_folder, "fit_strat_by_imminent_site.RData"))
+
+fit_strat_by_imminent_site_plots2 <- fit_strat_by_imminent_site %>% 
+  ggcuminc(outcome = c("death")) +
+  add_confidence_interval()
+
+pdf(here::here(plotFolder, "fit_strat_by_imminent_site_plots_death.pdf"),
+    width = 10, height = 8)
+print(fit_strat_by_imminent_site_plots2, newpage = FALSE)
+dev.off()
+
+fit_strat_by_imminent_site_plots3 <- fit_strat_by_imminent_site %>% 
+  ggcuminc(outcome = c("imminent fracture by nhnv fracture")) +
+  add_confidence_interval()
+
+pdf(here::here(plotFolder, "fit_strat_by_imminent_site_plots_nhnv.pdf"),
+    width = 10, height = 8)
+print(fit_strat_by_imminent_site_plots3, newpage = FALSE)
+dev.off()
+
+fit_strat_by_imminent_site_plots4 <- fit_strat_by_imminent_site %>% 
+  ggcuminc(outcome = c("imminent fracture by Vertebra fracture")) +
+  add_confidence_interval()
+
+pdf(here::here(plotFolder, "fit_strat_by_imminent_site_plots_vert.pdf"),
+    width = 10, height = 8)
+print(fit_strat_by_imminent_site_plots4, newpage = FALSE)
+dev.off()
+
+fit_strat_by_imminent_site_plots5 <- fit_strat_by_imminent_site %>% 
+  ggcuminc(outcome = c("imminent fracture by Hip fracture")) +
+  add_confidence_interval()
+
+pdf(here::here(plotFolder, "fit_strat_by_imminent_site_plots_hip.pdf"),
+    width = 10, height = 8)
+print(fit_strat_by_imminent_site_plots5, newpage = FALSE)
 dev.off()
