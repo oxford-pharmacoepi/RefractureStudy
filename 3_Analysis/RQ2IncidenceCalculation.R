@@ -289,8 +289,7 @@ save(fit_strat_index_site, file = here::here(output_folder, "fit_strat_index_sit
 
 fit_strat_site_index_plot_death <- fit_strat_index_site %>% 
   ggcuminc(outcome = c("death")) +
-  add_confidence_interval() +
-  add_risktable()
+  add_confidence_interval() 
 
 pdf(here::here(plotFolder, "fit_strat_site_index_plot_death.pdf"),
     width = 10, height = 8)
@@ -299,8 +298,7 @@ dev.off()
 
 fit_strat_site_index_plot_imminent <- fit_strat_index_site %>% 
   ggcuminc(outcome = c("imminent")) +
-  add_confidence_interval() +
-  add_risktable()
+  add_confidence_interval() 
 
 pdf(here::here(plotFolder, "fit_strat_site_index_plot_imminent.pdf"),
     width = 10, height = 8)
