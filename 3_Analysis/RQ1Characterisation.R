@@ -335,12 +335,12 @@ cdm_char_frac <- cdmSubsetCohort(cdm_char_frac, "fracture_cohort", verbose = T)
 # instantiate medications
 info(logger, "INSTANTIATE MEDICATIONS")
 codelistMedications <- codesFromConceptSet(here("1_InstantiateCohorts", "Medications"), cdm_char_frac)
-cdm_char_imm <- generateConceptCohortSet(cdm_char_frac, medications, codelistMedications)
+cdm_char_frac <- generateConceptCohortSet(cdm_char_frac, medications, codelistMedications)
 
 # instantiate conditions
 info(logger, "INSTANTIATE CONDITIONS")
 codelistConditions <- codesFromConceptSet(here("1_InstantiateCohorts", "Conditions"), cdm_char_frac)
-cdm_char_imm <- generateConceptCohortSet(cdm_char_frac, conditions, codelistConditions)
+cdm_char_frac <- generateConceptCohortSet(cdm_char_frac, conditions, codelistConditions)
 
 # create table summary
 info(logger, "CREATE SUMMARY")
@@ -383,3 +383,7 @@ write_csv(result_no_imm, here(output_folder, "table_one_no_imm.csv"))
 write_csv(result_frac, here(output_folder, "table_one_frac.csv"))
 
 rm(fracture_table_rq1)
+
+# reformat and export
+reformatted_table_1 <- reformat_table_one(result_imm = result_imm, result_no_imm = result_no_imm, result_frac = result_frac)
+write_csv(reformatted_table_1, here(output_folder, "reformatted_table_1.csv"))
