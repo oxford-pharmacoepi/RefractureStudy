@@ -157,8 +157,67 @@ rm(inc_results,
    fracture_table_follow_up,
    fracture_table_follow_up_back_up)
 
+### follow up time summary statistics
+follow_up_time_stats <- data.frame()
+
+for (i in (1:length(stratifiedCohort))){
+  follow_up_time_stats <- rbind(follow_up_time_stats, 
+                              stratifiedCohort[[i]] %>%
+                               mutate(follow_up_time = follow_up_time + (i-1)*730) %>%
+                               select(subject_id, follow_up_time) %>%
+                               distinct() %>%
+                               mutate(follow_up_time = as.integer(follow_up_time)/365.25))
+}
+
+censor_by_imminent <- data.frame()
+for (i in (1: length(stratifiedCohort))){
+  censor_by_imminent<-
+    rbind(censor_by_imminent, 
+          stratifiedCohort[[i]] %>%
+            group_by(subject_id) %>%
+            summarise(status = sum(condition_start_date == follow_up_end)) %>%
+            filter(status==1)
+    )
+}
+
+censor_by_imminent <- censor_by_imminent %>% pull(subject_id)
+
+follow_up_time_stats <- follow_up_time_stats %>%
+  mutate(group = ifelse(follow_up_time_stats$subject_id %in% censor_by_imminent, "imminent", "no imminent"))
+
+fut_tot_percentiles <- quantile(follow_up_time_stats$follow_up_time, probs = c(.25, .5, .75))
+fut_tot_percentiles_imm <- quantile(follow_up_time_stats %>% filter(group == "imminent") %>% pull(follow_up_time), probs = c(.25, .5, .75))
+fut_tot_percentiles_no_imm <- quantile(follow_up_time_stats %>% filter(group == "no imminent") %>% pull(follow_up_time), probs = c(.25, .5, .75))
+
+follow_up_time <- 
+  data.frame(x = "Follow up time in years, median (IQR)",
+           y = paste0(round(fut_tot_percentiles[2], 2), 
+                      " (",
+                      round(fut_tot_percentiles[1], 2),
+                      "-",
+                      round(fut_tot_percentiles[3], 2),
+                      ")"),
+           z = paste0(round(fut_tot_percentiles_imm[2], 2), 
+                      " (",
+                      round(fut_tot_percentiles_imm[1], 2),
+                      "-",
+                      round(fut_tot_percentiles_imm[3], 2),
+                      ")"),
+           w = paste0(round(fut_tot_percentiles_no_imm[2], 2), 
+                      " (",
+                      round(fut_tot_percentiles_no_imm[1], 2),
+                      "-",
+                      round(fut_tot_percentiles_no_imm[3], 2),
+                      ")"))
+
+updated_table_1 <- reformatted_table1
+colnames(updated_table_1) <- c("x", "y", "z", "w")
+
+updated_table_1 <- rbind(follow_up_time, updated_table_1)
+
+write_csv(updated_table_1, here(output_folder, "updated_table_1.csv"))
+
 ### cumulative incidence function
-#no strat
 cif_data_no_strat <- data.frame()
 
 for (i in (1:length(stratifiedCohort))){
@@ -216,18 +275,32 @@ cif_data_no_strat <- cif_data_no_strat %>%
 
 cif_data_no_strat$status <- factor(cif_data_no_strat$status, levels = c("censor", "imminent", "death"))
 
-fit_no_strat <- tidycmprsk::cuminc(Surv(follow_up_time, status) ~ 1, cif_data_no_strat)
+fit_no_strat <- tidycmprsk::cuminc(Surv(follow_up_time, status) ~ 1, cif_data_no_strat) %>%
+  tbl_cuminc(times = c(1,2,3,4,5,6,7,8), 
+             outcomes = c("imminent"),
+             label_header = "**Year {time}**") %>%
+  add_nevent() %>%
+  add_n()
+
 save(fit_no_strat, file = here::here(output_folder, "fit_no_strat.RData"))
 
-fit_no_strat_plots <- fit_no_strat %>% 
-  ggcuminc(outcome = c("imminent", "death")) +
+fit_no_strat_plots_imminent <- fit_no_strat %>% 
+  ggcuminc(outcome = c("imminent")) +
   add_confidence_interval()
 
-pdf(here::here(plotFolder, "fit_no_strat_plots.pdf"),
+pdf(here::here(plotFolder, "fit_no_strat_plots_imminent.pdf"),
     width = 10, height = 8)
-print(fit_no_strat_plots, newpage = FALSE)
+print(fit_no_strat_plots_imminent, newpage = FALSE)
 dev.off()
 
+fit_no_strat_plots_death <- fit_no_strat %>% 
+  ggcuminc(outcome = c("death")) +
+  add_confidence_interval()
+
+pdf(here::here(plotFolder, "fit_no_strat_plots_death.pdf"),
+    width = 10, height = 8)
+print(fit_no_strat_plots_death, newpage = FALSE)
+dev.off()
 
 #stratify by the number of entries
 cif_data_strat_entry <- data.frame()
