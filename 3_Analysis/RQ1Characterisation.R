@@ -382,7 +382,12 @@ write_csv(result_imm, here(output_folder, "table_one_imm.csv"))
 write_csv(result_no_imm, here(output_folder, "table_one_no_imm.csv"))
 write_csv(result_frac, here(output_folder, "table_one_frac.csv"))
 
-rm(fracture_table_rq1)
+rm(fracture_table_rq1, 
+   imminentFractureCohortTotal, 
+   entryTable, 
+   reverseEntryTable, 
+   stratifiedCohort, 
+   withoutImminentFractureCohortTotal)
 
 # reformat and export
 reformatted_table_1 <- reformat_table_one(result_imm = result_imm, result_no_imm = result_no_imm, result_frac = result_frac)
