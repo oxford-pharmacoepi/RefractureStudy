@@ -90,44 +90,24 @@ confidenceInterval <- PoissonCI(x=totalFracture, n=totalObservedTimeYears/1000, 
 confidenceInterval <- as.data.frame(confidenceInterval) %>% mutate(est = round(est,2), lower = round(lwr.ci, 2), upper = round(upr.ci,2)) %>% select(c(-lwr.ci, -upr.ci))
 inc_results <- cbind(inc_results, tibble(n_person = entryTable[[1]] %>% distinct(subject_id) %>% tally() %>% pull()), confidenceInterval, tibble(database_name=db_name)) 
 
-### Stratifying by the number of times someone enters the cohort
-stratifiedCohort <- list()
-for (i in (1:(length(entryTable)-1))){
-  stratifiedCohort[[i]] <- entryTable[[i]] %>% anti_join(entryTable[[i+1]], by = "subject_id")
+### Subgroups incidence
+subgroupIncidenceResults <- list()
+for (i in (1:length(entryTable))){
+  subgroupIncidenceResults[[i]] <- tibble(fracture = sum(entryTable[[i]]$imminentFracture), py = as.integer(ObservedTime[[i]])/365.25, tibble(n_person = entryTable[[i]] %>% distinct(subject_id) %>% tally() %>% pull()))
+  subgroupIncidenceResults[[i]] <- cbind(as.data.frame(PoissonCI(x=subgroupIncidenceResults[[i]]$fracture, n=subgroupIncidenceResults[[i]]$py/1000, method = "exact")) %>% mutate(est = round(est,2), lower = round(lwr.ci, 2), upper = round(upr.ci,2)) %>% select(c(-lwr.ci, -upr.ci)), subgroupIncidenceResults[[i]], tibble(database_name=db_name), tibble(subgroup_id = i))
+
 }
 
-stratifiedCohort[[length(entryTable)]] <- entryTable[[length(entryTable)]]
-
-stratifiedTime <- c()
-for (i in (1: length(stratifiedCohort))){
-  stratifiedTime[[i]] <- stratifiedCohort[[i]] %>% 
-    select(subject_id, follow_up_time) %>% 
-    distinct() %>% 
-    summarise(total_time = sum(follow_up_time+730*(i-1)))
-  stratifiedTime[[i]]<-as.integer(stratifiedTime[[i]] %>% pull())/365.25
-}
-
-stratifiedFractures <- c()
-for (i in (1:length(stratifiedCohort))){
-  stratifiedFractures[[i]] <- sum(stratifiedCohort[[i]]$imminentFracture)
-}
-
-stratifiedIncidenceResults <- list()
-for (i in (1:length(stratifiedCohort))){
-  stratifiedIncidenceResults[[i]] <- tibble(fracture = stratifiedFractures[[i]], py = stratifiedTime[[i]], tibble(n_person = stratifiedCohort[[i]] %>% distinct(subject_id) %>% tally() %>% pull()))
-  stratifiedIncidenceResults[[i]] <- cbind(as.data.frame(PoissonCI(x=stratifiedFractures[[i]], n=stratifiedTime[[i]]/1000, method = "exact")) %>% mutate(est = round(est,2), lower = round(lwr.ci, 2), upper = round(upr.ci,2)) %>% select(c(-lwr.ci, -upr.ci)), stratifiedIncidenceResults[[i]], tibble(database_name=db_name), tibble(cohort_entering_counter = i))
-}
-
-stratifiedIncidenceResultsTable <- data.frame()
-for (i in (1:length(stratifiedIncidenceResults))){
-  stratifiedIncidenceResultsTable<-rbind(stratifiedIncidenceResultsTable, stratifiedIncidenceResults[[i]])
+subgroupIncidenceResultsTable <- data.frame()
+for (i in (1:length(subgroupIncidenceResults))){
+  subgroupIncidenceResultsTable<-rbind(subgroupIncidenceResultsTable, subgroupIncidenceResults[[i]])
 }
 
 # obscuring according to min cell count
-stratifiedIncidenceResultsTable <- stratifiedIncidenceResultsTable %>% 
+subgroupIncidenceResultsTable <- subgroupIncidenceResultsTable %>% 
   mutate(obscured = n_person < minimum_counts)
 
-stratifiedIncidenceResultsTable <- stratifiedIncidenceResultsTable %>%
+subgroupIncidenceResultsTable <- subgroupIncidenceResultsTable %>%
   mutate(est = ifelse(obscured == T, NA, est),
          lower = ifelse(obscured == T, NA, lower),
          upper = ifelse(obscured == T, NA, upper),
@@ -137,28 +117,28 @@ stratifiedIncidenceResultsTable <- stratifiedIncidenceResultsTable %>%
 
 # Export Incidence Results
 write.xlsx(inc_results, file = here::here(output_folder, "IncidenceResults.xlsx"))
-write.xlsx(stratifiedIncidenceResultsTable, file = here::here(output_folder, "StratifiedIncidenceResults.xlsx"))
-save(fracture_table, file = here(output_folder, "fracture_table.RData"))
+write.xlsx(subgroupIncidenceResultsTable, file = here::here(output_folder, "SubgroupIncidenceResults.xlsx"))
 
 rm(inc_results, 
    reverseEntryTable, 
-   stratifiedIncidenceResultsTable,
+   subgroupIncidenceResultsTable,
    AttritionReportRQ2,
    confidenceInterval,
-   fracture_correction_nonspecific,
-   fracture_correction,
    fracture_table_rq2,
    totalObservedTime,
    ObservedTime,
-   stratifiedIncidenceResults,
-   stratifiedTime,
-   stratifiedFractures,
    fracture_table_back_up,
    fracture_table_follow_up,
-   fracture_table_follow_up_back_up)
+   subgroupIncidenceResults)
 
 ### follow up time summary statistics
 follow_up_time_stats <- data.frame()
+stratifiedCohort <- list()
+for (i in (1:(length(entryTable)-1))){
+  stratifiedCohort[[i]] <- entryTable[[i]] %>% anti_join(entryTable[[i+1]], by = "subject_id")
+}
+
+stratifiedCohort[[length(entryTable)]] <- entryTable[[length(entryTable)]]
 
 for (i in (1:length(stratifiedCohort))){
   follow_up_time_stats <- rbind(follow_up_time_stats, 
@@ -216,6 +196,7 @@ colnames(updated_table_1) <- c("x", "y", "z", "w")
 updated_table_1 <- rbind(follow_up_time, updated_table_1)
 
 write_csv(updated_table_1, here(output_folder, "updated_table_1.csv"))
+
 
 ### cumulative incidence function
 cif_data_no_strat <- data.frame()
