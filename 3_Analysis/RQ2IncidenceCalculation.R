@@ -133,16 +133,16 @@ rm(inc_results,
 
 ### follow up time summary statistics
 follow_up_time_stats <- data.frame()
-stratifiedCohort <- list()
+cohortEntry <- list()
 for (i in (1:(length(entryTable)-1))){
-  stratifiedCohort[[i]] <- entryTable[[i]] %>% anti_join(entryTable[[i+1]], by = "subject_id")
+  cohortEntry[[i]] <- entryTable[[i]] %>% anti_join(entryTable[[i+1]], by = "subject_id")
 }
 
-stratifiedCohort[[length(entryTable)]] <- entryTable[[length(entryTable)]]
+cohortEntry[[length(entryTable)]] <- entryTable[[length(entryTable)]]
 
-for (i in (1:length(stratifiedCohort))){
+for (i in (1:length(cohortEntry))){
   follow_up_time_stats <- rbind(follow_up_time_stats, 
-                              stratifiedCohort[[i]] %>%
+                                cohortEntry[[i]] %>%
                                mutate(follow_up_time = follow_up_time + (i-1)*730) %>%
                                select(subject_id, follow_up_time) %>%
                                distinct() %>%
@@ -150,14 +150,9 @@ for (i in (1:length(stratifiedCohort))){
 }
 
 censor_by_imminent <- data.frame()
-for (i in (1: length(stratifiedCohort))){
-  censor_by_imminent<-
-    rbind(censor_by_imminent, 
-          stratifiedCohort[[i]] %>%
-            group_by(subject_id) %>%
-            summarise(status = sum(condition_start_date == follow_up_end)) %>%
-            filter(status==1)
-    )
+for (i in (1: length(entryTable))){
+ censor_by_imminent <- rbind(censor_by_imminent, 
+                             entryTable[[i]] %>% filter(imminentFracture==1) %>% select(subject_id))
 }
 
 censor_by_imminent <- censor_by_imminent %>% pull(subject_id)
@@ -198,8 +193,114 @@ updated_table_1 <- rbind(follow_up_time, updated_table_1)
 write_csv(updated_table_1, here(output_folder, "updated_table_1.csv"))
 
 
-### cumulative incidence function
-cif_data_no_strat <- data.frame()
+### CIF - Subgroup Analysis
+censor_by_imminent <- list()
+censor_by_death <- list()
+index_fracture <- list()
+
+for (i in (1:length(entryTable))){
+  censor_by_imminent[[i]] <- entryTable[[i]] %>% dplyr::filter(imminentFracture==1)
+}
+
+for (i in (1:length(entryTable))){
+  censor_by_death[[i]] <- entryTable[[i]] %>% dplyr::filter(follow_up_end==death_date) %>%
+    anti_join(censor_by_imminent[[i]], by = "subject_id")
+}
+
+for (i in (1:length(entryTable))){
+  index_fracture[[i]] <- entryTable[[i]] %>% dplyr::filter(condition_start_date==index_date)
+}
+
+####### cumulative incidence function
+### making subgroup data
+data_cif <- list()
+for (i in (1:length(entryTable))){
+  data_cif[[i]] <- index_fracture[[i]] %>% 
+    select(subject_id, follow_up_time, fracture_site) %>%
+    mutate(follow_up_time = as.numeric(follow_up_time)) %>%
+    rename(index_site = fracture_site) %>%
+    mutate(index_site = case_when(index_site == "Vertebra" ~ "Vertebra",
+                                  index_site == "Hip" ~ "Hip",
+                                  !(index_site %in% c("Vertebra", "Hip")) ~ "Non-hip, non-vertebra"
+    ))
+  censor_by_death_ids <- censor_by_death[[i]] %>% select(subject_id) %>% pull(subject_id)  
+  censor_by_imminent_ids <- censor_by_imminent[[i]] %>% select(subject_id) %>% pull(subject_id)
+  censor_by_imminent_hip_ids <- censor_by_imminent[[i]] %>% filter(fracture_site == "Hip") %>% select(subject_id) %>% pull(subject_id)
+  censor_by_imminent_vert_ids <- censor_by_imminent[[i]] %>% filter(fracture_site == "Vertebra") %>% select(subject_id) %>% pull(subject_id)
+  censor_by_imminent_nhnv_ids <- censor_by_imminent[[i]] %>% filter(!(fracture_site %in% c("Hip", "Vertebra"))) %>% select(subject_id) %>% pull(subject_id)
+  
+  data_cif[[i]] <- data_cif[[i]] %>% mutate(status = case_when((subject_id %in% censor_by_death_ids) ~ "death",
+                                              (subject_id %in% censor_by_imminent_ids) ~ "imminent",
+                                              !(subject_id %in% c(censor_by_death_ids, censor_by_imminent_ids)) ~ "censor")) %>%
+    mutate(subgroup_status = case_when((subject_id %in% censor_by_death_ids) ~ "death",
+                                       (subject_id %in% censor_by_imminent_hip_ids) ~ "imminent hip fracture",
+                                       (subject_id %in% censor_by_imminent_vert_ids) ~ "imminent vertebra fracture",
+                                       (subject_id %in% censor_by_imminent_nhnv_ids) ~ "imminent non-hip, non-vertebra fracture",
+                                       !(subject_id %in% c(censor_by_death_ids, censor_by_imminent_hip_ids, censor_by_imminent_vert_ids, censor_by_imminent_nhnv_ids)) ~ "censor"))
+  
+}
+
+### 1. plot 1s
+first_plots_data <- data_cif[sapply(data_cif, nrow) >= 5]
+first_plots <- list()
+first_plots_table <- list()
+
+first_plots_data[[1]]$status <- factor(first_plots_data[[1]]$status, levels = c("censor", "imminent", "death"))
+
+first_plots_table[[1]]<- tidycmprsk::cuminc(Surv(follow_up_time, status) ~ 1, first_plots_data[[1]]) %>%
+  tbl_cuminc(times = c(91, 183, 274, 365, 456, 548, 639, 730), 
+             outcomes = c("imminent"),
+             label_header = "**Day {time}**") %>%
+  add_nevent() %>%
+  add_n()
+
+first_plots[[1]]<-tidycmprsk::cuminc(Surv(follow_up_time, status) ~ 1, first_plots_data[[1]]) %>%
+  ggcuminc(outcome = c("imminent", "death")) +
+  add_confidence_interval()
+
+for (i in (2:length(first_plots_data))){
+  first_plots_data[[i]]$status <- factor(first_plots_data[[i]]$status, levels = c("censor", "imminent", "death"))
+  
+  first_plots_table[[i]]<- tidycmprsk::cuminc(Surv(follow_up_time, status) ~ 1, first_plots_data[[i]]) %>%
+    tbl_cuminc(times = c(91, 183, 274, 365, 456, 548, 639, 730), 
+               outcomes = c("imminent"),
+               label_header = "**Day {time}**") %>%
+    add_nevent() %>%
+    add_n()
+  
+  first_plots[[i]]<-tidycmprsk::cuminc(Surv(follow_up_time, status) ~ 1, first_plots_data[[i]]) %>%
+    ggcuminc(outcome = c("imminent")) +
+    add_confidence_interval()
+}
+rm(first_plots_data)
+
+### 2. plot 2s
+hip_plots_data <- list()
+hip_plots <- list()
+hip_plots_table <- list()
+
+for (i in (1:length(data_cif))){
+  hip_plots_data[[i]] <- data_cif[[i]] %>% filter(index_site == "Hip")
+}
+
+hip_plots_data <- hip_plots_data[sapply(hip_plots_data, nrow) >= 5]
+
+for (i in (1:length(hip_plots_data))){
+  hip_plots_data[[i]]$subgroup_status <- factor(hip_plots_data[[i]]$subgroup_status, levels = c("censor", "imminent non-hip, non-vertebra fracture", "imminent hip fracture", "imminent vertebra fracture", "death"))
+  
+  hip_plots_table[[i]]<- tidycmprsk::cuminc(Surv(follow_up_time, subgroup_status) ~ 1, hip_plots_data[[i]]) %>%
+    tbl_cuminc(times = c(91, 183, 274, 365, 456, 548, 639, 730), 
+               outcomes = c("imminent non-hip, non-vertebra fracture", "imminent hip fracture", "imminent vertebra fracture"),
+               label_header = "**Day {time}**") %>%
+    add_nevent() %>%
+    add_n()
+  
+  hip_plots[[i]]<-tidycmprsk::cuminc(Surv(follow_up_time, subgroup_status) ~ 1, hip_plots_data[[i]]) %>%
+    ggcuminc(outcome = c("imminent non-hip, non-vertebra fracture", "imminent hip fracture", "imminent vertebra fracture")) +
+    add_confidence_interval()
+}
+rm(second_plots_data)
+
 
 for (i in (1:length(stratifiedCohort))){
   cif_data_no_strat <- rbind(cif_data_no_strat, 
@@ -208,31 +309,6 @@ for (i in (1:length(stratifiedCohort))){
     select(subject_id, follow_up_time) %>%
     distinct() %>%
     mutate(follow_up_time = as.integer(follow_up_time)/365.25))
-}
-
-censor_by_imminent <- data.frame()
-for (i in (1: length(stratifiedCohort))){
-  censor_by_imminent<-
-    rbind(censor_by_imminent, 
-          stratifiedCohort[[i]] %>%
-    group_by(subject_id) %>%
-    summarise(status = sum(condition_start_date == follow_up_end)) %>%
-    filter(status==1)
-    )
-}
-
-censor_by_death <- data.frame()
-for (i in (1: length(stratifiedCohort))){
-  censor_by_death<-
-    rbind(censor_by_death, 
-          stratifiedCohort[[i]] %>%
-            group_by(subject_id) %>%
-            summarise(status = sum(death_date == follow_up_end)) %>%
-            filter(status > 0) %>%
-            select(-status) %>%
-            mutate(status = 2)
-      
-    )
 }
 
 cif_data_no_strat <-
