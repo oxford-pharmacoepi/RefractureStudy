@@ -31,8 +31,8 @@ fracture_table_follow_up_back_up <- fracture_table_follow_up
 reverseEntryTable <- list()
 
 while (nrow(fracture_table_follow_up_back_up) > 0){
-  reverseEntryTable[[nrow(fracture_table_follow_up_back_up)]] <- fracture_table_follow_up_back_up %>% filter(follow_up_time > 0)
-  fracture_table_follow_up_back_up <- fracture_table_follow_up_back_up %>% filter(follow_up_time > 0)
+  reverseEntryTable[[nrow(fracture_table_follow_up_back_up)]] <- fracture_table_follow_up_back_up %>% dplyr::filter(follow_up_time > 0)
+  fracture_table_follow_up_back_up <- fracture_table_follow_up_back_up %>% dplyr::filter(follow_up_time > 0)
   fracture_table_follow_up_back_up <- nextFractureClean(fracture_table_follow_up_back_up)
   fracture_table_follow_up_back_up <- addIndex(fracture_table_follow_up_back_up)
   fracture_table_follow_up_back_up <- noDeathOnIndex(fracture_table_follow_up_back_up)
@@ -51,7 +51,6 @@ while (nrow(fracture_table_follow_up_back_up) > 0){
 
 reverseEntryTable <- reverseEntryTable[!sapply(reverseEntryTable, is.null)]
 
-#entryTable serves as a table recording people who entered the cohort at least once, twice etc..
 entryTable <- list()
 for (i in (1:length(reverseEntryTable))){
   entryTable[[i]]<-reverseEntryTable[[length(reverseEntryTable)+1-i]]
@@ -59,15 +58,18 @@ for (i in (1:length(reverseEntryTable))){
 
 stratifiedCohort <- list()
 for (i in (1:(length(entryTable)-1))){
-  stratifiedCohort[[i]] <- entryTable[[i]] %>% anti_join(entryTable[[i+1]], by = "subject_id")
+  stratifiedCohort[[i]] <- entryTable[[i]] %>% dplyr::anti_join(entryTable[[i+1]], by = "subject_id")
 }
 
 stratifiedCohort[[length(entryTable)]] <- entryTable[[length(entryTable)]]
+info(logger, "CREATING FOLLOW UP TIME IS DONE")
 
 ### imminent fracture cohort
 imminentFractureCohort <- list()
 for (i in (1:length(stratifiedCohort))){
-  imminentFractureCohort[[i]] <- stratifiedCohort[[i]] %>% filter (imminentFracture==1) %>% select(subject_id)
+  imminentFractureCohort[[i]] <- stratifiedCohort[[i]] %>% 
+    dplyr::filter (imminentFracture==1) %>% 
+    dplyr::select(subject_id)
 }
 
 imminentFractureCohortTotal <-data.frame()
@@ -76,19 +78,19 @@ for (i in 1:length(imminentFractureCohort)){
 }
 
 withoutImminentFractureCohortTotal <- entryTable[[1]] %>%
-  anti_join(imminentFractureCohortTotal, by = "subject_id") %>%
-  select(subject_id) %>%
-  distinct()
+  dplyr::anti_join(imminentFractureCohortTotal, by = "subject_id") %>%
+  dplyr::select(subject_id) %>%
+  dplyr::distinct()
 
 #### characterisation 
 info(logger, "CHARACTERISATION: DEMOGRAPHICS")
 cdm[["no_imminent_fracture_cohort"]] <- cdm[["denominator"]] %>%
-  inner_join(withoutImminentFractureCohortTotal, by = "subject_id", copy = T) %>%
-  left_join(entryTable[[1]] %>% select(subject_id, index_date), by = "subject_id", copy = T) %>%
-  select(-cohort_start_date, -cohort_end_date) %>%
-  rename(cohort_start_date = index_date) %>% 
-  mutate(cohort_end_date = cohort_start_date) %>%
-  distinct() %>%
+  dplyr::inner_join(withoutImminentFractureCohortTotal, by = "subject_id", copy = T) %>%
+  dplyr::left_join(entryTable[[1]] %>% dplyr::select(subject_id, index_date), by = "subject_id", copy = T) %>%
+  dplyr::select(-cohort_start_date, -cohort_end_date) %>%
+  dplyr::rename(cohort_start_date = index_date) %>% 
+  dplyr::mutate(cohort_end_date = cohort_start_date) %>%
+  dplyr::distinct() %>%
   computeQuery(
     name = "no_imminent_fracture_cohort", 
     temporary = FALSE, 
@@ -97,12 +99,12 @@ cdm[["no_imminent_fracture_cohort"]] <- cdm[["denominator"]] %>%
   )
 
 cdm[["imminent_fracture_cohort"]] <-cdm[["denominator"]] %>%
-  inner_join(imminentFractureCohortTotal, by = "subject_id", copy = T) %>%
-  left_join(entryTable[[1]] %>% select(subject_id, index_date), by = "subject_id", copy = T) %>%
-  select(-cohort_start_date, -cohort_end_date) %>%
-  rename(cohort_start_date = index_date) %>% 
-  mutate(cohort_end_date = cohort_start_date) %>%
-  distinct() %>%
+  dplyr::inner_join(imminentFractureCohortTotal, by = "subject_id", copy = T) %>%
+  dplyr::left_join(entryTable[[1]] %>% dplyr::select(subject_id, index_date), by = "subject_id", copy = T) %>%
+  dplyr::select(-cohort_start_date, -cohort_end_date) %>%
+  dplyr::rename(cohort_start_date = index_date) %>% 
+  dplyr::mutate(cohort_end_date = cohort_start_date) %>%
+  dplyr::distinct() %>%
   computeQuery(
     name = "imminent_fracture_cohort", 
     temporary = FALSE, 
@@ -111,11 +113,11 @@ cdm[["imminent_fracture_cohort"]] <-cdm[["denominator"]] %>%
   )
 
 cdm[["fracture_cohort"]] <-cdm[["denominator"]] %>%
-  right_join(entryTable[[1]] %>% select(subject_id, index_date), by = "subject_id", copy = T) %>%
-  select(-cohort_start_date, -cohort_end_date) %>%
-  rename(cohort_start_date = index_date) %>% 
-  mutate(cohort_end_date = cohort_start_date) %>%
-  distinct() %>%
+  dplyr::right_join(entryTable[[1]] %>% dplyr::select(subject_id, index_date), by = "subject_id", copy = T) %>%
+  dplyr::select(-cohort_start_date, -cohort_end_date) %>%
+  dplyr::rename(cohort_start_date = index_date) %>% 
+  dplyr::mutate(cohort_end_date = cohort_start_date) %>%
+  dplyr::distinct() %>%
   computeQuery(
     name = "fracture_cohort", 
     temporary = FALSE, 
@@ -125,9 +127,9 @@ cdm[["fracture_cohort"]] <-cdm[["denominator"]] %>%
 
 # Create cohort set
 no_imminent_fracture_cohort_set <- cdm[["no_imminent_fracture_cohort"]] %>% 
-  select("cohort_definition_id") %>% 
-  distinct() %>% 
-  mutate(cohort_name = if_else(cohort_definition_id == 1, "no_imminent_fracture", "else")) %>%
+  dplyr::select("cohort_definition_id") %>% 
+  dplyr::distinct() %>% 
+  dplyr::mutate(cohort_name = if_else(cohort_definition_id == 1, "no_imminent_fracture", "else")) %>%
   computeQuery(
     name = "no_imminent_fracture_cohort_set", 
     temporary = FALSE, 
@@ -136,9 +138,9 @@ no_imminent_fracture_cohort_set <- cdm[["no_imminent_fracture_cohort"]] %>%
   )
 
 imminent_fracture_cohort_set <- cdm[["imminent_fracture_cohort"]] %>% 
-  select("cohort_definition_id") %>% 
-  distinct() %>% 
-  mutate(cohort_name = if_else(cohort_definition_id == 1, "imminent_fracture", "else")) %>%
+  dplyr::select("cohort_definition_id") %>% 
+  dplyr::distinct() %>% 
+  dplyr::mutate(cohort_name = if_else(cohort_definition_id == 1, "imminent_fracture", "else")) %>%
   computeQuery(
     name = "imminent_fracture_cohort_set", 
     temporary = FALSE, 
@@ -147,9 +149,9 @@ imminent_fracture_cohort_set <- cdm[["imminent_fracture_cohort"]] %>%
   )
 
 fracture_cohort_set <- cdm[["fracture_cohort"]] %>% 
-  select("cohort_definition_id") %>% 
-  distinct() %>% 
-  mutate(cohort_name = if_else(cohort_definition_id == 1, "fracture", "else")) %>%
+  dplyr::select("cohort_definition_id") %>% 
+  dplyr::distinct() %>% 
+  dplyr::mutate(cohort_name = if_else(cohort_definition_id == 1, "fracture", "else")) %>%
   computeQuery(
     name = "fracture_cohort_set", 
     temporary = FALSE, 
@@ -159,11 +161,11 @@ fracture_cohort_set <- cdm[["fracture_cohort"]] %>%
 
 # Create cohort count
 no_imminent_fracture_cohort_count <- cdm[["no_imminent_fracture_cohort"]] %>%
-  group_by(cohort_definition_id) %>%
-  tally() %>%
-  compute() %>%
-  rename(number_records = n) %>%
-  mutate(number_subjects = number_records) %>%
+  dplyr::group_by(cohort_definition_id) %>%
+  dplyr::tally() %>%
+  dplyr::compute() %>%
+  dplyr::rename(number_records = n) %>%
+  dplyr::mutate(number_subjects = number_records) %>%
   computeQuery(
     name = "no_imminent_fracture_cohort_count", 
     temporary = FALSE, 
@@ -172,11 +174,11 @@ no_imminent_fracture_cohort_count <- cdm[["no_imminent_fracture_cohort"]] %>%
   )
 
 imminent_fracture_cohort_count <- cdm[["imminent_fracture_cohort"]] %>%
-  group_by(cohort_definition_id) %>%
-  tally() %>%
-  compute() %>%
-  rename(number_records = n) %>%
-  mutate(number_subjects = number_records) %>%
+  dplyr::group_by(cohort_definition_id) %>%
+  dplyr::tally() %>%
+  dplyr::compute() %>%
+  dplyr::rename(number_records = n) %>%
+  dplyr::mutate(number_subjects = number_records) %>%
   computeQuery(
     name = "imminent_fracture_cohort_count", 
     temporary = FALSE, 
@@ -185,11 +187,11 @@ imminent_fracture_cohort_count <- cdm[["imminent_fracture_cohort"]] %>%
   )
 
 fracture_cohort_count <- cdm[["fracture_cohort"]] %>%
-  group_by(cohort_definition_id) %>%
-  tally() %>%
-  compute() %>%
-  rename(number_records = n) %>%
-  mutate(number_subjects = number_records) %>%
+  dplyr::group_by(cohort_definition_id) %>%
+  dplyr::tally() %>%
+  dplyr::compute() %>%
+  dplyr::rename(number_records = n) %>%
+  dplyr::mutate(number_subjects = number_records) %>%
   computeQuery(
     name = "fracture_cohort_count", 
     temporary = FALSE, 
@@ -198,7 +200,7 @@ fracture_cohort_count <- cdm[["fracture_cohort"]] %>%
   )
 
 #### commodity and medications
-info(logger, "CHARACTERISATION: COMORBIDITIES AND MEDICAL HISTORY")
+info(logger, "CHARACTERISATION: COMORBIDITIES AND MEDICAL HISTORY - IMMINENT COHORT")
 conditions <- paste0(stem_table, "_conditions")
 medications <- paste0(stem_table, "_medications")
 
@@ -217,21 +219,21 @@ cdm_char_imm[["imminent_fracture_cohort"]] <- newGeneratedCohortSet(cohortRef = 
 cdm_char_imm <- cdmSubsetCohort(cdm_char_imm, "imminent_fracture_cohort", verbose = T)
 
 # instantiate medications
-info(logger, "INSTANTIATE MEDICATIONS")
+info(logger, "INSTANTIATE MEDICATIONS - IMMINENT COHORT")
 codelistMedications <- codesFromConceptSet(here("1_InstantiateCohorts", "Medications"), cdm_char_imm)
 cdm_char_imm <- generateConceptCohortSet(cdm_char_imm, medications, codelistMedications)
 
 # instantiate conditions
-info(logger, "INSTANTIATE CONDITIONS")
+info(logger, "INSTANTIATE CONDITIONS - IMMINENT COHORT")
 codelistConditions <- codesFromConceptSet(here("1_InstantiateCohorts", "Conditions"), cdm_char_imm)
 cdm_char_imm <- generateConceptCohortSet(cdm_char_imm, conditions, codelistConditions)
 
 # create table summary
-info(logger, "CREATE SUMMARY")
+info(logger, "CREATE SUMMARY - IMMINENT COHORT")
 
 cdm_char_imm[["drug_era"]] <- cdm_char_imm[["drug_era"]] %>% 
-  inner_join(cdm_char_imm[["concept"]] %>% filter(concept_class_id == "Ingredient", standard_concept == "S"), by = c("drug_concept_id" = "concept_id")) %>%
-  select(colnames(cdm_char_imm[["drug_era"]])) %>%
+  dplyr::inner_join(cdm_char_imm[["concept"]] %>% dplyr::filter(concept_class_id == "Ingredient", standard_concept == "S"), by = c("drug_concept_id" = "concept_id")) %>%
+  dplyr::select(colnames(cdm_char_imm[["drug_era"]])) %>%
   dplyr::filter(lubridate::year(.data$drug_era_start_date) >= 2009) %>%
   dplyr::compute()
   
@@ -259,6 +261,7 @@ result_imm <- cdm_char_imm[["imminent_fracture_cohort"]] %>%
       )
     )
   )
+info(logger, "TABLE 1 IMMINENT COHORT IS DONE")
 
 ### 2. Without imminent fractures
 cdm_char_no_imm<-CDMConnector::cdm_from_con(
@@ -275,21 +278,21 @@ cdm_char_no_imm[["no_imminent_fracture_cohort"]] <- newGeneratedCohortSet(cohort
 cdm_char_no_imm <- cdmSubsetCohort(cdm_char_no_imm, "no_imminent_fracture_cohort", verbose = T)
 
 # instantiate medications
-info(logger, "INSTANTIATE MEDICATIONS")
+info(logger, "INSTANTIATE MEDICATIONS - NO IMMINENT COHORT")
 codelistMedications <- codesFromConceptSet(here("1_InstantiateCohorts", "Medications"), cdm_char_no_imm)
 cdm_char_no_imm <- generateConceptCohortSet(cdm_char_no_imm, medications, codelistMedications)
 
 # instantiate conditions
-info(logger, "INSTANTIATE CONDITIONS")
+info(logger, "INSTANTIATE CONDITIONS - NO IMMINENT COHORT")
 codelistConditions <- codesFromConceptSet(here("1_InstantiateCohorts", "Conditions"), cdm_char_no_imm)
 cdm_char_no_imm <- generateConceptCohortSet(cdm_char_no_imm, conditions, codelistConditions)
 
 # create table summary
-info(logger, "CREATE SUMMARY")
+info(logger, "CREATE SUMMARY - NO IMMINENT COHORT")
 
 cdm_char_no_imm[["drug_era"]] <- cdm_char_no_imm[["drug_era"]] %>% 
-  inner_join(cdm_char_no_imm[["concept"]] %>% filter(concept_class_id == "Ingredient", standard_concept == "S"), by = c("drug_concept_id" = "concept_id")) %>%
-  select(colnames(cdm_char_no_imm[["drug_era"]])) %>%
+  dplyr::inner_join(cdm_char_no_imm[["concept"]] %>% dplyr::filter(concept_class_id == "Ingredient", standard_concept == "S"), by = c("drug_concept_id" = "concept_id")) %>%
+  dplyr::select(colnames(cdm_char_no_imm[["drug_era"]])) %>%
   dplyr::filter(lubridate::year(.data$drug_era_start_date) >= 2009) %>%
   dplyr::compute()
 
@@ -317,6 +320,7 @@ result_no_imm <- cdm_char_no_imm[["no_imminent_fracture_cohort"]] %>%
       )
     )
   )
+info(logger, "CREATE SUMMARY, NO IMMINENT COHORT, IS DONE")
 
 ### 3. Total - fracture cohort
 cdm_char_frac<-CDMConnector::cdm_from_con(
@@ -333,21 +337,21 @@ cdm_char_frac[["fracture_cohort"]] <- newGeneratedCohortSet(cohortRef = cdm[["fr
 cdm_char_frac <- cdmSubsetCohort(cdm_char_frac, "fracture_cohort", verbose = T)
 
 # instantiate medications
-info(logger, "INSTANTIATE MEDICATIONS")
+info(logger, "INSTANTIATE MEDICATIONS - FRACTURE COHORT")
 codelistMedications <- codesFromConceptSet(here("1_InstantiateCohorts", "Medications"), cdm_char_frac)
 cdm_char_frac <- generateConceptCohortSet(cdm_char_frac, medications, codelistMedications)
 
 # instantiate conditions
-info(logger, "INSTANTIATE CONDITIONS")
+info(logger, "INSTANTIATE CONDITIONS - FRACTURE COHORT")
 codelistConditions <- codesFromConceptSet(here("1_InstantiateCohorts", "Conditions"), cdm_char_frac)
 cdm_char_frac <- generateConceptCohortSet(cdm_char_frac, conditions, codelistConditions)
 
 # create table summary
-info(logger, "CREATE SUMMARY")
+info(logger, "CREATE SUMMARY - FRACTURE COHORT")
 
 cdm_char_frac[["drug_era"]] <- cdm_char_frac[["drug_era"]] %>% 
-  inner_join(cdm_char_frac[["concept"]] %>% filter(concept_class_id == "Ingredient", standard_concept == "S"), by = c("drug_concept_id" = "concept_id")) %>%
-  select(colnames(cdm_char_frac[["drug_era"]])) %>%
+  dplyr::inner_join(cdm_char_frac[["concept"]] %>% dplyr::filter(concept_class_id == "Ingredient", standard_concept == "S"), by = c("drug_concept_id" = "concept_id")) %>%
+  dplyr::select(colnames(cdm_char_frac[["drug_era"]])) %>%
   dplyr::filter(lubridate::year(.data$drug_era_start_date) >= 2009) %>%
   dplyr::compute()
 
@@ -375,6 +379,7 @@ result_frac <- cdm_char_frac[["fracture_cohort"]] %>%
       )
     )
   )
+info(logger, "CREATE SUMMARY, FRACTURE COHORT, IS DONE")
 
 # export results
 info(logger, "EXPORT RESULTS")
@@ -391,4 +396,3 @@ rm(fracture_table_rq1,
 
 # reformat and export
 reformatted_table_1 <- reformat_table_one(result_imm = result_imm, result_no_imm = result_no_imm, result_frac = result_frac)
-write_csv(reformatted_table_1, here(output_folder, "reformatted_table_1.csv"))
