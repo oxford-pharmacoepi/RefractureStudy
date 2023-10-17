@@ -451,27 +451,55 @@ rm(nhnv_plots_data)
 
 ### export results
 for (i in (1:length(first_plots))){
-  name <- paste0("CIF_subgroup", i, ".pdf")
+  name <- paste0("CIF_subgroup", i, ".png")
   ggsave(file = file.path(here(plotFolder, name)), 
          plot = first_plots[[1]])
 }
 
 for (i in (1:length(hip_plots))){
-  name <- paste0("CIF_hip_subgroup", i, ".pdf")
+  name <- paste0("CIF_hip_subgroup", i, ".png")
   ggsave(file = file.path(here(plotFolder, name)), 
-         plot = first_plots[[1]])
+         plot = hip_plots[[1]])
 }
 
 for (i in (1:length(vert_plots))){
-  name <- paste0("CIF_vert_subgroup", i, ".pdf")
+  name <- paste0("CIF_vert_subgroup", i, ".png")
   ggsave(file = file.path(here(plotFolder, name)), 
-         plot = first_plots[[1]])
+         plot = vert_plots[[1]])
 }
 
 for (i in (1:length(nhnv_plots))){
-  name <- paste0("CIF_nhnv_subgroup", i, ".pdf")
+  name <- paste0("CIF_nhnv_subgroup", i, ".png")
   ggsave(file = file.path(here(plotFolder, name)), 
-         plot = first_plots[[1]])
+         plot = nhnv_plots[[1]])
+}
+
+for (i in (1:length(first_plots_table))){
+  name <- paste0("CIF_subgroup", i, ".docx")
+  first_plots_table[[i]] %>%
+    as_gt() %>%
+    gt::gtsave(filename = here(plotFolder, name))
+}
+
+for (i in (1:length(hip_plots_table))){
+  name <- paste0("CIF_hip_subgroup", i, ".docx")
+  hip_plots_table[[i]] %>%
+    as_gt() %>%
+    gt::gtsave(filename = here(plotFolder, name))
+}
+
+for (i in (1:length(vert_plots_table))){
+  name <- paste0("CIF_vert_subgroup", i, ".docx")
+  vert_plots_table[[i]] %>%
+    as_gt() %>%
+    gt::gtsave(filename = here(plotFolder, name))
+}
+
+for (i in (1:length(nhnv_plots_table))){
+  name <- paste0("CIF_nhnv_subgroup", i, ".docx")
+  nhnv_plots_table[[i]] %>%
+    as_gt() %>%
+    gt::gtsave(filename = here(plotFolder, name))
 }
 
 info(logger, "CALCULATING CUMULATIVE INCIDENCE FUNCTION IS DONE")
