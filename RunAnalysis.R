@@ -1,7 +1,3 @@
-# if (!(db_name %in% c("GOLD", "AURUM", "IPCI", "SIDIAP", "IQVIA_Italy_LPD", "IQVIA_GERMANY_DA", "IQVIA_France_LPD"))) {
-#   stop('databaseName should be one of the following: "GOLD", "AURUM", "IPCI", "SIDIAP", "IQVIA_Italy_LPD", "IQVIA_GERMANY_DA", "IQVIA_France_LPD"')
-# }
-
 # create logger
 log_file <- paste0(output_folder, "/log.txt")
 logger <- create.logger()
