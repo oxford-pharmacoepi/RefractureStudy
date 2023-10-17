@@ -294,8 +294,8 @@ reformat_table_one <- function(result_imm, result_no_imm, result_frac){
   
   reformatted_table1 <- rbind(reformatted_table1 %>% dplyr::filter(!stringr::str_detect(x, 'Ref')), reformatted_table1_meds)
   
-  reformatted_table1 <- reformatted_table1 %>%
-    dplyr::mutate(y = ifelse((stringr::str_detect(z, '<5')|stringr::str_detect(w, '<5')), "obsecured", y))
+  # reformatted_table1 <- reformatted_table1 %>%
+  #   dplyr::mutate(y = ifelse((stringr::str_detect(z, '<5')|stringr::str_detect(w, '<5')), "obsecured", y))
   
   ###rename columns
   colnames(reformatted_table1) <- c(
