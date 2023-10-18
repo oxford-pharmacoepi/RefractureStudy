@@ -181,6 +181,7 @@ updated_table_1 <- reformatted_table_1
 colnames(updated_table_1) <- c("x", "y", "z", "w")
 
 updated_table_1 <- rbind(follow_up_time, updated_table_1)
+colnames(updated_table_1)<-colnames(reformatted_table_1)
 
 write_csv(updated_table_1, here(output_folder, "updated_table_1.csv"))
 info(logger, "UPDATING TABLE 1 TO INCLUDE FOLLOW UP TIME IS DONE")
@@ -246,11 +247,11 @@ for (i in (1:length(data_cif))){
   )
 }
 counts_overall <- counts_overall %>%
-  dplyr::mutate(counts = ifelse((n<5), "<5", n),
-                counts_imminent = ifelse((n_imminent<5), "<5", n_imminent),
-                counts_imminent_hip = ifelse((n_imminent_hip<5), "<5", n_imminent_hip),
-                counts_imminent_vert = ifelse((n_imminent_vert<5), "<5", n_imminent_vert),
-                counts_imminent_nhnv = ifelse((n_imminent_nhnv<5), "<5", n_imminent_nhnv)) %>%
+  dplyr::mutate(counts = ifelse((n<5 & n>0), "<5", n),
+                counts_imminent = ifelse((n_imminent<5 & n_imminent>0), "<5", n_imminent),
+                counts_imminent_hip = ifelse((n_imminent_hip<5 & n_imminent_hip>0), "<5", n_imminent_hip),
+                counts_imminent_vert = ifelse((n_imminent_vert<5 & n_imminent_vert>0), "<5", n_imminent_vert),
+                counts_imminent_nhnv = ifelse((n_imminent_nhnv<5 & n_imminent_nhnv>0), "<5", n_imminent_nhnv)) %>%
   dplyr::select(-n, -n_imminent, -n_imminent_hip, -n_imminent_vert, -n_imminent_nhnv)
 write.xlsx(counts_overall, file = here(output_folder, "counts_overall.xlsx"))
 
@@ -285,7 +286,7 @@ for (i in (2:length(first_plots_data))){
   first_plots[[i]]<-tidycmprsk::cuminc(Surv(follow_up_time, status) ~ 1, first_plots_data[[i]]) %>%
     ggcuminc(outcome = c("imminent")) +
     add_confidence_interval() +
-    ggtitle(paste0("Cumulative Incidence Function, subgroup ", i)) +
+    xlab("Time (days)") + ylab("Cumulative Incidence of Imminent Fracture")
     theme(plot.title = element_text(hjust = 0.5))
 }
 rm(first_plots_data)
@@ -311,11 +312,11 @@ for (i in (1:length(hip_plots_data))){
                                  n_imminent_nhnv = as.integer(hip_plots_data[[i]] %>% dplyr::filter(subgroup_status == "imminent non-hip, non-vertebra fracture") %>% tally())))
 }
 counts_hip <- counts_hip %>%
-  dplyr::mutate(counts = ifelse((n<5), "<5", n),
-                counts_imminent = ifelse((n_imminent<5), "<5", n_imminent),
-                counts_imminent_hip = ifelse((n_imminent_hip<5), "<5", n_imminent_hip),
-                counts_imminent_vert = ifelse((n_imminent_vert<5), "<5", n_imminent_vert),
-                counts_imminent_nhnv = ifelse((n_imminent_nhnv<5), "<5", n_imminent_nhnv)) %>%
+  dplyr::mutate(counts = ifelse((n<5 & n>0), "<5", n),
+                counts_imminent = ifelse((n_imminent<5 & n_imminent>0), "<5", n_imminent),
+                counts_imminent_hip = ifelse((n_imminent_hip<5 & n_imminent_hip>0), "<5", n_imminent_hip),
+                counts_imminent_vert = ifelse((n_imminent_vert<5 & n_imminent_vert>0), "<5", n_imminent_vert),
+                counts_imminent_nhnv = ifelse((n_imminent_nhnv<5 & n_imminent_nhnv>0), "<5", n_imminent_nhnv)) %>%
   dplyr::select(-n, -n_imminent, -n_imminent_hip, -n_imminent_vert, -n_imminent_nhnv)
 write.xlsx(counts_hip, file = here(output_folder, "counts_hip.xlsx"))
 
@@ -334,7 +335,7 @@ for (i in (1:length(hip_plots_data))){
   hip_plots[[i]]<-tidycmprsk::cuminc(Surv(follow_up_time, subgroup_status) ~ 1, hip_plots_data[[i]]) %>%
     ggcuminc(setdiff(hip_plots_data[[i]] %>% select(subgroup_status) %>% distinct() %>% pull(), c("death", "censor"))) +
     add_confidence_interval() +
-    ggtitle(paste0("Cumulative Incidence Function for index hip fracture, subgroup ", i)) +
+    xlab("Time (days)") + ylab("Cumulative Incidence of Imminent Fracture") +
     theme(plot.title = element_text(hjust = 0.5))
 }
 rm(hip_plots_data)
@@ -360,11 +361,11 @@ for (i in (1:length(vert_plots_data))){
                              n_imminent_nhnv = as.integer(vert_plots_data[[i]] %>% dplyr::filter(subgroup_status == "imminent non-hip, non-vertebra fracture") %>% tally())))
 }
 counts_vert <- counts_vert %>%
-  dplyr::mutate(counts = ifelse((n<5), "<5", n),
-                counts_imminent = ifelse((n_imminent<5), "<5", n_imminent),
-                counts_imminent_hip = ifelse((n_imminent_hip<5), "<5", n_imminent_hip),
-                counts_imminent_vert = ifelse((n_imminent_vert<5), "<5", n_imminent_vert),
-                counts_imminent_nhnv = ifelse((n_imminent_nhnv<5), "<5", n_imminent_nhnv)) %>%
+  dplyr::mutate(counts = ifelse((n<5 & n>0), "<5", n),
+                counts_imminent = ifelse((n_imminent<5 & n_imminent>0), "<5", n_imminent),
+                counts_imminent_hip = ifelse((n_imminent_hip<5 & n_imminent_hip>0), "<5", n_imminent_hip),
+                counts_imminent_vert = ifelse((n_imminent_vert<5 & n_imminent_vert>0), "<5", n_imminent_vert),
+                counts_imminent_nhnv = ifelse((n_imminent_nhnv<5 & n_imminent_nhnv>0), "<5", n_imminent_nhnv)) %>%
   dplyr::select(-n, -n_imminent, -n_imminent_hip, -n_imminent_vert, -n_imminent_nhnv)
 write.xlsx(counts_vert, file = here(output_folder, "counts_vert.xlsx"))
 
@@ -383,7 +384,7 @@ for (i in (1:length(vert_plots_data))){
   vert_plots[[i]]<-tidycmprsk::cuminc(Surv(follow_up_time, subgroup_status) ~ 1, vert_plots_data[[i]]) %>%
     ggcuminc(outcome = setdiff(vert_plots_data[[i]] %>% select(subgroup_status) %>% distinct() %>% pull(), c("death", "censor"))) +
     add_confidence_interval() +
-    ggtitle(paste0("Cumulative Incidence Function for index vertebra fracture, subgroup ", i)) +
+    xlab("Time (days)") + ylab("Cumulative Incidence of Imminent Fracture")
     theme(plot.title = element_text(hjust = 0.5))
 }
 rm(vert_plots_data)
@@ -409,11 +410,11 @@ for (i in (1:length(nhnv_plots_data))){
                               n_imminent_nhnv = as.integer(nhnv_plots_data[[i]] %>% dplyr::filter(subgroup_status == "imminent non-hip, non-vertebra fracture") %>% tally())))
 }
 counts_nhnv <- counts_nhnv %>%
-  dplyr::mutate(counts = ifelse((n<5), "<5", n),
-                counts_imminent = ifelse((n_imminent<5), "<5", n_imminent),
-                counts_imminent_hip = ifelse((n_imminent_hip<5), "<5", n_imminent_hip),
-                counts_imminent_vert = ifelse((n_imminent_vert<5), "<5", n_imminent_vert),
-                counts_imminent_nhnv = ifelse((n_imminent_nhnv<5), "<5", n_imminent_nhnv)) %>%
+  dplyr::mutate(counts = ifelse((n<5 & n>0), "<5", n),
+                counts_imminent = ifelse((n_imminent<5 & n_imminent>0), "<5", n_imminent),
+                counts_imminent_hip = ifelse((n_imminent_hip<5 & n_imminent_hip>0), "<5", n_imminent_hip),
+                counts_imminent_vert = ifelse((n_imminent_vert<5 & n_imminent_vert>0), "<5", n_imminent_vert),
+                counts_imminent_nhnv = ifelse((n_imminent_nhnv<5 & n_imminent_nhnv>0), "<5", n_imminent_nhnv)) %>%
   dplyr::select(-n, -n_imminent, -n_imminent_hip, -n_imminent_vert, -n_imminent_nhnv)
 write.xlsx(counts_nhnv, file = here(output_folder, "counts_nhnv.xlsx"))
 
@@ -432,7 +433,7 @@ for (i in (1:length(nhnv_plots_data))){
   nhnv_plots[[i]]<-tidycmprsk::cuminc(Surv(follow_up_time, subgroup_status) ~ 1, nhnv_plots_data[[i]]) %>%
     ggcuminc(outcome = setdiff(nhnv_plots_data[[i]] %>% select(subgroup_status) %>% distinct() %>% pull(), c("death", "censor"))) +
     add_confidence_interval() +
-    ggtitle(paste0("Cumulative Incidence Function for index non-hip, non-vertebra fracture, subgroup ", i)) +
+    xlab("Time (days)") + ylab("Cumulative Incidence of Imminent Fracture")
     theme(plot.title = element_text(hjust = 0.5))
 }
 rm(nhnv_plots_data)
@@ -441,25 +442,25 @@ rm(nhnv_plots_data)
 for (i in (1:length(first_plots))){
   name <- paste0("CIF_subgroup", i, ".png")
   ggsave(file = file.path(here(plotFolder, name)), 
-         plot = first_plots[[1]])
+         plot = first_plots[[i]])
 }
 
 for (i in (1:length(hip_plots))){
   name <- paste0("CIF_hip_subgroup", i, ".png")
   ggsave(file = file.path(here(plotFolder, name)), 
-         plot = hip_plots[[1]])
+         plot = hip_plots[[i]])
 }
 
 for (i in (1:length(vert_plots))){
   name <- paste0("CIF_vert_subgroup", i, ".png")
   ggsave(file = file.path(here(plotFolder, name)), 
-         plot = vert_plots[[1]])
+         plot = vert_plots[[i]])
 }
 
 for (i in (1:length(nhnv_plots))){
   name <- paste0("CIF_nhnv_subgroup", i, ".png")
   ggsave(file = file.path(here(plotFolder, name)), 
-         plot = nhnv_plots[[1]])
+         plot = nhnv_plots[[i]])
 }
 
 for (i in (1:length(first_plots_table))){

@@ -77,7 +77,7 @@ AttritionReportFrac<-tibble(
   cohort_definition_id = as.integer(1),
   number_records = fracture_table %>% tally() %>% pull(),
   number_subjects = fracture_table %>% distinct(subject_id) %>% tally() %>% pull(),
-  reason = "Starting Population"
+  reason = "Starting Population - Anyone With Fracture(s)"
 )
 
 ### Loading exclusion criteria tables
@@ -246,9 +246,19 @@ AttritionReportFrac<- AttritionReportFrac %>%
 
 ### Finalise attrition
 AttritionReportFrac <- AttritionReportFrac %>% 
-  mutate(subjects_excluded = -(number_subjects-lag(number_subjects)), records_excluded = -(number_records - lag(number_records)))
+  dplyr::mutate(subjects_excluded = -(number_subjects-lag(number_subjects)), records_excluded = -(number_records - lag(number_records)))
 
-write.xlsx(AttritionReportDenom, file = here::here(output_folder, "AttritionReport1.xlsx"))
-write.xlsx(AttritionReportFrac, file = here::here(output_folder, "AttritionReport2.xlsx"))
+AttritionReportDenom <- AttritionReportDenom %>%
+  dplyr::mutate(masked_records = ifelse((excluded_records<5 & excluded_records>0), "<5", as.integer(.data$excluded_records)),
+                masked_subjects = ifelse((excluded_subjects<5 & excluded_subjects>0), "<5", as.integer(.data$excluded_subjects))) %>%
+  dplyr::select(-c("excluded_records", "excluded_subjects"))
 
-rm(AttritionReportDenom, cancer, mbd, trauma, conditions_sheet1)
+AttritionReportFrac <- AttritionReportFrac %>%
+  dplyr::mutate(masked_records = ifelse((records_excluded<5 & records_excluded>0), "<5", as.integer(.data$records_excluded)),
+                masked_subjects = ifelse((subjects_excluded<5 & subjects_excluded>0), "<5", as.integer(.data$subjects_excluded))) %>%
+  dplyr::select(-c("records_excluded", "subjects_excluded"))
+
+# write.xlsx(AttritionReportDenom, file = here::here(output_folder, "AttritionReport1.xlsx"))
+# write.xlsx(AttritionReportFrac, file = here::here(output_folder, "AttritionReport2.xlsx"))
+
+rm(cancer, mbd, trauma, conditions_sheet1)
