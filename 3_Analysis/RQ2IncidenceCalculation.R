@@ -120,18 +120,6 @@ subgroupIncidenceResultsTable <- subgroupIncidenceResultsTable %>%
 # Export Incidence Results
 write.xlsx(inc_results, file = here::here(output_folder, "IncidenceResults.xlsx"))
 write.xlsx(subgroupIncidenceResultsTable, file = here::here(output_folder, "SubgroupIncidenceResults.xlsx"))
-
-rm(inc_results, 
-   reverseEntryTable, 
-   subgroupIncidenceResultsTable,
-   AttritionReportRQ2,
-   confidenceInterval,
-   fracture_table_rq2,
-   totalObservedTime,
-   ObservedTime,
-   fracture_table_back_up,
-   fracture_table_follow_up,
-   subgroupIncidenceResults)
 info(logger, "CALCULATING OVERALL INCIDENCE AND BY SUBGROUPS IS DONE")
 
 ### follow up time summary statistics
@@ -503,3 +491,40 @@ for (i in (1:length(nhnv_plots_table))){
 }
 
 info(logger, "CALCULATING CUMULATIVE INCIDENCE FUNCTION IS DONE")
+rm(inc_results, 
+   reverseEntryTable, 
+   subgroupIncidenceResultsTable,
+   AttritionReportRQ2,
+   confidenceInterval,
+   totalObservedTime,
+   ObservedTime,
+   fracture_table_back_up,
+   fracture_table_follow_up,
+   subgroupIncidenceResults,
+   counts_hip,
+   counts_nhnv,
+   counts_overall,
+   counts_vert,
+   first_plots_data,
+   first_plots,
+   first_plots_table,
+   vert_plots_data,
+   vert_plots,
+   vert_plots_table,
+   hip_plots_data,
+   hip_plots,
+   hip_plots_table,
+   nhnv_plots_data,
+   nhnv_plots,
+   nhnv_plots_table,
+   censor_by_death,
+   censor_by_imminent,
+   censor_by_death_ids,
+   censor_by_imminent_hip_ids,
+   censor_by_imminent_ids,
+   censor_by_imminent_nhnv_ids,
+   censor_by_imminent_vert_ids,
+   data_cif,
+   follow_up_time,
+   follow_up_time_stats,
+   reformatted_table_1)

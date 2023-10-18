@@ -396,3 +396,10 @@ rm(fracture_table_rq1,
 
 # reformat and export
 reformatted_table_1 <- reformat_table_one(result_imm = result_imm, result_no_imm = result_no_imm, result_frac = result_frac)
+
+rm(cdm_char_frac,
+   cdm_char_imm,
+   cdm_char_no_imm,
+   result_frac,
+   result_imm,
+   result_no_imm)
