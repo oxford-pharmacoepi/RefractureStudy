@@ -189,7 +189,7 @@ follow_up_time <-
                       round(fut_tot_percentiles_no_imm[3], 2),
                       ")"))
 
-updated_table_1 <- reformatted_table1
+updated_table_1 <- reformatted_table_1
 colnames(updated_table_1) <- c("x", "y", "z", "w")
 
 updated_table_1 <- rbind(follow_up_time, updated_table_1)
@@ -477,28 +477,28 @@ for (i in (1:length(nhnv_plots))){
 for (i in (1:length(first_plots_table))){
   name <- paste0("CIF_subgroup", i, ".docx")
   first_plots_table[[i]] %>%
-    as_gt() %>%
+    gtsummary::as_gt() %>%
     gt::gtsave(filename = here(plotFolder, name))
 }
 
 for (i in (1:length(hip_plots_table))){
   name <- paste0("CIF_hip_subgroup", i, ".docx")
   hip_plots_table[[i]] %>%
-    as_gt() %>%
+    gtsummary::as_gt() %>%
     gt::gtsave(filename = here(plotFolder, name))
 }
 
 for (i in (1:length(vert_plots_table))){
   name <- paste0("CIF_vert_subgroup", i, ".docx")
   vert_plots_table[[i]] %>%
-    as_gt() %>%
+    gtsummary::as_gt() %>%
     gt::gtsave(filename = here(plotFolder, name))
 }
 
 for (i in (1:length(nhnv_plots_table))){
   name <- paste0("CIF_nhnv_subgroup", i, ".docx")
   nhnv_plots_table[[i]] %>%
-    as_gt() %>%
+    gtsummary::as_gt() %>%
     gt::gtsave(filename = here(plotFolder, name))
 }
 
