@@ -1,11 +1,12 @@
 # for a fracture table, compute the index date for each person
 addIndex <- function (fractureTable){
-  fractureTable %>%
-    dplyr::right_join(fractureTable %>% 
-                 dplyr::filter (condition_start_date >= cohort_start_date) %>%
-                 dplyr::filter (condition_start_date <= cohort_end_date) %>% 
-                 dplyr::group_by (subject_id) %>% 
-                 dplyr::summarise (index_date = min(condition_start_date, na.rm = T)), by = "subject_id")
+  fractureTable %>% 
+    dplyr::inner_join(fractureTable %>% 
+                        dplyr::filter(class == "index") %>%
+                        dplyr::group_by(subject_id) %>% 
+                        dplyr::summarise(index_date = min(condition_start_date)),
+                      by = "subject_id"
+    )
 }
 
 # for a fracture table, removing individuals with index fracture on the same day as a record of death
@@ -48,7 +49,7 @@ addInTwoYearsAfter <- function (fractureTable){
 addInObsEndDate <- function (fractureTable){
   fractureTable %>% 
     dplyr::left_join(cdm[["observation_period"]], by = c("subject_id" = "person_id"), copy = T) %>%
-    dplyr::select(subject_id, cohort_start_date, cohort_end_date, condition_concept_id, condition_start_date, fracture_site, index_date, after_index, observation_period_end_date)
+    dplyr::select(subject_id, cohort_start_date, cohort_end_date, condition_concept_id, condition_start_date, fracture_site, class, index_date, after_index, observation_period_end_date)
 }
 
 # add in a column indicating the date of cancer after the index date
@@ -59,10 +60,10 @@ addInCancerPostIndex <- function (fractureTable){
                                            copy = T, 
                                            relationship = "many-to-many") %>%
                                 dplyr::filter(index_date < cancer_date) %>%   
-                                dplyr::group_by(subject_id, cohort_start_date, cohort_end_date, condition_concept_id, condition_start_date, fracture_site, index_date, observation_period_end_date) %>%
+                                dplyr::group_by(subject_id, cohort_start_date, cohort_end_date, condition_concept_id, condition_start_date, fracture_site, class, index_date, observation_period_end_date) %>%
                                 dplyr::arrange(cancer_date) %>%
                                 dplyr::filter(row_number()==1) %>%
-                                dplyr::ungroup(), by = c("subject_id", "cohort_start_date", "cohort_end_date", "condition_concept_id", "condition_start_date", "fracture_site", "index_date", "after_index", "observation_period_end_date")) %>%
+                                dplyr::ungroup(), by = c("subject_id", "cohort_start_date", "cohort_end_date", "condition_concept_id", "condition_start_date", "fracture_site", "class", "index_date", "after_index", "observation_period_end_date")) %>%
     dplyr::select(-cancer_concept_id) 
 }
 
@@ -75,10 +76,10 @@ addInBoneDiseasePostIndex <- function (fractureTable){
                                            copy = T, 
                                            relationship = "many-to-many") %>%
                                 dplyr::filter(index_date < mbd_date) %>%   
-                                dplyr::group_by(subject_id, cohort_start_date, cohort_end_date, condition_concept_id, condition_start_date, fracture_site, index_date, observation_period_end_date) %>%
+                                dplyr::group_by(subject_id, cohort_start_date, cohort_end_date, condition_concept_id, condition_start_date, fracture_site, class, index_date, observation_period_end_date) %>%
                                 dplyr::arrange(mbd_date) %>%
                                 dplyr::filter(row_number()==1) %>%
-                                dplyr::ungroup(), by = c("subject_id", "cohort_start_date", "cohort_end_date", "condition_concept_id", "condition_start_date", "fracture_site", "index_date", "after_index", "observation_period_end_date", "cancer_date")) %>%
+                                dplyr::ungroup(), by = c("subject_id", "cohort_start_date", "cohort_end_date", "condition_concept_id", "condition_start_date", "fracture_site", "class", "index_date", "after_index", "observation_period_end_date", "cancer_date")) %>%
     dplyr::select(-bone_disease_concept_id) 
 }
 
@@ -97,30 +98,34 @@ addInDeath <- function(fractureTable){
   fractureTable %>% 
     dplyr::left_join(cdm[["death"]], by = c("subject_id" = "person_id"), copy = T) %>%
     dplyr::filter(death_date > index_date | is.na(death_date)) %>%
-    dplyr::select(subject_id, cohort_start_date, cohort_end_date, condition_concept_id, condition_start_date, fracture_site, index_date, after_index, observation_period_end_date, cancer_date, mbd_date, fracture_after_index, death_date)
+    dplyr::select(subject_id, cohort_start_date, cohort_end_date, condition_concept_id, condition_start_date, fracture_site, class, index_date, after_index, observation_period_end_date, cancer_date, mbd_date, fracture_after_index, death_date)
 }
 
 # add in FOLLOWUPEND - only after the relevant columns are added
 addInFollowUpEnd <- function(fractureTable){
   fractureTable %>% 
-    dplyr::mutate(follow_up_end = pmin(after_index, observation_period_end_date, cancer_date, mbd_date, fracture_after_index, death_date, na.rm = T)) %>%
+    dplyr::mutate(follow_up_end = pmin(.data$after_index, .data$observation_period_end_date, .data$cancer_date, .data$mbd_date, .data$fracture_after_index, .data$death_date, na.rm = T)) %>%
     dplyr::mutate(follow_up_time = follow_up_end-index_date) 
 }
 
 # clean out fractures based on their follow up period, used for further analysis 
 nextFractureClean <- function (fractureTable){
-  fractureTable %>%
+  pre <- 
+    fractureTable %>%
     dplyr::anti_join(fractureTable %>% dplyr::filter(imminentFracture==1|follow_up_time <730), by = "subject_id") %>%
     dplyr::group_by(subject_id) %>%
     dplyr::arrange(condition_start_date, .by_group = T) %>%
     dplyr::filter(condition_start_date>index_date) %>%
-    dplyr::select(subject_id, cohort_start_date, cohort_end_date, condition_concept_id, condition_start_date, fracture_site) %>%
-    dplyr::ungroup()%>%
-    dplyr::anti_join(fractureTable %>% 
-                         dplyr::mutate(within = condition_start_date<=cohort_end_date) %>%
-                         dplyr::group_by(subject_id) %>%
-                         dplyr::summarise(tot = sum(within), .groups = "drop") %>%
-                         dplyr::filter(tot == 0), by = "subject_id") 
+    dplyr::select(subject_id, cohort_start_date, cohort_end_date, condition_concept_id, condition_start_date, fracture_site, class) %>%
+    dplyr::ungroup()
+  
+  index_ids <- pre %>% 
+    dplyr::filter(class == "index") %>%
+    pull(subject_id)
+  
+  pre <- pre %>%
+    dplyr::filter(subject_id %in% index_ids)
+  return(pre)
 }
 
 # add in immFracture, a function that indicates which fracture is considered imminent in relation to the current index fracture

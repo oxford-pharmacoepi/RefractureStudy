@@ -147,6 +147,7 @@ AttritionReportRQ2<- AttritionReportRQ2 %>%
       reason = "Excluding records that happen outside of study period"
     )
   ) 
+info(logger, "PULLING OUT POSSIBLE INDEX DATES IS COMPLETED")
 
 ### Finalise attrition
 AttritionReportRQ2 <- AttritionReportRQ2 %>% 
@@ -157,8 +158,6 @@ AttritionReportRQ2 <- AttritionReportRQ2 %>%
                 masked_subjects = ifelse((subjects_excluded<5 & subjects_excluded>0), "<5", as.integer(.data$subjects_excluded))) %>%
   dplyr::select(-c("records_excluded", "subjects_excluded"))
 
-# write.xlsx(AttritionReportRQ2, file = here::here(output_folder, "AttritionReportRQ2.xlsx"))
-
 AttritionReport <- rbind(AttritionReportDenom %>% dplyr::select(number_subjects, reason),
               AttritionReportRQ2 %>% dplyr::select(number_subjects, reason)) %>% 
   dplyr::mutate(subjects_excluded = -(number_subjects-lag(number_subjects))) %>%
@@ -167,11 +166,91 @@ AttritionReport <- rbind(AttritionReportDenom %>% dplyr::select(number_subjects,
   
 write.xlsx(AttritionReport, file = here::here(output_folder, "AttritionReport.xlsx"))
 
+###
 fracture_table_rq2 <- fracture_table
 
 fracture_table_rq2 <- fracture_table_rq2 %>%
   dplyr::left_join(fracture_table_rq2_index, by = colnames(fracture_table_rq2)) %>%
   dplyr::filter(subject_id %in% fracture_table_rq2_index_ids)
 
-fracture_table_rq1 <- fracture_table_rq2
-rm(fracture_table_rq2_index, fracture_table_rq2_index_ids)
+fracture_table_rq2 <- addIndex(fracture_table_rq2)
+
+info(logger, "CREATING FOLLOWUPEND AND ENTRIES")
+
+# 730 days after the index date
+fracture_table_rq2 <- addInTwoYearsAfter(fracture_table_rq2)
+
+# End of data collection (assuming each person has only one observation period)
+fracture_table_rq2 <- addInObsEndDate(fracture_table_rq2)
+
+# Adding first cancer date after the index date
+fracture_table_rq2 <- addInCancerPostIndex(fracture_table_rq2)
+
+# Adding first bone disease date after the index date
+fracture_table_rq2 <- addInBoneDiseasePostIndex(fracture_table_rq2)
+
+# Add in first fracture date after the index dates
+fracture_table_rq2 <- addInNextFracture(fracture_table_rq2)
+
+# Add in death date after the index date 
+fracture_table_rq2 <- addInDeath(fracture_table_rq2)
+
+# Add in FOLLOWUPEND
+fracture_table_rq2 <- addInFollowUpEnd(fracture_table_rq2)
+
+# Add in immFracture
+fracture_table_rq2 <- immFracture(fracture_table_rq2)
+
+fracture_table_rq2_back_up <- fracture_table_rq2
+
+reverseEntryTable <- list()
+
+while (nrow(fracture_table_rq2_back_up) > 0){
+  reverseEntryTable[[nrow(fracture_table_rq2_back_up)]] <- fracture_table_rq2_back_up %>% dplyr::filter(follow_up_time > 0)
+  fracture_table_rq2_back_up <- fracture_table_rq2_back_up %>% dplyr::filter(follow_up_time > 0)
+  fracture_table_rq2_back_up <- nextFractureClean(fracture_table_rq2_back_up)
+  fracture_table_rq2_back_up <- addIndex(fracture_table_rq2_back_up)
+  fracture_table_rq2_back_up <- addInTwoYearsAfter(fracture_table_rq2_back_up)
+  fracture_table_rq2_back_up <- addInObsEndDate(fracture_table_rq2_back_up)
+  fracture_table_rq2_back_up <- addInCancerPostIndex(fracture_table_rq2_back_up)
+  fracture_table_rq2_back_up <- addInBoneDiseasePostIndex(fracture_table_rq2_back_up)
+  fracture_table_rq2_back_up <- addInNextFracture(fracture_table_rq2_back_up)
+  fracture_table_rq2_back_up <- addInDeath(fracture_table_rq2_back_up)
+  fracture_table_rq2_back_up <- addInFollowUpEnd(fracture_table_rq2_back_up)
+  fracture_table_rq2_back_up <- fracture_table_rq2_back_up %>% ungroup()
+  fracture_table_rq2_back_up <- immFracture(fracture_table_rq2_back_up)
+}
+
+reverseEntryTable <- reverseEntryTable[!sapply(reverseEntryTable, is.null)]
+
+entryTable <- list()
+for (i in (1:length(reverseEntryTable))){
+  entryTable[[i]]<-reverseEntryTable[[length(reverseEntryTable)+1-i]]
+}
+info(logger, "CREATING FOLLOWUPEND AND ENTRIES IS COMPLETED")
+
+stratifiedCohort <- list()
+for (i in (1:(length(entryTable)-1))){
+  stratifiedCohort[[i]] <- entryTable[[i]] %>% dplyr::anti_join(entryTable[[i+1]], by = "subject_id")
+}
+
+stratifiedCohort[[length(entryTable)]] <- entryTable[[length(entryTable)]]
+info(logger, "CREATING FOLLOW UP TIME IS DONE")
+
+### imminent fracture cohort
+imminentFractureCohort <- list()
+for (i in (1:length(stratifiedCohort))){
+  imminentFractureCohort[[i]] <- stratifiedCohort[[i]] %>% 
+    dplyr::filter (imminentFracture==1) %>% 
+    dplyr::select(subject_id)
+}
+
+imminentFractureCohortTotal <-data.frame()
+for (i in 1:length(imminentFractureCohort)){
+  imminentFractureCohortTotal<-rbind(imminentFractureCohortTotal, imminentFractureCohort[[i]])
+}
+
+withoutImminentFractureCohortTotal <- entryTable[[1]] %>%
+  dplyr::anti_join(imminentFractureCohortTotal, by = "subject_id") %>%
+  dplyr::select(subject_id) %>%
+  dplyr::distinct()
