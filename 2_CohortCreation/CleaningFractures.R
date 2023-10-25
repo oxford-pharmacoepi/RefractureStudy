@@ -109,7 +109,7 @@ cdm[["mbd"]] <- cdm[["denominator"]] %>%
 cdm[["cancer"]] <- cdm[["cancer"]] %>%
   left_join(cdm[["person"]], by = c("subject_id" = "person_id"), copy = T) %>%
   mutate(cancer_year = lubridate::year(cancer_date)) %>%
-  filter(cancer_year >= year_of_birth) %>%
+  filter(cancer_year > year_of_birth) %>%
   select(subject_id, cohort_start_date, cohort_end_date, condition_concept_id, cancer_date) %>%
   compute()
 
@@ -117,7 +117,7 @@ cdm[["cancer"]] <- cdm[["cancer"]] %>%
 cdm[["mbd"]] <- cdm[["mbd"]] %>%
   left_join(cdm[["person"]], by = c("subject_id" = "person_id"), copy = T) %>%
   mutate(mbd_year = lubridate::year(mbd_date)) %>%
-  filter(mbd_year >= year_of_birth) %>%
+  filter(mbd_year > year_of_birth) %>%
   select(subject_id, cohort_start_date, cohort_end_date, condition_concept_id, mbd_date) %>%
   compute()
 
@@ -126,7 +126,7 @@ info(logger, "REMOVING FRACTURES BEFORE THE BIRTH YEAR")
 fracture_table <- fracture_table %>%
   left_join(cdm[["person"]], by = c("subject_id" = "person_id"), copy = T) %>%
   mutate(fracture_year = as.numeric(format(condition_start_date, "%Y"))) %>%
-  filter(fracture_year >= year_of_birth) %>%
+  filter(fracture_year > year_of_birth) %>%
   select(subject_id, cohort_start_date, cohort_end_date, condition_concept_id, condition_start_date, fracture_site)
 
 AttritionReportFrac<- AttritionReportFrac %>% 

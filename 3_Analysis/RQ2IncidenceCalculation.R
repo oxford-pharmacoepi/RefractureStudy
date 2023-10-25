@@ -168,9 +168,9 @@ for (i in (1:length(entryTable))){
                                               (subject_id %in% censor_by_imminent_ids) ~ "imminent",
                                               !(subject_id %in% c(censor_by_death_ids, censor_by_imminent_ids)) ~ "censor")) %>%
     dplyr::mutate(subgroup_status = case_when((subject_id %in% censor_by_death_ids) ~ "death",
-                                       (subject_id %in% censor_by_imminent_hip_ids) ~ "imminent hip fracture",
-                                       (subject_id %in% censor_by_imminent_vert_ids) ~ "imminent vertebra fracture",
-                                       (subject_id %in% censor_by_imminent_nhnv_ids) ~ "imminent non-hip, non-vertebra fracture",
+                                       (subject_id %in% censor_by_imminent_hip_ids) ~ "hip fracture",
+                                       (subject_id %in% censor_by_imminent_vert_ids) ~ "vertebra fracture",
+                                       (subject_id %in% censor_by_imminent_nhnv_ids) ~ "non-hip, non-vertebra fracture",
                                        !(subject_id %in% c(censor_by_death_ids, censor_by_imminent_hip_ids, censor_by_imminent_vert_ids, censor_by_imminent_nhnv_ids)) ~ "censor"))
   
 }
@@ -182,9 +182,9 @@ for (i in (1:length(data_cif))){
   tibble(subgroup = i, 
          n = as.integer(data_cif[[i]] %>% tally()),
          n_imminent = as.integer(data_cif[[i]] %>% dplyr::filter(status == "imminent") %>% tally()),
-         n_imminent_hip = as.integer(data_cif[[i]] %>% dplyr::filter(subgroup_status == "imminent hip fracture") %>% tally()),
-         n_imminent_vert = as.integer(data_cif[[i]] %>% dplyr::filter(subgroup_status == "imminent vertebra fracture") %>% tally()),
-         n_imminent_nhnv = as.integer(data_cif[[i]] %>% dplyr::filter(subgroup_status == "imminent non-hip, non-vertebra fracture") %>% tally()))
+         n_imminent_hip = as.integer(data_cif[[i]] %>% dplyr::filter(subgroup_status == "hip fracture") %>% tally()),
+         n_imminent_vert = as.integer(data_cif[[i]] %>% dplyr::filter(subgroup_status == "vertebra fracture") %>% tally()),
+         n_imminent_nhnv = as.integer(data_cif[[i]] %>% dplyr::filter(subgroup_status == "non-hip, non-vertebra fracture") %>% tally()))
   )
 }
 counts_overall <- counts_overall %>%
@@ -211,7 +211,6 @@ first_plots_table[[1]]<- tidycmprsk::cuminc(Surv(follow_up_time, status) ~ 1, fi
 first_plots[[1]]<-tidycmprsk::cuminc(Surv(follow_up_time, status) ~ 1, first_plots_data[[1]]) %>%
   ggcuminc(outcome = c("imminent", "death")) +
   add_confidence_interval() +
-  ggtitle("Cumulative Incidence Function, subgroup 1") +
   theme(plot.title = element_text(hjust = 0.5))
 
 for (i in (2:length(first_plots_data))){
@@ -248,9 +247,9 @@ for (i in (1:length(hip_plots_data))){
                           tibble(subgroup = i, 
                                  n = as.integer(hip_plots_data[[i]] %>% dplyr::tally()),
                                  n_imminent = as.integer(hip_plots_data[[i]] %>% dplyr::filter(status == "imminent") %>% dplyr::tally()),
-                                 n_imminent_hip = as.integer(hip_plots_data[[i]] %>% dplyr::filter(subgroup_status == "imminent hip fracture") %>% tally()),
-                                 n_imminent_vert = as.integer(hip_plots_data[[i]] %>% dplyr::filter(subgroup_status == "imminent vertebra fracture") %>% tally()),
-                                 n_imminent_nhnv = as.integer(hip_plots_data[[i]] %>% dplyr::filter(subgroup_status == "imminent non-hip, non-vertebra fracture") %>% tally())))
+                                 n_imminent_hip = as.integer(hip_plots_data[[i]] %>% dplyr::filter(subgroup_status == "hip fracture") %>% tally()),
+                                 n_imminent_vert = as.integer(hip_plots_data[[i]] %>% dplyr::filter(subgroup_status == "vertebra fracture") %>% tally()),
+                                 n_imminent_nhnv = as.integer(hip_plots_data[[i]] %>% dplyr::filter(subgroup_status == "non-hip, non-vertebra fracture") %>% tally())))
 }
 counts_hip <- counts_hip %>%
   dplyr::mutate(counts = ifelse((n<5 & n>0), "<5", n),
@@ -265,7 +264,7 @@ hip_plots_data <- hip_plots_data[sapply(hip_plots_data, nrow) >= 5]
 
 for (i in (1:length(hip_plots_data))){
   if(hip_plots_data[[i]] %>% filter(status=="imminent") %>% tally()==0) next
-  hip_plots_data[[i]]$subgroup_status <- factor(hip_plots_data[[i]]$subgroup_status, levels = c("censor", "imminent non-hip, non-vertebra fracture", "imminent hip fracture", "imminent vertebra fracture", "death"))
+  hip_plots_data[[i]]$subgroup_status <- factor(hip_plots_data[[i]]$subgroup_status, levels = c("censor", "non-hip, non-vertebra fracture", "hip fracture", "vertebra fracture", "death"))
   
   hip_plots_table[[i]]<- tidycmprsk::cuminc(Surv(follow_up_time, subgroup_status) ~ 1, hip_plots_data[[i]]) %>%
     tbl_cuminc(times = c(0, 91, 183, 274, 365, 456, 548, 639, 730), 
@@ -297,9 +296,9 @@ for (i in (1:length(vert_plots_data))){
                       tibble(subgroup = i, 
                              n = as.integer(vert_plots_data[[i]] %>% dplyr::tally()),
                              n_imminent = as.integer(vert_plots_data[[i]] %>% dplyr::filter(status == "imminent") %>% dplyr::tally()),
-                             n_imminent_hip = as.integer(vert_plots_data[[i]] %>% dplyr::filter(subgroup_status == "imminent hip fracture") %>% tally()),
-                             n_imminent_vert = as.integer(vert_plots_data[[i]] %>% dplyr::filter(subgroup_status == "imminent vertebra fracture") %>% tally()),
-                             n_imminent_nhnv = as.integer(vert_plots_data[[i]] %>% dplyr::filter(subgroup_status == "imminent non-hip, non-vertebra fracture") %>% tally())))
+                             n_imminent_hip = as.integer(vert_plots_data[[i]] %>% dplyr::filter(subgroup_status == "hip fracture") %>% tally()),
+                             n_imminent_vert = as.integer(vert_plots_data[[i]] %>% dplyr::filter(subgroup_status == "vertebra fracture") %>% tally()),
+                             n_imminent_nhnv = as.integer(vert_plots_data[[i]] %>% dplyr::filter(subgroup_status == "non-hip, non-vertebra fracture") %>% tally())))
 }
 counts_vert <- counts_vert %>%
   dplyr::mutate(counts = ifelse((n<5 & n>0), "<5", n),
@@ -314,7 +313,7 @@ vert_plots_data <- vert_plots_data[sapply(vert_plots_data, nrow) >= 5]
 
 for (i in (1:length(vert_plots_data))){
   if(vert_plots_data[[i]] %>% filter(status=="imminent") %>% tally()==0) next
-  vert_plots_data[[i]]$subgroup_status <- factor(vert_plots_data[[i]]$subgroup_status, levels = c("censor", "imminent non-hip, non-vertebra fracture", "imminent hip fracture", "imminent vertebra fracture", "death"))
+  vert_plots_data[[i]]$subgroup_status <- factor(vert_plots_data[[i]]$subgroup_status, levels = c("censor", "non-hip, non-vertebra fracture", "hip fracture", "vertebra fracture", "death"))
   
   vert_plots_table[[i]]<- tidycmprsk::cuminc(Surv(follow_up_time, subgroup_status) ~ 1, vert_plots_data[[i]]) %>%
     tbl_cuminc(times = c(0, 91, 183, 274, 365, 456, 548, 639, 730), 
@@ -346,9 +345,9 @@ for (i in (1:length(nhnv_plots_data))){
                        tibble(subgroup = i, 
                               n = as.integer(nhnv_plots_data[[i]] %>% dplyr::tally()),
                               n_imminent = as.integer(nhnv_plots_data[[i]] %>% dplyr::filter(status == "imminent") %>% dplyr::tally()),
-                              n_imminent_hip = as.integer(nhnv_plots_data[[i]] %>% dplyr::filter(subgroup_status == "imminent hip fracture") %>% tally()),
-                              n_imminent_vert = as.integer(nhnv_plots_data[[i]] %>% dplyr::filter(subgroup_status == "imminent vertebra fracture") %>% tally()),
-                              n_imminent_nhnv = as.integer(nhnv_plots_data[[i]] %>% dplyr::filter(subgroup_status == "imminent non-hip, non-vertebra fracture") %>% tally())))
+                              n_imminent_hip = as.integer(nhnv_plots_data[[i]] %>% dplyr::filter(subgroup_status == "hip fracture") %>% tally()),
+                              n_imminent_vert = as.integer(nhnv_plots_data[[i]] %>% dplyr::filter(subgroup_status == "vertebra fracture") %>% tally()),
+                              n_imminent_nhnv = as.integer(nhnv_plots_data[[i]] %>% dplyr::filter(subgroup_status == "non-hip, non-vertebra fracture") %>% tally())))
 }
 counts_nhnv <- counts_nhnv %>%
   dplyr::mutate(counts = ifelse((n<5 & n>0), "<5", n),
@@ -363,7 +362,7 @@ nhnv_plots_data <- nhnv_plots_data[sapply(nhnv_plots_data, nrow) >= 5]
 
 for (i in (1:length(nhnv_plots_data))){
   if(nhnv_plots_data[[i]] %>% filter(status=="imminent") %>% tally()==0) next
-  nhnv_plots_data[[i]]$subgroup_status <- factor(nhnv_plots_data[[i]]$subgroup_status, levels = c("censor", "imminent non-hip, non-vertebra fracture", "imminent hip fracture", "imminent vertebra fracture", "death"))
+  nhnv_plots_data[[i]]$subgroup_status <- factor(nhnv_plots_data[[i]]$subgroup_status, levels = c("censor", "non-hip, non-vertebra fracture", "hip fracture", "vertebra fracture", "death"))
   
   nhnv_plots_table[[i]]<- tidycmprsk::cuminc(Surv(follow_up_time, subgroup_status) ~ 1, nhnv_plots_data[[i]]) %>%
     tbl_cuminc(times = c(0, 91, 183, 274, 365, 456, 548, 639, 730), 

@@ -39,7 +39,7 @@ AttritionReportRQ2<- AttritionReportRQ2 %>%
   )
 
 # At least 730 days prior obs
-info(logger, "EXCLUDING INDIVIDUALS WHO DO NOT HAVE SUFFICIENT PRIOR OBSERVATION")
+info(logger, "EXCLUDING INDIVIDUALS WHO DO NOT HAVE SUFFICIENT PRIOR OBSERVATION AND/OR OUTSIDE OF OBSERVATION PERIOD")
 fracture_table_rq2_index <-fracture_table_rq2_index %>% 
   left_join(cdm[["observation_period"]], by = c("subject_id" = "person_id"), copy = T) %>% 
   select(subject_id:fracture_site, observation_period_start_date, observation_period_end_date) %>%
@@ -53,12 +53,12 @@ AttritionReportRQ2<- AttritionReportRQ2 %>%
       cohort_definition_id = as.integer(1),
       number_records = fracture_table_rq2_index %>% tally() %>% pull(),
       number_subjects = fracture_table_rq2_index %>% distinct(subject_id) %>% tally() %>% pull(),
-      reason = "Excluding records with insufficient prior observation"
+      reason = "Excluding records with insufficient prior observation and/or outside of observation period"
     )
   ) 
 
 # No records of death on the index date
-info(logger, "EXCLUDING INDIVIDUALS WHO HAS A RECORD OF DEATH ON THE SAME DAY AS THE INDEX DATE")
+info(logger, "EXCLUDING RECORDS OF FRACTURE THAT HAPPENED ON THE SAME DAY AS DEATH")
 
 fracture_table_rq2_index <- fracture_table_rq2_index %>% 
   dplyr::anti_join(cdm[["death"]], by = c("subject_id" = "person_id", "condition_start_date" = "death_date"), copy = T)
@@ -109,7 +109,7 @@ AttritionReportRQ2<- AttritionReportRQ2 %>%
       cohort_definition_id = as.integer(1),
       number_records = fracture_table_rq2_index %>% tally() %>% pull(),
       number_subjects = fracture_table_rq2_index %>% distinct(subject_id) %>% tally() %>% pull(),
-      reason = "Excluding records happened after cancer"
+      reason = "Excluding records happened after metabolic bone diseases"
     )
   )  
 

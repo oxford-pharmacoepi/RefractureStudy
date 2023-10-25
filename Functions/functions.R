@@ -112,7 +112,7 @@ addInFollowUpEnd <- function(fractureTable){
 nextFractureClean <- function (fractureTable){
   pre <- 
     fractureTable %>%
-    dplyr::anti_join(fractureTable %>% dplyr::filter(imminentFracture==1|follow_up_time <730), by = "subject_id") %>%
+    dplyr::anti_join(fractureTable %>% dplyr::filter(imminentFracture==1|follow_up_time <730|(mbd_date == follow_up_end)|(cancer_date == follow_up_end)|(death_date == follow_up_end)|(observation_period_end_date == follow_up_end)), by = "subject_id") %>% 
     dplyr::group_by(subject_id) %>%
     dplyr::arrange(condition_start_date, .by_group = T) %>%
     dplyr::filter(condition_start_date>index_date) %>%
