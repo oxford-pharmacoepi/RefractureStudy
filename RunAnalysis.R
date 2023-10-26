@@ -9,40 +9,42 @@ info(logger, "RUNNING NECESSARY FUNCTIONS")
 source(here("Functions", "functions.R"))
 info(logger, "RUNNING NECESSARY FUNCTIONS IS DONE")
 
-# cleaning fractures
-info(logger, "CLEANING FRACTURES")
-source(here("2_CohortCreation", "CleaningFractures.R"))
-info(logger, "CLEANING FRACTURES IS DONE")
-
-# generating cohorts for Research Question 1 and 2
-info(logger, "GENERATING COHORTS FOR RESEARCH QUESTION 1 AND 2")
-source(here("2_CohortCreation", "CohortRQ1&2.R"))
-info(logger, "GENERATING COHORTS FOR RESEARCH QUESTION 1 AND 2 IS DONE")
-
-# carrying out analyses for Research Question 1
-info(logger, "CARRYING OUT ANALYSES FOR RESEARCH QUESTION 1")
-source(here("3_Analysis", "RQ1Characterisation.R"))
-info(logger, "CARRYING OUT ANALYSES FOR RESEARCH QUESTION 1 IS DONE")
-
-# carrying out analyses for Research Question 2
-info(logger, "CARRYING OUT ANALYSES FOR RESEARCH QUESTION 2")
-source(here("3_Analysis", "RQ2IncidenceCalculation.R"))
-info(logger, "CARRYING OUT ANALYSES FOR RESEARCH QUESTION 2 IS DONE")
-
-# # generating cohorts for Research Question 3
-# info(logger, "GENERATING COHORTS FOR RESEARCH QUESTION 3")
-# source(here("2_CohortCreation", "CohortRQ3.R"))
-# info(logger, "GENERATING COHORTS FOR RESEARCH QUESTION 3 IS DONE")
-# 
-# # carrying out analyses for Research Question 3
-# info(logger, "CARRYING OUT ANALYSES FOR RESEARCH QUESTION 3")
-# source(here("3_Analysis", "RQ3PSMatching.R"))
-# info(logger, "CARRYING OUT ANALYSES FOR RESEARCH QUESTION 3 IS DONE")
-
-# create zip file
-info(logger, "ZIPPING RESULTS")
-output_folder <- basename(output_folder)
-zip(
-  zipfile = file.path(paste0(output_folder, "/Results_", db_name, ".zip")),
-  files = list.files(output_folder, full.names = TRUE)
-)
+for (i in (1:length(washout_period))){
+  # cleaning fractures
+  info(logger, "CLEANING FRACTURES")
+  source(here("2_CohortCreation", "CleaningFractures.R"))
+  info(logger, "CLEANING FRACTURES IS DONE")
+  
+  # generating cohorts for Research Question 1 and 2
+  info(logger, "GENERATING COHORTS FOR RESEARCH QUESTION 1 AND 2")
+  source(here("2_CohortCreation", "CohortRQ1&2.R"))
+  info(logger, "GENERATING COHORTS FOR RESEARCH QUESTION 1 AND 2 IS DONE")
+  
+  # carrying out analyses for Research Question 1
+  info(logger, "CARRYING OUT ANALYSES FOR RESEARCH QUESTION 1")
+  source(here("3_Analysis", "RQ1Characterisation.R"))
+  info(logger, "CARRYING OUT ANALYSES FOR RESEARCH QUESTION 1 IS DONE")
+  
+  # carrying out analyses for Research Question 2
+  info(logger, "CARRYING OUT ANALYSES FOR RESEARCH QUESTION 2")
+  source(here("3_Analysis", "RQ2IncidenceCalculation.R"))
+  info(logger, "CARRYING OUT ANALYSES FOR RESEARCH QUESTION 2 IS DONE")
+  
+  # # generating cohorts for Research Question 3
+  # info(logger, "GENERATING COHORTS FOR RESEARCH QUESTION 3")
+  # source(here("2_CohortCreation", "CohortRQ3.R"))
+  # info(logger, "GENERATING COHORTS FOR RESEARCH QUESTION 3 IS DONE")
+  # 
+  # # carrying out analyses for Research Question 3
+  # info(logger, "CARRYING OUT ANALYSES FOR RESEARCH QUESTION 3")
+  # source(here("3_Analysis", "RQ3PSMatching.R"))
+  # info(logger, "CARRYING OUT ANALYSES FOR RESEARCH QUESTION 3 IS DONE")
+  
+  # create zip file
+  info(logger, "ZIPPING RESULTS")
+  output_folder <- basename(output_folder)
+  zip(
+    zipfile = file.path(paste0(output_folder, "/Results_", db_name, washout_period[[i]],".zip")),
+    files = list.files(output_folder, full.names = TRUE)
+  )
+}

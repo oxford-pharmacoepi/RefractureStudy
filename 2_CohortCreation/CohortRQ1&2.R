@@ -154,14 +154,14 @@ AttritionReportRQ2 <- AttritionReportRQ2 %>%
   dplyr::mutate(subjects_excluded = -(number_subjects-lag(number_subjects)), records_excluded = -(number_records - lag(number_records)))
 
 AttritionReportRQ2 <- AttritionReportRQ2 %>%
-  dplyr::mutate(masked_records = ifelse((records_excluded<5 & records_excluded>0), "<5", as.integer(.data$records_excluded)),
-                masked_subjects = ifelse((subjects_excluded<5 & subjects_excluded>0), "<5", as.integer(.data$subjects_excluded))) %>%
+  dplyr::mutate(masked_records = ifelse((records_excluded<minimum_counts & records_excluded>0), paste0("<", minimum_counts), as.integer(.data$records_excluded)),
+                masked_subjects = ifelse((subjects_excluded<minimum_counts & subjects_excluded>0), paste0("<", minimum_counts), as.integer(.data$subjects_excluded))) %>%
   dplyr::select(-c("records_excluded", "subjects_excluded"))
 
 AttritionReport <- rbind(AttritionReportDenom %>% dplyr::select(number_subjects, reason),
               AttritionReportRQ2 %>% dplyr::select(number_subjects, reason)) %>% 
   dplyr::mutate(subjects_excluded = -(number_subjects-lag(number_subjects))) %>%
-  dplyr::mutate(masked_subjects_excluded = ifelse((subjects_excluded<5 & subjects_excluded>0), "<5", as.integer(.data$subjects_excluded))) %>%
+  dplyr::mutate(masked_subjects_excluded = ifelse((subjects_excluded<minimum_counts & subjects_excluded>0), paste0("<", minimum_counts), as.integer(.data$subjects_excluded))) %>%
   dplyr::select(-"subjects_excluded")
   
 write.xlsx(AttritionReport, file = here::here(output_folder, "AttritionReport.xlsx"))

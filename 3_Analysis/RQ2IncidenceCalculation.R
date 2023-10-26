@@ -188,15 +188,15 @@ for (i in (1:length(data_cif))){
   )
 }
 counts_overall <- counts_overall %>%
-  dplyr::mutate(counts = ifelse((n<5 & n>0), "<5", n),
-                counts_imminent = ifelse((n_imminent<5 & n_imminent>0), "<5", n_imminent),
-                counts_imminent_hip = ifelse((n_imminent_hip<5 & n_imminent_hip>0), "<5", n_imminent_hip),
-                counts_imminent_vert = ifelse((n_imminent_vert<5 & n_imminent_vert>0), "<5", n_imminent_vert),
-                counts_imminent_nhnv = ifelse((n_imminent_nhnv<5 & n_imminent_nhnv>0), "<5", n_imminent_nhnv)) %>%
+  dplyr::mutate(counts = ifelse((n<minimum_counts & n>0), paste0("<", minimum_counts), n),
+                counts_imminent = ifelse((n_imminent<minimum_counts & n_imminent>0), paste0("<", minimum_counts), n_imminent),
+                counts_imminent_hip = ifelse((n_imminent_hip<minimum_counts & n_imminent_hip>0), paste0("<", minimum_counts), n_imminent_hip),
+                counts_imminent_vert = ifelse((n_imminent_vert<minimum_counts & n_imminent_vert>0), paste0("<", minimum_counts), n_imminent_vert),
+                counts_imminent_nhnv = ifelse((n_imminent_nhnv<minimum_counts & n_imminent_nhnv>0), paste0("<", minimum_counts), n_imminent_nhnv)) %>%
   dplyr::select(-n, -n_imminent, -n_imminent_hip, -n_imminent_vert, -n_imminent_nhnv)
 write.xlsx(counts_overall, file = here(output_folder, "counts_overall.xlsx"))
 
-first_plots_data <- data_cif[sapply(data_cif, nrow) >= 5]
+first_plots_data <- data_cif[sapply(data_cif, nrow) >= minimum_counts]
 first_plots <- list()
 first_plots_table <- list()
 
@@ -252,15 +252,15 @@ for (i in (1:length(hip_plots_data))){
                                  n_imminent_nhnv = as.integer(hip_plots_data[[i]] %>% dplyr::filter(subgroup_status == "non-hip, non-vertebra fracture") %>% tally())))
 }
 counts_hip <- counts_hip %>%
-  dplyr::mutate(counts = ifelse((n<5 & n>0), "<5", n),
-                counts_imminent = ifelse((n_imminent<5 & n_imminent>0), "<5", n_imminent),
-                counts_imminent_hip = ifelse((n_imminent_hip<5 & n_imminent_hip>0), "<5", n_imminent_hip),
-                counts_imminent_vert = ifelse((n_imminent_vert<5 & n_imminent_vert>0), "<5", n_imminent_vert),
-                counts_imminent_nhnv = ifelse((n_imminent_nhnv<5 & n_imminent_nhnv>0), "<5", n_imminent_nhnv)) %>%
+  dplyr::mutate(counts = ifelse((n<minimum_counts & n>0), paste0("<", minimum_counts), n),
+                counts_imminent = ifelse((n_imminent<minimum_counts & n_imminent>0), paste0("<", minimum_counts), n_imminent),
+                counts_imminent_hip = ifelse((n_imminent_hip<minimum_counts & n_imminent_hip>0), paste0("<", minimum_counts), n_imminent_hip),
+                counts_imminent_vert = ifelse((n_imminent_vert<minimum_counts & n_imminent_vert>0), paste0("<", minimum_counts), n_imminent_vert),
+                counts_imminent_nhnv = ifelse((n_imminent_nhnv<minimum_counts & n_imminent_nhnv>0), paste0("<", minimum_counts), n_imminent_nhnv)) %>%
   dplyr::select(-n, -n_imminent, -n_imminent_hip, -n_imminent_vert, -n_imminent_nhnv)
 write.xlsx(counts_hip, file = here(output_folder, "counts_hip.xlsx"))
 
-hip_plots_data <- hip_plots_data[sapply(hip_plots_data, nrow) >= 5]
+hip_plots_data <- hip_plots_data[sapply(hip_plots_data, nrow) >= minimum_counts]
 
 for (i in (1:length(hip_plots_data))){
   if(hip_plots_data[[i]] %>% filter(status=="imminent") %>% tally()==0) next
@@ -301,15 +301,15 @@ for (i in (1:length(vert_plots_data))){
                              n_imminent_nhnv = as.integer(vert_plots_data[[i]] %>% dplyr::filter(subgroup_status == "non-hip, non-vertebra fracture") %>% tally())))
 }
 counts_vert <- counts_vert %>%
-  dplyr::mutate(counts = ifelse((n<5 & n>0), "<5", n),
-                counts_imminent = ifelse((n_imminent<5 & n_imminent>0), "<5", n_imminent),
-                counts_imminent_hip = ifelse((n_imminent_hip<5 & n_imminent_hip>0), "<5", n_imminent_hip),
-                counts_imminent_vert = ifelse((n_imminent_vert<5 & n_imminent_vert>0), "<5", n_imminent_vert),
-                counts_imminent_nhnv = ifelse((n_imminent_nhnv<5 & n_imminent_nhnv>0), "<5", n_imminent_nhnv)) %>%
+  dplyr::mutate(counts = ifelse((n<minimum_counts & n>0), paste0("<", minimum_counts), n),
+                counts_imminent = ifelse((n_imminent<minimum_counts & n_imminent>0), paste0("<", minimum_counts), n_imminent),
+                counts_imminent_hip = ifelse((n_imminent_hip<minimum_counts & n_imminent_hip>0), paste0("<", minimum_counts), n_imminent_hip),
+                counts_imminent_vert = ifelse((n_imminent_vert<minimum_counts & n_imminent_vert>0), paste0("<", minimum_counts), n_imminent_vert),
+                counts_imminent_nhnv = ifelse((n_imminent_nhnv<minimum_counts & n_imminent_nhnv>0), paste0("<", minimum_counts), n_imminent_nhnv)) %>%
   dplyr::select(-n, -n_imminent, -n_imminent_hip, -n_imminent_vert, -n_imminent_nhnv)
 write.xlsx(counts_vert, file = here(output_folder, "counts_vert.xlsx"))
 
-vert_plots_data <- vert_plots_data[sapply(vert_plots_data, nrow) >= 5]
+vert_plots_data <- vert_plots_data[sapply(vert_plots_data, nrow) >= minimum_counts]
 
 for (i in (1:length(vert_plots_data))){
   if(vert_plots_data[[i]] %>% filter(status=="imminent") %>% tally()==0) next
@@ -350,15 +350,15 @@ for (i in (1:length(nhnv_plots_data))){
                               n_imminent_nhnv = as.integer(nhnv_plots_data[[i]] %>% dplyr::filter(subgroup_status == "non-hip, non-vertebra fracture") %>% tally())))
 }
 counts_nhnv <- counts_nhnv %>%
-  dplyr::mutate(counts = ifelse((n<5 & n>0), "<5", n),
-                counts_imminent = ifelse((n_imminent<5 & n_imminent>0), "<5", n_imminent),
-                counts_imminent_hip = ifelse((n_imminent_hip<5 & n_imminent_hip>0), "<5", n_imminent_hip),
-                counts_imminent_vert = ifelse((n_imminent_vert<5 & n_imminent_vert>0), "<5", n_imminent_vert),
-                counts_imminent_nhnv = ifelse((n_imminent_nhnv<5 & n_imminent_nhnv>0), "<5", n_imminent_nhnv)) %>%
+  dplyr::mutate(counts = ifelse((n<minimum_counts & n>0), paste0("<", minimum_counts), n),
+                counts_imminent = ifelse((n_imminent<minimum_counts & n_imminent>0), paste0("<", minimum_counts), n_imminent),
+                counts_imminent_hip = ifelse((n_imminent_hip<minimum_counts & n_imminent_hip>0), paste0("<", minimum_counts), n_imminent_hip),
+                counts_imminent_vert = ifelse((n_imminent_vert<minimum_counts & n_imminent_vert>0), paste0("<", minimum_counts), n_imminent_vert),
+                counts_imminent_nhnv = ifelse((n_imminent_nhnv<minimum_counts & n_imminent_nhnv>0), paste0("<", minimum_counts), n_imminent_nhnv)) %>%
   dplyr::select(-n, -n_imminent, -n_imminent_hip, -n_imminent_vert, -n_imminent_nhnv)
 write.xlsx(counts_nhnv, file = here(output_folder, "counts_nhnv.xlsx"))
 
-nhnv_plots_data <- nhnv_plots_data[sapply(nhnv_plots_data, nrow) >= 5]
+nhnv_plots_data <- nhnv_plots_data[sapply(nhnv_plots_data, nrow) >= minimum_counts]
 
 for (i in (1:length(nhnv_plots_data))){
   if(nhnv_plots_data[[i]] %>% filter(status=="imminent") %>% tally()==0) next

@@ -193,7 +193,7 @@ while(nrow(fracture_table_back_up)>0){
   fracture_table_back_up <- fracture_table_back_up %>% 
     left_join(fracture_correction_nonspecific, by = c("subject_id", "fracture_site" = "site")) %>% # compute min date
     mutate(gap_to_min_date = condition_start_date - min_date) %>%
-    filter(gap_to_min_date == 0 | gap_to_min_date > washout_period) %>%
+    filter(gap_to_min_date == 0 | gap_to_min_date > washout_period[[i]]) %>%
     group_by(subject_id, condition_start_date, fracture_site) %>%
     arrange(condition_concept_id, .by_group = TRUE) %>% 
     filter(row_number()==1) %>%
@@ -249,13 +249,13 @@ AttritionReportFrac <- AttritionReportFrac %>%
   dplyr::mutate(subjects_excluded = -(number_subjects-lag(number_subjects)), records_excluded = -(number_records - lag(number_records)))
 
 AttritionReportDenom <- AttritionReportDenom %>%
-  dplyr::mutate(masked_records = ifelse((excluded_records<5 & excluded_records>0), "<5", as.integer(.data$excluded_records)),
-                masked_subjects = ifelse((excluded_subjects<5 & excluded_subjects>0), "<5", as.integer(.data$excluded_subjects))) %>%
+  dplyr::mutate(masked_records = ifelse((excluded_records < minimum_counts & excluded_records>0), paste0("<", minimum_counts), as.integer(.data$excluded_records)),
+                masked_subjects = ifelse((excluded_subjects < minimum_counts & excluded_subjects>0), paste0("<", minimum_counts), as.integer(.data$excluded_subjects))) %>%
   dplyr::select(-c("excluded_records", "excluded_subjects"))
 
 AttritionReportFrac <- AttritionReportFrac %>%
-  dplyr::mutate(masked_records = ifelse((records_excluded<5 & records_excluded>0), "<5", as.integer(.data$records_excluded)),
-                masked_subjects = ifelse((subjects_excluded<5 & subjects_excluded>0), "<5", as.integer(.data$subjects_excluded))) %>%
+  dplyr::mutate(masked_records = ifelse((records_excluded < minimum_counts & records_excluded>0), paste0("<", minimum_counts), as.integer(.data$records_excluded)),
+                masked_subjects = ifelse((subjects_excluded < minimum_counts & subjects_excluded>0), paste0("<", minimum_counts), as.integer(.data$subjects_excluded))) %>%
   dplyr::select(-c("records_excluded", "subjects_excluded"))
 
 # write.xlsx(AttritionReportDenom, file = here::here(output_folder, "AttritionReport1.xlsx"))

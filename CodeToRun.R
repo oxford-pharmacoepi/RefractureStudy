@@ -75,7 +75,7 @@ stem_table <- "...."
 minimum_counts <- 5
 
 # washout period, fractures of the same site within this window is considered as a re-recording
-washout_period <- 90 #30 for sensitive analysis 
+washout_period <- c(30,90) 
 
 # study start date
 study_start_date <- as.Date("2010-04-01")
