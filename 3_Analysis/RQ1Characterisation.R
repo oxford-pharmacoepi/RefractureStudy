@@ -305,7 +305,6 @@ write_csv(result_frac, here(output_folder, "table_one_frac.csv"))
 
 rm(fracture_table_rq1, 
    imminentFractureCohortTotal, 
-   entryTable, 
    reverseEntryTable, 
    stratifiedCohort, 
    withoutImminentFractureCohortTotal)

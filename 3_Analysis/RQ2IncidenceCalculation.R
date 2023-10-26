@@ -22,7 +22,7 @@ for (i in (1:length(ObservedTime))){
 totalObservedTimeYears <- as.integer(totalObservedTime)/365.25
 
 totalFracture <- 0
-for (i in (1:length(reverseEntryTable))){
+for (i in (1:length(entryTable))){
   totalFracture <- totalFracture + sum(entryTable[[i]]$imminentFracture)
 }
 
@@ -433,14 +433,12 @@ for (i in (1:length(nhnv_plots_table))){
 
 info(logger, "CALCULATING CUMULATIVE INCIDENCE FUNCTION IS DONE")
 rm(inc_results, 
-   reverseEntryTable, 
    subgroupIncidenceResultsTable,
    AttritionReportRQ2,
    confidenceInterval,
    totalObservedTime,
    ObservedTime,
    fracture_table_back_up,
-   fracture_table_follow_up,
    subgroupIncidenceResults,
    counts_hip,
    counts_nhnv,
