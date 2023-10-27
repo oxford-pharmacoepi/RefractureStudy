@@ -193,7 +193,7 @@ while(nrow(fracture_table_back_up)>0){
   fracture_table_back_up <- fracture_table_back_up %>% 
     left_join(fracture_correction_nonspecific, by = c("subject_id", "fracture_site" = "site")) %>% # compute min date
     mutate(gap_to_min_date = condition_start_date - min_date) %>%
-    filter(gap_to_min_date == 0 | gap_to_min_date > washout_period[[i]]) %>%
+    filter(gap_to_min_date == 0 | gap_to_min_date > washout_period[[k]]) %>%
     group_by(subject_id, condition_start_date, fracture_site) %>%
     arrange(condition_concept_id, .by_group = TRUE) %>% 
     filter(row_number()==1) %>%
@@ -258,7 +258,7 @@ AttritionReportFrac <- AttritionReportFrac %>%
                 masked_subjects = ifelse((subjects_excluded < minimum_counts & subjects_excluded>0), paste0("<", minimum_counts), as.integer(.data$subjects_excluded))) %>%
   dplyr::select(-c("records_excluded", "subjects_excluded"))
 
-# write.xlsx(AttritionReportDenom, file = here::here(output_folder, "AttritionReport1.xlsx"))
-# write.xlsx(AttritionReportFrac, file = here::here(output_folder, "AttritionReport2.xlsx"))
+# write.xlsx(AttritionReportDenom, file = here::here(sub_output_folder, "AttritionReport1.xlsx"))
+# write.xlsx(AttritionReportFrac, file = here::here(sub_output_folder, "AttritionReport2.xlsx"))
 
 rm(cancer, mbd, trauma, conditions_sheet1)

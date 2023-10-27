@@ -1,4 +1,4 @@
-plotFolder <- here(output_folder, "plots")
+plotFolder <- here(sub_output_folder, "plots")
 if (!dir.exists(plotFolder)) {
   dir.create(plotFolder)
 }
@@ -59,8 +59,8 @@ subgroupIncidenceResultsTable <- subgroupIncidenceResultsTable %>%
          n_person = ifelse(obscured == T, NA, n_person))
 
 # Export Incidence Results
-write.xlsx(inc_results, file = here::here(output_folder, "IncidenceResults.xlsx"))
-write.xlsx(subgroupIncidenceResultsTable, file = here::here(output_folder, "SubgroupIncidenceResults.xlsx"))
+write.xlsx(inc_results, file = here::here(sub_output_folder, "IncidenceResults.xlsx"))
+write.xlsx(subgroupIncidenceResultsTable, file = here::here(sub_output_folder, "SubgroupIncidenceResults.xlsx"))
 info(logger, "CALCULATING OVERALL INCIDENCE AND BY SUBGROUPS IS DONE")
 
 ### follow up time summary statistics
@@ -124,7 +124,7 @@ colnames(updated_table_1) <- c("x", "y", "z", "w")
 updated_table_1 <- rbind(follow_up_time, updated_table_1)
 colnames(updated_table_1)<-colnames(reformatted_table_1)
 
-write_csv(updated_table_1, here(output_folder, "updated_table_1.csv"))
+write_csv(updated_table_1, here(sub_output_folder, "updated_table_1.csv"))
 info(logger, "UPDATING TABLE 1 TO INCLUDE FOLLOW UP TIME IS DONE")
 
 ### CIF - Subgroup Analysis
@@ -194,7 +194,7 @@ counts_overall <- counts_overall %>%
                 counts_imminent_vert = ifelse((n_imminent_vert<minimum_counts & n_imminent_vert>0), paste0("<", minimum_counts), n_imminent_vert),
                 counts_imminent_nhnv = ifelse((n_imminent_nhnv<minimum_counts & n_imminent_nhnv>0), paste0("<", minimum_counts), n_imminent_nhnv)) %>%
   dplyr::select(-n, -n_imminent, -n_imminent_hip, -n_imminent_vert, -n_imminent_nhnv)
-write.xlsx(counts_overall, file = here(output_folder, "counts_overall.xlsx"))
+write.xlsx(counts_overall, file = here(sub_output_folder, "counts_overall.xlsx"))
 
 first_plots_data <- data_cif[sapply(data_cif, nrow) >= minimum_counts]
 first_plots <- list()
@@ -258,7 +258,7 @@ counts_hip <- counts_hip %>%
                 counts_imminent_vert = ifelse((n_imminent_vert<minimum_counts & n_imminent_vert>0), paste0("<", minimum_counts), n_imminent_vert),
                 counts_imminent_nhnv = ifelse((n_imminent_nhnv<minimum_counts & n_imminent_nhnv>0), paste0("<", minimum_counts), n_imminent_nhnv)) %>%
   dplyr::select(-n, -n_imminent, -n_imminent_hip, -n_imminent_vert, -n_imminent_nhnv)
-write.xlsx(counts_hip, file = here(output_folder, "counts_hip.xlsx"))
+write.xlsx(counts_hip, file = here(sub_output_folder, "counts_hip.xlsx"))
 
 hip_plots_data <- hip_plots_data[sapply(hip_plots_data, nrow) >= minimum_counts]
 
@@ -307,7 +307,7 @@ counts_vert <- counts_vert %>%
                 counts_imminent_vert = ifelse((n_imminent_vert<minimum_counts & n_imminent_vert>0), paste0("<", minimum_counts), n_imminent_vert),
                 counts_imminent_nhnv = ifelse((n_imminent_nhnv<minimum_counts & n_imminent_nhnv>0), paste0("<", minimum_counts), n_imminent_nhnv)) %>%
   dplyr::select(-n, -n_imminent, -n_imminent_hip, -n_imminent_vert, -n_imminent_nhnv)
-write.xlsx(counts_vert, file = here(output_folder, "counts_vert.xlsx"))
+write.xlsx(counts_vert, file = here(sub_output_folder, "counts_vert.xlsx"))
 
 vert_plots_data <- vert_plots_data[sapply(vert_plots_data, nrow) >= minimum_counts]
 
@@ -356,7 +356,7 @@ counts_nhnv <- counts_nhnv %>%
                 counts_imminent_vert = ifelse((n_imminent_vert<minimum_counts & n_imminent_vert>0), paste0("<", minimum_counts), n_imminent_vert),
                 counts_imminent_nhnv = ifelse((n_imminent_nhnv<minimum_counts & n_imminent_nhnv>0), paste0("<", minimum_counts), n_imminent_nhnv)) %>%
   dplyr::select(-n, -n_imminent, -n_imminent_hip, -n_imminent_vert, -n_imminent_nhnv)
-write.xlsx(counts_nhnv, file = here(output_folder, "counts_nhnv.xlsx"))
+write.xlsx(counts_nhnv, file = here(sub_output_folder, "counts_nhnv.xlsx"))
 
 nhnv_plots_data <- nhnv_plots_data[sapply(nhnv_plots_data, nrow) >= minimum_counts]
 

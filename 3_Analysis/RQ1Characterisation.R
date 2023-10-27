@@ -299,9 +299,9 @@ info(logger, "CREATE SUMMARY, FRACTURE COHORT, IS DONE")
 
 # export results
 info(logger, "EXPORT RESULTS")
-write_csv(result_imm, here(output_folder, "table_one_imm.csv"))
-write_csv(result_no_imm, here(output_folder, "table_one_no_imm.csv"))
-write_csv(result_frac, here(output_folder, "table_one_frac.csv"))
+write_csv(result_imm, here(sub_output_folder, "table_one_imm.csv"))
+write_csv(result_no_imm, here(sub_output_folder, "table_one_no_imm.csv"))
+write_csv(result_frac, here(sub_output_folder, "table_one_frac.csv"))
 
 rm(fracture_table_rq1, 
    imminentFractureCohortTotal, 

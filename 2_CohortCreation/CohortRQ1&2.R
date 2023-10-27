@@ -164,7 +164,7 @@ AttritionReport <- rbind(AttritionReportDenom %>% dplyr::select(number_subjects,
   dplyr::mutate(masked_subjects_excluded = ifelse((subjects_excluded<minimum_counts & subjects_excluded>0), paste0("<", minimum_counts), as.integer(.data$subjects_excluded))) %>%
   dplyr::select(-"subjects_excluded")
   
-write.xlsx(AttritionReport, file = here::here(output_folder, "AttritionReport.xlsx"))
+write.xlsx(AttritionReport, file = here::here(sub_output_folder, "AttritionReport.xlsx"))
 
 ###
 fracture_table_rq2 <- fracture_table

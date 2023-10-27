@@ -1,15 +1,20 @@
-# create logger
-log_file <- paste0(output_folder, "/log.txt")
-logger <- create.logger()
-logfile(logger) <- log_file
-level(logger) <- "INFO"
-
-# running necessary functions
-info(logger, "RUNNING NECESSARY FUNCTIONS")
-source(here("Functions", "functions.R"))
-info(logger, "RUNNING NECESSARY FUNCTIONS IS DONE")
-
-for (i in (1:length(washout_period))){
+for (k in (1:length(washout_period))){
+  sub_output_folder <- here(output_folder, washout_period[[k]])
+  if (!dir.exists(sub_output_folder)) {
+    dir.create(sub_output_folder)
+  }
+  
+  # create logger
+  log_file <- paste0(sub_output_folder, "/log.txt")
+  logger <- create.logger()
+  logfile(logger) <- log_file
+  level(logger) <- "INFO"
+  
+  # running necessary functions
+  info(logger, "RUNNING NECESSARY FUNCTIONS")
+  source(here("Functions", "functions.R"))
+  info(logger, "RUNNING NECESSARY FUNCTIONS IS DONE")
+  
   # cleaning fractures
   info(logger, "CLEANING FRACTURES")
   source(here("2_CohortCreation", "CleaningFractures.R"))
@@ -42,9 +47,9 @@ for (i in (1:length(washout_period))){
   
   # create zip file
   info(logger, "ZIPPING RESULTS")
-  output_folder <- basename(output_folder)
+  sub_output_folder <- basename(sub_output_folder)
   zip(
-    zipfile = file.path(paste0(output_folder, "/Results_", db_name, washout_period[[i]],".zip")),
-    files = list.files(output_folder, full.names = TRUE)
+    zipfile = file.path(paste0(sub_output_folder, "/Results_", db_name, washout_period[[k]],".zip")),
+    files = list.files(sub_output_folder, full.names = TRUE)
   )
 }
