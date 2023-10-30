@@ -44,12 +44,12 @@ for (k in (1:length(washout_period))){
   # info(logger, "CARRYING OUT ANALYSES FOR RESEARCH QUESTION 3")
   # source(here("3_Analysis", "RQ3PSMatching.R"))
   # info(logger, "CARRYING OUT ANALYSES FOR RESEARCH QUESTION 3 IS DONE")
-  
-  # create zip file
-  info(logger, "ZIPPING RESULTS")
-  sub_output_folder <- basename(sub_output_folder)
-  zip(
-    zipfile = file.path(paste0(sub_output_folder, "/Results_", db_name, washout_period[[k]],".zip")),
-    files = list.files(sub_output_folder, full.names = TRUE)
-  )
 }
+
+# create zip file
+info(logger, "ZIPPING RESULTS")
+output_folder <- basename(output_folder)
+zip(
+  zipfile = file.path(paste0(output_folder, "/Results_", db_name, ".zip")),
+  files = list.files(output_folder, full.names = TRUE)
+)
