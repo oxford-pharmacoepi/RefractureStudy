@@ -382,25 +382,33 @@ rm(nhnv_plots_data)
 for (i in (1:length(first_plots))){
   name <- paste0("CIF_subgroup", i, ".png")
   ggsave(file = file.path(here(plotFolder, name)), 
-         plot = first_plots[[i]])
+         plot = first_plots[[i]],
+         width = 15,
+         height = 8)
 }
 
 for (i in (1:length(hip_plots))){
   name <- paste0("CIF_hip_subgroup", i, ".png")
   ggsave(file = file.path(here(plotFolder, name)), 
-         plot = hip_plots[[i]])
+         plot = hip_plots[[i]],
+         width = 15,
+         height = 8)
 }
 
 for (i in (1:length(vert_plots))){
   name <- paste0("CIF_vert_subgroup", i, ".png")
   ggsave(file = file.path(here(plotFolder, name)), 
-         plot = vert_plots[[i]])
+         plot = vert_plots[[i]],
+         width = 15,
+         height = 8)
 }
 
 for (i in (1:length(nhnv_plots))){
   name <- paste0("CIF_nhnv_subgroup", i, ".png")
   ggsave(file = file.path(here(plotFolder, name)), 
-         plot = nhnv_plots[[i]])
+         plot = nhnv_plots[[i]],
+         width = 15,
+         height = 8)
 }
 
 for (i in (1:length(first_plots_table))){
