@@ -201,3 +201,43 @@ for (i in (1:length(compCohort2))){
     dplyr::filter(death_date >= index_date |is.na(death_date)) %>%
     dplyr::select(colnames(compCohort2[[i]]))
 }
+
+### excluding base on prior cancer
+for (i in (1:length(compCohort2))){
+  compCohort2[[i]] <- compCohort2[[i]] %>% 
+    dplyr::anti_join(compCohort2[[i]] %>% 
+                       dplyr::select(-cohort_start_date, -cohort_end_date) %>%
+                       dplyr::inner_join(cdm[["cancer"]], by = "subject_id", copy = T, relationship = "many-to-many") %>%
+                       dplyr::filter(cancer_date<=index_date), by = "subject_id")
+}
+
+### Exclusion based on prior bone disease
+for (i in (1:length(compCohort2))){
+  compCohort2[[i]] <- compCohort2[[i]] %>% 
+    dplyr::anti_join(compCohort2[[i]] %>% 
+                       dplyr::select(-cohort_start_date, -cohort_end_date) %>%
+                       dplyr::inner_join(cdm[["mbd"]], by = "subject_id", copy = T, relationship = "many-to-many") %>%
+                       dplyr::filter(cohort_start_date<=index_date), by = "subject_id")
+}
+
+### Exclusion based on prior obs
+for (i in (1:length(compCohort2))){
+  compCohort2[[i]] <-compCohort2[[i]] %>% 
+    left_join(cdm[["observation_period"]], by = c("subject_id" = "person_id"), copy = T) %>% 
+    select(subject_id:index_date, observation_period_start_date, observation_period_end_date) %>%
+    mutate(days_prior_obs = index_date - observation_period_start_date, days_after_obs = observation_period_end_date - index_date) %>%
+    filter(days_prior_obs >= prior_observation, days_after_obs >= 0) %>%
+    select(subject_id, cohort_start_date, cohort_end_date, cohort_interval, period_start, period_end, index_date)
+}
+
+### Exclusion based on index date not being on the last day of obs period
+for (i in (1:length(compCohort2))){
+  compCohort2[[i]] <- compCohort2[[i]] %>%
+      dplyr::anti_join(cdm[["observation_period"]], by = c("subject_id" = "person_id", "index_date" = "observation_period_end_date"), copy = T)
+}
+
+### Restrict index dates to study period
+for (i in (1:length(compCohort2))){
+  compCohort2[[i]] <- compCohort2[[i]] %>%
+    filter(index_date<=cohort_end_date & index_date >=cohort_start_date)
+}
