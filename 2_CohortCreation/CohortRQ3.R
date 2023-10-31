@@ -11,7 +11,7 @@ for (i in (1:numberPeriods)){
 periodEnd[[numberPeriods+1]] <- study_end_date
 
 ### Creating relevant cohorts
-info(logger, "CREATING UNDERLYING COHORTS")
+info(logger, "CREATING UNDERLYING DENOMINATORS")
 denom <- cdm[["denominator"]] %>% 
   dplyr::collect()
 
@@ -35,13 +35,7 @@ compCohort2<-list()
 compCohort1<-list()
 targetCohort <- list()
 
-for (i in (1:(numberPeriods+1))){
-  set.seed(12345)
-  compCohort2[[i]] <- denom_by_periods[[i]] %>% 
-    dplyr::anti_join(fracture_table %>% filter(condition_start_date <= periodStart[[i]]), by = "subject_id") %>%
-    dplyr::mutate(index_date = sample(seq(periodStart[[i]], periodEnd[[i]], by="day"), n(), replace = T))
-}
-
+info(logger, "CREATING COMPARATOR COHORT 1")
 for (i in (1:(numberPeriods+1))){
   compCohort1[[i]] <- denom_by_periods[[i]] %>% 
     dplyr::inner_join(fracture_table_rq2_index %>%
@@ -54,6 +48,7 @@ AttritionReportRQ3C1 <- AttritionReport
 fracture_table_rq3_index <- fracture_table_rq2_index 
 rm(fracture_table_rq2_index)
 
+info(logger, "CREATING TARGET COHORT")
 fracture_table_rq3_imminent <- fracture_table %>% 
   dplyr::group_by(subject_id) %>%
   dplyr::mutate(gap = condition_start_date - lag(condition_start_date)) %>%
@@ -181,9 +176,28 @@ AttritionReportRQ3T<-
   dplyr::select(-"subjects_excluded")
 
 write.xlsx(AttritionReportRQ3T, file = here::here(output_folder, "AttritionReportRQ3Target.xlsx"))
+write.xlsx(AttritionReportRQ3C1, file = here::here(output_folder, "AttritionReportRQ3CompCohort1.xlsx"))
 
+for (i in (1:(numberPeriods+1))){
+  targetCohort[[i]] <- denom_by_periods[[i]] %>% 
+    dplyr::inner_join(fracture_table_rq3_imminent %>%
+                        dplyr::select(-cohort_start_date, -cohort_end_date) %>%
+                        dplyr::filter(condition_start_date<=periodEnd[[i]] & condition_start_date >= periodStart[[i]]), by = "subject_id") %>%
+    dplyr::filter(condition_start_date <= cohort_end_date & condition_start_date >= cohort_start_date)
+} 
 
+info(logger, "CREATING COMPARATOR COHORT 2")
+for (i in (1:(numberPeriods+1))){
+  set.seed(12345)
+  compCohort2[[i]] <- denom_by_periods[[i]] %>% 
+    dplyr::anti_join(fracture_table %>% filter(condition_start_date <= periodStart[[i]]), by = "subject_id") %>%
+    dplyr::mutate(index_date = sample(seq(periodStart[[i]], periodEnd[[i]], by="day"), n(), replace = T))
+}
 
-rm(denom_by_periods,
-   periodEnd, 
-   periodStart)
+### excluding base on death
+for (i in (1:length(compCohort2))){
+  compCohort2[[i]] <- compCohort2[[i]] %>% 
+    dplyr::left_join(cdm[["death"]], by = c("subject_id"= "person_id"), copy = T) %>% 
+    dplyr::filter(death_date >= index_date |is.na(death_date)) %>%
+    dplyr::select(colnames(compCohort2[[i]]))
+}
