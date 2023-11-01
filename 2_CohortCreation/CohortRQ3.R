@@ -193,7 +193,15 @@ for (i in (1:(numberPeriods+1))){
     dplyr::mutate(index_date = sample(seq(periodStart[[i]], periodEnd[[i]], by="day"), n(), replace = T))
 }
 
-### excluding base on death
+### exclusion based on fractures
+for (i in (1:length(compCohort2))){
+  compCohort2[[i]] <- compCohort2[[i]] %>%
+    dplyr::anti_join(compCohort2[[i]] %>% 
+                       dplyr::left_join(fracture_table %>% dplyr::select(subject_id, condition_start_date), by = "subject_id") %>%
+                       dplyr::filter(index_date >= condition_start_date), by = "subject_id")
+}
+
+### excluding based on death
 for (i in (1:length(compCohort2))){
   compCohort2[[i]] <- compCohort2[[i]] %>% 
     dplyr::left_join(cdm[["death"]], by = c("subject_id"= "person_id"), copy = T) %>% 
@@ -201,7 +209,7 @@ for (i in (1:length(compCohort2))){
     dplyr::select(colnames(compCohort2[[i]]))
 }
 
-### excluding base on prior cancer
+### excluding based on prior cancer
 for (i in (1:length(compCohort2))){
   compCohort2[[i]] <- compCohort2[[i]] %>% 
     dplyr::anti_join(compCohort2[[i]] %>% 
@@ -364,3 +372,58 @@ for (i in (1:length(compCohort1))){
     dplyr::mutate(follow_up_end = pmin(after_index, observation_period_end_date, cancer_date, mbd_date, ensuing_fracture, death_date, na.rm = T))
 }
 
+#
+info(logger, "CREATING FOLLOW UP TIME FOR COMPARATOR COHORT 2")
+
+# 2 years after
+for (i in (1:length(compCohort2))){
+  compCohort2[[i]] <- compCohort2[[i]] %>%
+    dplyr::mutate(after_index = index_date + 730) 
+}
+
+# end of obs period
+for (i in (1:length(compCohort2))){
+  compCohort2[[i]] <- compCohort2[[i]] %>%
+    dplyr::left_join(cdm[["observation_period"]],  by = c("subject_id" = "person_id"), copy = T) %>%
+    dplyr::select(subject_id:after_index, observation_period_end_date)
+}
+
+# next cancer date
+for (i in (1:length(compCohort2))){
+  compCohort2[[i]] <- compCohort2[[i]] %>%
+    dplyr::left_join(cdm[["cancer"]] %>% dplyr::select(subject_id, cancer_date), copy = T, by = "subject_id", relationship = "many-to-many") %>%
+    dplyr::group_by(subject_id, index_date) %>%
+    dplyr::arrange(cancer_date, .by_group = T) %>%
+    dplyr::filter(row_number()==1) %>%
+    dplyr::ungroup()
+}
+
+# next mbd date
+for (i in (1:length(compCohort2))){
+  compCohort2[[i]] <- compCohort2[[i]] %>%
+    dplyr::left_join(cdm[["mbd"]] %>% dplyr::select(subject_id, mbd_date), copy = T, by = "subject_id", relationship = "many-to-many") %>%
+    dplyr::group_by(subject_id, index_date) %>%
+    dplyr::arrange(mbd_date, .by_group = T) %>%
+    dplyr::filter(row_number()==1) %>%
+    dplyr::ungroup()
+}
+
+# next fracture
+for (i in (1:length(compCohort2))){
+  compCohort2[[i]] <- compCohort2[[i]] %>%
+    dplyr::left_join(fracture_table %>% dplyr::select(subject_id, condition_start_date), by = "subject_id") %>%
+    dplyr::group_by(subject_id, index_date) %>%
+    dplyr::arrange(condition_start_date, .by_group = T) %>%
+    dplyr::filter(row_number()==1) %>%
+    dplyr::ungroup()
+}
+
+# death date and follow up end
+for (i in (1:length(compCohort2))){
+  compCohort2[[i]] <- compCohort2[[i]] %>% 
+    dplyr::left_join(cdm[["death"]], by = c("subject_id" = "person_id"), copy = T) %>%
+    dplyr::filter(death_date > index_date | is.na(death_date)) %>%
+    dplyr::select(subject_id, cohort_start_date, cohort_end_date, cohort_interval, period_start, period_end, index_date, after_index, observation_period_end_date, cancer_date, mbd_date, condition_start_date, death_date) %>%
+    dplyr::mutate(follow_up_end = pmin(after_index, observation_period_end_date, cancer_date, mbd_date, condition_start_date, death_date, na.rm = T)) %>%
+    dplyr::rename(fracture_date = condition_start_date)
+}
