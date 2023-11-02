@@ -22,7 +22,6 @@ denom <- denom %>%
   select(-cohort_definition_id) 
 
 denom_by_periods <- list()
-rm(denom)
 for (i in (1:(numberPeriods+1))){
   denom_by_periods[[i]] <- denom %>% 
     mutate(intersect = lubridate::intersect(cohort_interval, interval(periodStart[[i]], periodEnd[[i]]))) %>%
@@ -31,6 +30,7 @@ for (i in (1:(numberPeriods+1))){
     mutate(period_start = periodStart[[i]], period_end = periodEnd[[i]])
 }
 
+rm(denom)
 compCohort2<-list()
 compCohort1<-list()
 targetCohort <- list()
@@ -168,7 +168,7 @@ AttritionReportRQ3T<- AttritionReportRQ3T %>%
   ) 
 
 AttritionReportRQ3T<-
-  rbind(AttritionReport[1:9,] %>% dplyr::select(-masked_subjects_excluded),
+  rbind(AttritionReport[1:14,] %>% dplyr::select(-masked_subjects_excluded),
         AttritionReportRQ3T %>% dplyr::select(number_subjects, reason)) %>%
   dplyr::mutate(subjects_excluded = -(number_subjects-lag(number_subjects))) %>%
   dplyr::mutate(masked_subjects_excluded = ifelse((subjects_excluded<minimum_counts & subjects_excluded>0), paste0("<", minimum_counts), as.integer(.data$subjects_excluded))) %>%
@@ -193,6 +193,18 @@ for (i in (1:(numberPeriods+1))){
     dplyr::mutate(index_date = sample(seq(periodStart[[i]], periodEnd[[i]], by="day"), n(), replace = T))
 }
 
+collated_c2 <- data.frame()
+for (i in (1:length(compCohort2))){
+  collated_c2 <- rbind(collated_c2, compCohort2[[i]])
+}
+
+AttritionReportRQ3C2 <- 
+    tibble(
+    number_records = collated_c2 %>% tally() %>% pull(),
+    number_subjects = collated_c2 %>% distinct(subject_id) %>% tally() %>% pull(),
+    reason = "Starting Population - Anyone without history of fracture prior the start of the period"
+  )
+
 ### exclusion based on fractures
 for (i in (1:length(compCohort2))){
   compCohort2[[i]] <- compCohort2[[i]] %>%
@@ -201,6 +213,20 @@ for (i in (1:length(compCohort2))){
                        dplyr::filter(index_date >= condition_start_date), by = "subject_id")
 }
 
+collated_c2 <- data.frame()
+for (i in (1:length(compCohort2))){
+  collated_c2 <- rbind(collated_c2, compCohort2[[i]])
+}
+
+AttritionReportRQ3C2 <- AttritionReportRQ3C2 %>%
+  union_all(  
+    tibble(
+      number_records = collated_c2 %>% tally() %>% pull(),
+      number_subjects = collated_c2 %>% distinct(subject_id) %>% tally() %>% pull(),
+      reason = "Exclusion based on fractures"
+    )
+  )
+
 ### excluding based on death
 for (i in (1:length(compCohort2))){
   compCohort2[[i]] <- compCohort2[[i]] %>% 
@@ -208,6 +234,20 @@ for (i in (1:length(compCohort2))){
     dplyr::filter(death_date >= index_date |is.na(death_date)) %>%
     dplyr::select(colnames(compCohort2[[i]]))
 }
+
+collated_c2 <- data.frame()
+for (i in (1:length(compCohort2))){
+  collated_c2 <- rbind(collated_c2, compCohort2[[i]])
+}
+
+AttritionReportRQ3C2 <- AttritionReportRQ3C2 %>%
+  union_all(  
+    tibble(
+      number_records = collated_c2 %>% tally() %>% pull(),
+      number_subjects = collated_c2 %>% distinct(subject_id) %>% tally() %>% pull(),
+      reason = "Exclusion based on deaths"
+    )
+  )
 
 ### excluding based on prior cancer
 for (i in (1:length(compCohort2))){
@@ -218,6 +258,20 @@ for (i in (1:length(compCohort2))){
                        dplyr::filter(cancer_date<=index_date), by = "subject_id")
 }
 
+collated_c2 <- data.frame()
+for (i in (1:length(compCohort2))){
+  collated_c2 <- rbind(collated_c2, compCohort2[[i]])
+}
+
+AttritionReportRQ3C2 <- AttritionReportRQ3C2 %>%
+  union_all(  
+    tibble(
+      number_records = collated_c2 %>% tally() %>% pull(),
+      number_subjects = collated_c2 %>% distinct(subject_id) %>% tally() %>% pull(),
+      reason = "Exclusion based on prior cancer"
+    )
+  )
+
 ### Exclusion based on prior bone disease
 for (i in (1:length(compCohort2))){
   compCohort2[[i]] <- compCohort2[[i]] %>% 
@@ -226,6 +280,20 @@ for (i in (1:length(compCohort2))){
                        dplyr::inner_join(cdm[["mbd"]], by = "subject_id", copy = T, relationship = "many-to-many") %>%
                        dplyr::filter(cohort_start_date<=index_date), by = "subject_id")
 }
+
+collated_c2 <- data.frame()
+for (i in (1:length(compCohort2))){
+  collated_c2 <- rbind(collated_c2, compCohort2[[i]])
+}
+
+AttritionReportRQ3C2 <- AttritionReportRQ3C2 %>%
+  union_all(  
+    tibble(
+      number_records = collated_c2 %>% tally() %>% pull(),
+      number_subjects = collated_c2 %>% distinct(subject_id) %>% tally() %>% pull(),
+      reason = "Exclusion based on prior mbd"
+    )
+  )
 
 ### Exclusion based on prior obs
 for (i in (1:length(compCohort2))){
@@ -237,17 +305,68 @@ for (i in (1:length(compCohort2))){
     dplyr::select(subject_id, cohort_start_date, cohort_end_date, cohort_interval, period_start, period_end, index_date)
 }
 
+collated_c2 <- data.frame()
+for (i in (1:length(compCohort2))){
+  collated_c2 <- rbind(collated_c2, compCohort2[[i]])
+}
+
+AttritionReportRQ3C2 <- AttritionReportRQ3C2 %>%
+  union_all(  
+    tibble(
+      number_records = collated_c2 %>% tally() %>% pull(),
+      number_subjects = collated_c2 %>% distinct(subject_id) %>% tally() %>% pull(),
+      reason = "Exclusion based on prior observation length"
+    )
+  )
+
 ### Exclusion based on index date not being on the last day of obs period
 for (i in (1:length(compCohort2))){
   compCohort2[[i]] <- compCohort2[[i]] %>%
       dplyr::anti_join(cdm[["observation_period"]], by = c("subject_id" = "person_id", "index_date" = "observation_period_end_date"), copy = T)
 }
 
+collated_c2 <- data.frame()
+for (i in (1:length(compCohort2))){
+  collated_c2 <- rbind(collated_c2, compCohort2[[i]])
+}
+
+AttritionReportRQ3C2 <- AttritionReportRQ3C2 %>%
+  union_all(  
+    tibble(
+      number_records = collated_c2 %>% tally() %>% pull(),
+      number_subjects = collated_c2 %>% distinct(subject_id) %>% tally() %>% pull(),
+      reason = "Exclusion based on index date not being on the last day of obs period"
+    )
+  )
+
 ### Restrict index dates to study period
 for (i in (1:length(compCohort2))){
   compCohort2[[i]] <- compCohort2[[i]] %>%
     dplyr::filter(index_date<=cohort_end_date & index_date >=cohort_start_date)
 }
+
+collated_c2 <- data.frame()
+for (i in (1:length(compCohort2))){
+  collated_c2 <- rbind(collated_c2, compCohort2[[i]])
+}
+
+AttritionReportRQ3C2 <- AttritionReportRQ3C2 %>%
+  union_all(  
+    tibble(
+      number_records = collated_c2 %>% tally() %>% pull(),
+      number_subjects = collated_c2 %>% distinct(subject_id) %>% tally() %>% pull(),
+      reason = "Restrict index dates to study period"
+    )
+  )
+
+AttritionReportRQ3C2<-
+  rbind(AttritionReport[1:9,] %>% dplyr::select(-masked_subjects_excluded),
+        AttritionReportRQ3C2 %>% dplyr::select(number_subjects, reason)) %>%
+  dplyr::mutate(subjects_excluded = -(number_subjects-lag(number_subjects))) %>%
+  dplyr::mutate(masked_subjects_excluded = ifelse((subjects_excluded<minimum_counts & subjects_excluded>0), paste0("<", minimum_counts), as.integer(.data$subjects_excluded))) %>%
+  dplyr::select(-"subjects_excluded")
+
+write.xlsx(AttritionReportRQ3C2, file = here::here(output_folder, "AttritionReportRQ3C2.xlsx"))
 
 ### Create Follow Up Time
 info(logger, "CREATING FOLLOW UP TIME FOR TARGET COHORT")
