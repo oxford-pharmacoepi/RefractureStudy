@@ -537,12 +537,27 @@ for (i in (1:length(compCohort2))){
     dplyr::ungroup()
 }
 
-# death date and follow up end
+# death date
 for (i in (1:length(compCohort2))){
   compCohort2[[i]] <- compCohort2[[i]] %>% 
     dplyr::left_join(cdm[["death"]], by = c("subject_id" = "person_id"), copy = T) %>%
     dplyr::filter(death_date > index_date | is.na(death_date)) %>%
-    dplyr::select(subject_id, cohort_start_date, cohort_end_date, cohort_interval, period_start, period_end, index_date, after_index, observation_period_end_date, cancer_date, mbd_date, condition_start_date, death_date) %>%
-    dplyr::mutate(follow_up_end = pmin(after_index, observation_period_end_date, cancer_date, mbd_date, condition_start_date, death_date, na.rm = T)) %>%
-    dplyr::rename(fracture_date = condition_start_date)
+    dplyr::select(subject_id, cohort_start_date, cohort_end_date, cohort_interval, period_start, period_end, index_date, after_index, observation_period_end_date, cancer_date, mbd_date, condition_start_date, death_date)
+}
+
+# next index date
+collated_c2 <- collated_c2 %>% 
+  dplyr::select(subject_id, index_date) %>%
+  dplyr::group_by(subject_id) %>%
+  dplyr::mutate(next_index = lead(index_date))
+  
+for (i in (1:length(compCohort2))){
+  compCohort2[[i]] <- compCohort2[[i]] %>% 
+    dplyr::left_join(collated_c2, by = c("subject_id", "index_date"))
+}
+
+# define follow up end
+for (i in (1:length(compCohort2))){
+  compCohort2[[i]] <- compCohort2[[i]] %>%
+    dplyr::mutate(follow_up_end = pmin(after_index, observation_period_end_date, cancer_date, mbd_date, death_date, condition_start_date, next_index, na.rm = T))
 }
