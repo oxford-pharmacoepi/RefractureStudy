@@ -583,3 +583,27 @@ for (i in (1:length(compCohort2))){
   compCohort2[[i]] <- compCohort2[[i]] %>%
     dplyr::mutate(follow_up_end = pmin(after_index, observation_period_end_date, cancer_date, mbd_date, death_date, condition_start_date, next_index, na.rm = T))
 }
+
+rm(AttritionReport,
+   AttritionReportDenom,
+   AttritionReportFrac,
+   AttritionReportRQ2,
+   AttritionReportRQ3C1,
+   AttritionReportRQ3C2,
+   AttritionReportRQ3T,
+   codelistConditions,
+   codelistMedications,
+   collated_c2,
+   fracture_correction_nonspecific,
+   denom_by_periods,
+   imminent_fracture_cohort_count,
+   imminent_fracture_cohort_set,
+   imminentFractureCohort,
+   periodEnd,
+   periodStart,
+   no_imminent_fracture_cohort_count,
+   no_imminent_fracture_cohort_set,
+   withoutImminentFractureCohortTotal,
+   reverseEntryTable,
+   index_fracture,
+   index_ids)
