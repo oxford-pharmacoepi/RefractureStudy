@@ -63,7 +63,7 @@ AttritionReportRQ3T <- tibble(
 
 # at least 50
 fracture_table_rq3_imminent <- fracture_table_rq3_imminent %>% 
-  dplyr::right_join(cdm[["person"]], by = c("subject_id" = "person_id"), copy = T) %>%
+  dplyr::left_join(cdm[["person"]], by = c("subject_id" = "person_id"), copy = T) %>%
   dplyr::mutate(age_fracture = lubridate::year(condition_start_date) - year_of_birth) %>%
   dplyr::filter(age_fracture >= 50) %>%
   dplyr::select(subject_id, cohort_start_date, cohort_end_date, condition_concept_id, condition_start_date, fracture_site)
@@ -203,6 +203,28 @@ AttritionReportRQ3C2 <-
     number_records = collated_c2 %>% tally() %>% pull(),
     number_subjects = collated_c2 %>% distinct(subject_id) %>% tally() %>% pull(),
     reason = "Starting Population - Anyone without history of fracture prior the start of the period"
+  )
+
+### exclusion based on age >= 50
+for (i in (1:length(compCohort2))){
+  compCohort2[[i]] <- compCohort2[[i]] %>% dplyr::left_join(cdm[["person"]], by = c("subject_id" = "person_id"), copy = T) %>%
+    dplyr::mutate(age_index = lubridate::year(index_date) - year_of_birth) %>%
+    dplyr::filter(age_index >= 50) %>%
+    dplyr::select(subject_id, cohort_start_date, cohort_end_date, cohort_interval, period_start, period_end, index_date)
+}
+
+collated_c2 <- data.frame()
+for (i in (1:length(compCohort2))){
+  collated_c2 <- rbind(collated_c2, compCohort2[[i]])
+}
+
+AttritionReportRQ3C2 <- AttritionReportRQ3C2 %>%
+  union_all(  
+    tibble(
+      number_records = collated_c2 %>% tally() %>% pull(),
+      number_subjects = collated_c2 %>% distinct(subject_id) %>% tally() %>% pull(),
+      reason = "Exclusion based on index date age"
+    )
   )
 
 ### exclusion based on fractures
@@ -366,7 +388,7 @@ AttritionReportRQ3C2<-
   dplyr::mutate(masked_subjects_excluded = ifelse((subjects_excluded<minimum_counts & subjects_excluded>0), paste0("<", minimum_counts), as.integer(.data$subjects_excluded))) %>%
   dplyr::select(-"subjects_excluded")
 
-write.xlsx(AttritionReportRQ3C2, file = here::here(output_folder, "AttritionReportRQ3C2.xlsx"))
+write.xlsx(AttritionReportRQ3C2, file = here::here(output_folder, "AttritionReportRQ3CompCohort2.xlsx"))
 
 ### Create Follow Up Time
 info(logger, "CREATING FOLLOW UP TIME FOR TARGET COHORT")
