@@ -23,7 +23,7 @@ AttritionReportRQ2<- AttritionReportFrac[,1:4] %>%
 
 # at least 50
 fracture_table_rq2_index <- fracture_table_rq2_index %>% 
-  dplyr::right_join(cdm[["person"]], by = c("subject_id" = "person_id"), copy = T) %>%
+  dplyr::left_join(cdm[["person"]], by = c("subject_id" = "person_id"), copy = T) %>%
   dplyr::mutate(age_fracture = lubridate::year(condition_start_date) - year_of_birth) %>%
   dplyr::filter(age_fracture >= 50) %>%
   dplyr::select(subject_id, cohort_start_date, cohort_end_date, condition_concept_id, condition_start_date, fracture_site)
