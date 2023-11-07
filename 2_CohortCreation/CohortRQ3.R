@@ -581,7 +581,7 @@ for (i in (1:length(compCohort2))){
 # define follow up end
 for (i in (1:length(compCohort2))){
   compCohort2[[i]] <- compCohort2[[i]] %>%
-    dplyr::mutate(follow_up_end = pmin(after_index, observation_period_end_date, cancer_date, mbd_date, death_date, condition_start_date, next_index, na.rm = T))
+    dplyr::mutate(follow_up_end = pmin(after_index, observation_period_end_date, cancer_date, mbd_date, death_date, condition_start_date, na.rm = T))
 }
 
 rm(AttritionReport,
