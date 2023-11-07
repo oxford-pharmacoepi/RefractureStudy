@@ -1,3 +1,15 @@
+rm(stratifiedCohort,
+   cdm_char_imm,
+   entryTable,
+   fracture_table_rq2,
+   fracture_table_rq2_back_up,
+   fracture_table_rq2_index,
+   imminentFractureCohortTotal,
+   fracture_table,
+   fracture_table_rq3_imminent,
+   fracture_table_rq3,
+   fracture_table_rq3_index)
+
 psFolder <- here(output_folder, "tempData")
 if (!dir.exists(psFolder)) {
   dir.create(psFolder)
@@ -8,87 +20,87 @@ info(logger, "EXTRACTING FEATURES")
 allSubjects <- tibble()
 
 for (i in (1:length(targetCohort))){
-  targetCohort[[i]] <- targetCohort[[i]] %>% mutate(group = "target", period = i)
-  compCohort1[[i]] <- compCohort1[[i]] %>% mutate(group = "comparator 1", period = i)
-  compCohort2[[i]] <- compCohort2[[i]] %>% mutate(group = "comparator 2", period = i)
+  targetCohort[[i]] <- targetCohort[[i]] %>% dplyr::mutate(group = "target", period = i)
+  compCohort1[[i]] <- compCohort1[[i]] %>% dplyr::mutate(group = "comparator 1", period = i)
+  compCohort2[[i]] <- compCohort2[[i]] %>% dplyr::mutate(group = "comparator 2", period = i)
 }
 
 for (i in (1:length(targetCohort))){
   allSubjects <- rbind(allSubjects,
-                       targetCohort[[i]] %>% select(subject_id, index_date, group, period) %>% distinct(),
-                       compCohort1[[i]] %>% select(subject_id, index_date, group, period) %>% distinct(),
-                       compCohort2[[i]] %>% select(subject_id, index_date, group, period) %>% distinct())
+                       targetCohort[[i]] %>% dplyr::select(subject_id, index_date, group, period) %>% distinct(),
+                       compCohort1[[i]] %>% dplyr::select(subject_id, index_date, group, period) %>% distinct(),
+                       compCohort2[[i]] %>% dplyr::select(subject_id, index_date, group, period) %>% distinct())
 }
 
 cdm[["condition_occurrence_2"]] <- cdm[["condition_occurrence"]] %>% 
-  filter(!(condition_concept_id %in% any_fracture_id)) %>% compute()
+  dplyr::filter(!(condition_concept_id %in% any_fracture_id)) %>% dplyr::compute()
 
 features <- cdm$condition_occurrence_2 %>%
   inner_join(allSubjects, by = c("person_id" = "subject_id"), copy = T) %>%
-  select(
+  dplyr::select(
     "subject_id" = "person_id",
     "index_date",
     "concept_id" = "condition_concept_id", 
     "date" = "condition_start_date"
   ) %>%
-  filter(date < index_date) %>%
-  mutate(dif_time = !!datediff("index_date", "date")) %>%
-  mutate(window = as.integer(if_else(dif_time >= -180, 1, if_else(dif_time >= -730, 2, 3)))) %>% # window 1: <180, 2: 180-730, 3: >730
-  mutate(feature = paste0("f", concept_id, "_", window)) %>%
-  select("subject_id", "index_date", "feature") %>%
+  dplyr::filter(date < index_date) %>%
+  dplyr::mutate(dif_time = !!datediff("index_date", "date")) %>%
+  dplyr::mutate(window = as.integer(if_else(dif_time >= -180, 1, if_else(dif_time >= -730, 2, 3)))) %>% # window 1: <180, 2: 180-730, 3: >730
+  dplyr::mutate(feature = paste0("f", concept_id, "_", window)) %>%
+  dplyr::select("subject_id", "index_date", "feature") %>%
   distinct() %>%
   union_all(
     cdm$drug_era %>%
       inner_join(allSubjects, by = c("person_id" = "subject_id"), copy = T) %>%
-      select(
+      dplyr::select(
         "subject_id" = "person_id", 
         "index_date",
         "concept_id" = "drug_concept_id", 
         "date" = "drug_era_start_date"
       ) %>%
-      mutate(date = as.Date(date)) %>%
-      filter(date < index_date) %>%
-      mutate(dif_time = !!datediff("index_date", "date")) %>%
-      filter(dif_time >= -365) %>%
-      mutate(window = as.integer(if_else(dif_time >= -180, 1, if_else(dif_time >= -730, 2, 3)))) %>%
-      mutate(feature = paste0("f", concept_id, "_", window)) %>%
-      select("subject_id", "index_date", "feature") %>%
+      dplyr::mutate(date = as.Date(date)) %>%
+      dplyr::filter(date < index_date) %>%
+      dplyr::mutate(dif_time = !!datediff("index_date", "date")) %>%
+      dplyr::filter(dif_time >= -365) %>%
+      dplyr::mutate(window = as.integer(if_else(dif_time >= -180, 1, if_else(dif_time >= -730, 2, 3)))) %>%
+      dplyr::mutate(feature = paste0("f", concept_id, "_", window)) %>%
+      dplyr::select("subject_id", "index_date", "feature") %>%
       distinct()
   ) %>%
   union_all(
     cdm$procedure_occurrence %>%
       inner_join(allSubjects, by = c("person_id" = "subject_id"), copy = T) %>%
-      select(
+      dplyr::select(
         "subject_id" = "person_id", 
         "index_date",
         "concept_id" = "procedure_concept_id", 
         "date" = "procedure_date"
       ) %>%
-      mutate(date = as.Date(date)) %>%
-      filter(date < index_date) %>%
-      mutate(dif_time = !!datediff("index_date", "date")) %>%
-      filter(dif_time >= -365) %>%
-      mutate(window = as.integer(if_else(dif_time >= -180, 1, if_else(dif_time >= -730, 2, 3)))) %>%
-      mutate(feature = paste0("f", concept_id, "_", window)) %>%
-      select("subject_id", "index_date", "feature") %>%
+      dplyr::mutate(date = as.Date(date)) %>%
+      dplyr::filter(date < index_date) %>%
+      dplyr::mutate(dif_time = !!datediff("index_date", "date")) %>%
+      dplyr::filter(dif_time >= -365) %>%
+      dplyr::mutate(window = as.integer(if_else(dif_time >= -180, 1, if_else(dif_time >= -730, 2, 3)))) %>%
+      dplyr::mutate(feature = paste0("f", concept_id, "_", window)) %>%
+      dplyr::select("subject_id", "index_date", "feature") %>%
       distinct()
   ) %>%
   union_all(
     cdm$measurement %>%
       inner_join(allSubjects, by = c("person_id" = "subject_id"), copy = T) %>%
-      select(
+      dplyr::select(
         "subject_id" = "person_id", 
         "index_date",
         "concept_id" = "measurement_concept_id", 
         "date" = "measurement_date"
       ) %>%
-      mutate(date = as.Date(date)) %>%
-      filter(date < index_date) %>%
-      mutate(dif_time = !!datediff("index_date", "date")) %>%
-      filter(dif_time >= -365) %>%
-      mutate(window = as.integer(if_else(dif_time >= -180, 1, if_else(dif_time >= -730, 2, 3)))) %>%
-      mutate(feature = paste0("f", concept_id, "_", window)) %>%
-      select("subject_id", "index_date", "feature") %>%
+      dplyr::mutate(date = as.Date(date)) %>%
+      dplyr::filter(date < index_date) %>%
+      dplyr::mutate(dif_time = !!datediff("index_date", "date")) %>%
+      dplyr::filter(dif_time >= -365) %>%
+      dplyr::mutate(window = as.integer(if_else(dif_time >= -180, 1, if_else(dif_time >= -730, 2, 3)))) %>%
+      dplyr::mutate(feature = paste0("f", concept_id, "_", window)) %>%
+      dplyr::select("subject_id", "index_date", "feature") %>%
       distinct()
   ) %>%
   collect()
@@ -98,7 +110,7 @@ features_count <- features %>%
   tally()
 
 features_count_threshold <- features_count %>%
-  filter(n<as.integer(denom_count)/200)
+  dplyr::filter(n<as.integer(denom_count)/200)
 
 subfeatures <- features %>% anti_join(features_count_threshold, by = "feature")
 
@@ -110,13 +122,13 @@ rm(features_count, features_count_threshold)
 
 ### Using Patient Profiles and pre-defined functions
 cdm[["all_subjects"]] <- cdm[["denominator"]] %>%
-  mutate(cohort_start_date = as.Date(as.character(cohort_start_date)),
+  dplyr::mutate(cohort_start_date = as.Date(as.character(cohort_start_date)),
          cohort_end_date = as.Date(as.character(cohort_end_date))) %>%
   inner_join(allSubjects, by = "subject_id", copy = T) %>%
-  select(cohort_definition_id, subject_id, index_date, group, period) %>% 
+  dplyr::select(cohort_definition_id, subject_id, index_date, group, period) %>% 
   rename(cohort_start_date = index_date) %>%
-  mutate(cohort_end_date = cohort_start_date) %>%
-  compute()
+  dplyr::mutate(cohort_end_date = cohort_start_date) %>%
+  dplyr::compute()
 
 rm(allSubjects)
 
@@ -135,7 +147,7 @@ allSubjectsCohort <- allSubjectsCohort %>%
   collect()
 
 save(allSubjectsCohort, file = here(output_folder, "tempData", "allSubjectsCohort.RData"))
-rm(allSubjectsCohort, denom)
+rm(allSubjectsCohort)
 
 ################################################################
 #lasso regression, ps and matching between target and comp cohort 1
@@ -149,33 +161,33 @@ for (i in (1:length(targetCohort))){
   set.seed(12345)
   load(here(output_folder, "tempData", "subfeatures.RData"))
   subfeatures_01 <- subfeatures %>% 
-    inner_join(rbind(targetCohort[[i]] %>% select(subject_id, index_date), 
-                     compCohort1[[i]] %>% select(subject_id, index_date)),
+    inner_join(rbind(targetCohort[[i]] %>% dplyr::select(subject_id, index_date), 
+                     compCohort1[[i]] %>% dplyr::select(subject_id, index_date)),
                by = c("subject_id", "index_date"))
   rm(subfeatures)
   
   subfeatures_01 <- lowerBoundLasso01(subfeatures_01, 50)
   
   features_lasso01 <- subfeatures_01 %>% 
-    select(-"index_date") %>%
+    dplyr::select(-"index_date") %>%
     distinct() %>%
-    mutate(value = 1) %>%
+    dplyr::mutate(value = 1) %>%
     pivot_wider(names_from = "feature", values_from =  "value", values_fill = 0)
   
   rm(subfeatures_01)
   load(here(output_folder, "tempData", "allSubjectsCohort.RData"))
   
-  features_lasso01 <- allSubjectsCohort %>% select(-c("cohort_definition_id", "cohort_end_date", "cohort_start_date")) %>%
-    filter(period == i) %>%
-    select(-"period") %>%
-    filter(group %in% c("comparator 1", "target")) %>%
+  features_lasso01 <- allSubjectsCohort %>% dplyr::select(-c("cohort_definition_id", "cohort_end_date", "cohort_start_date")) %>%
+    dplyr::filter(period == i) %>%
+    dplyr::select(-"period") %>%
+    dplyr::filter(group %in% c("comparator 1", "target")) %>%
     inner_join(features_lasso01, by = "subject_id")
   
   features_lasso01$prior_observation <- as.double(features_lasso01$prior_observation)
   features_lasso01 <- features_lasso01 %>% 
-    mutate(group = factor(group, c("comparator 1", "target")))
+    dplyr::mutate(group = factor(group, c("comparator 1", "target")))
   
-  x <- data.matrix(features_lasso01 %>% select(-c("group", "subject_id")))
+  x <- data.matrix(features_lasso01 %>% dplyr::select(-c("group", "subject_id")))
   y <- features_lasso01$group
   y<-as.integer(y)
   lambdas <- 10^seq(2, -3, by = -.1)
@@ -188,10 +200,11 @@ for (i in (1:length(targetCohort))){
   selectedLassoFeatures01[[i]] <- c("age", selectedLassoFeatures01[[i]]) %>% unique()
   
   features_lasso01 <- features_lasso01 %>%
-    select(all_of(c("subject_id", "group", selectedLassoFeatures01[[i]])))
+    dplyr::select(all_of(c("subject_id", "group", selectedLassoFeatures01[[i]])))
   
   match_results_01[[i]] <- matchit(group ~ . -subject_id, 
                                    data=features_lasso01,
+                                   antiexact = ~subject_id,
                                    method="nearest", 
                                    caliper= c(0.20, age = 5), 
                                    std.caliper = c(TRUE, FALSE),
@@ -222,33 +235,33 @@ for (i in (1:length(compCohort1))){
   set.seed(12345)
   load(here(output_folder, "tempData", "subfeatures.RData"))
   subfeatures_12 <- subfeatures %>% 
-    inner_join(rbind(compCohort1[[i]] %>% select(subject_id, index_date), 
-                     compCohort2[[i]] %>% select(subject_id, index_date)),
+    inner_join(rbind(compCohort1[[i]] %>% dplyr::select(subject_id, index_date), 
+                     compCohort2[[i]] %>% dplyr::select(subject_id, index_date)),
                by = c("subject_id", "index_date"))
   rm(subfeatures)
   
   subfeatures_12 <- lowerBoundLasso12(subfeatures_12, 50)
   
   features_lasso12 <- subfeatures_12 %>% 
-    select(-"index_date") %>%
+    dplyr::select(-"index_date") %>%
     distinct() %>%
-    mutate(value = 1) %>%
+    dplyr::mutate(value = 1) %>%
     pivot_wider(names_from = "feature", values_from =  "value", values_fill = 0)
   
   rm(subfeatures_12)
   load(here(output_folder, "tempData", "allSubjectsCohort.RData"))
   
-  features_lasso12 <- allSubjectsCohort %>% select(-c("cohort_definition_id", "cohort_end_date", "cohort_start_date")) %>%
-    filter(period == i) %>%
-    select(-"period") %>%
-    filter(group %in% c("comparator 2", "comparator 1")) %>%
+  features_lasso12 <- allSubjectsCohort %>% dplyr::select(-c("cohort_definition_id", "cohort_end_date", "cohort_start_date")) %>%
+    dplyr::filter(period == i) %>%
+    dplyr::select(-"period") %>%
+    dplyr::filter(group %in% c("comparator 2", "comparator 1")) %>%
     inner_join(features_lasso12, by = "subject_id")
   
   features_lasso12$prior_observation <- as.double(features_lasso12$prior_observation)
   features_lasso12 <- features_lasso12 %>% 
-    mutate(group = factor(group, c("comparator 2", "comparator 1")))
+    dplyr::mutate(group = factor(group, c("comparator 2", "comparator 1")))
   
-  x <- data.matrix(features_lasso12 %>% select(-c("group", "subject_id")))
+  x <- data.matrix(features_lasso12 %>% dplyr::select(-c("group", "subject_id")))
   y <- features_lasso12$group
   y<-as.integer(y)
   lambdas <- 10^seq(2, -3, by = -.1)
@@ -261,10 +274,11 @@ for (i in (1:length(compCohort1))){
   selectedLassoFeatures12[[i]] <- c("age", selectedLassoFeatures12[[i]]) %>% unique()
   
   features_lasso12 <- features_lasso12 %>%
-    select(all_of(c("subject_id", "group", selectedLassoFeatures12[[i]])))
+    dplyr::select(all_of(c("subject_id", "group", selectedLassoFeatures12[[i]])))
   
   match_results_12[[i]] <- matchit(group ~ .-subject_id, 
                                    data=features_lasso12,
+                                   antiexact = ~subject_id,
                                    method="nearest", 
                                    caliper= c(0.20, age = 5), 
                                    std.caliper = c(TRUE, FALSE),
@@ -283,3 +297,4 @@ save(subclasses12, file = here(output_folder, "tempData", "subclasses12.RData"))
 rm(subclasses12)
 save(summary12, file = here(output_folder, "tempData", "summary12.RData"))
 rm(summary12)
+rm(features_lasso01, features_lasso12, allSubjectsCohort)
