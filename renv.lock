@@ -18,7 +18,7 @@
     },
     "CDMConnector": {
       "Package": "CDMConnector",
-      "Version": "1.1.2",
+      "Version": "1.2.0",
       "Source": "Repository",
       "Repository": "CRAN",
       "Requirements": [
@@ -45,7 +45,7 @@
         "waldo",
         "withr"
       ],
-      "Hash": "1aa9d0748b2d136b641b5d5acb50055b"
+      "Hash": "3b0bfeaca7d88251031d9b98fa5d5f79"
     },
     "CirceR": {
       "Package": "CirceR",
@@ -130,14 +130,9 @@
     },
     "DrugUtilisation": {
       "Package": "DrugUtilisation",
-      "Version": "0.3.1",
-      "Source": "GitHub",
-      "RemoteType": "github",
-      "RemoteHost": "api.github.com",
-      "RemoteRepo": "DrugUtilisation",
-      "RemoteUsername": "darwin-eu",
-      "RemoteRef": "HEAD",
-      "RemoteSha": "4e36895a9d68cc15fffde8ada5f57b5ce6066e70",
+      "Version": "0.4.0",
+      "Source": "Repository",
+      "Repository": "CRAN",
       "Requirements": [
         "CDMConnector",
         "DBI",
@@ -155,7 +150,7 @@
         "rlang",
         "tidyr"
       ],
-      "Hash": "091fb80550dfb0fadce2598da21ed3d5"
+      "Hash": "7083d0a424a9d7b5aca1a4031821e3b8"
     },
     "Exact": {
       "Package": "Exact",
@@ -249,14 +244,9 @@
     },
     "PatientProfiles": {
       "Package": "PatientProfiles",
-      "Version": "0.3.0",
-      "Source": "GitHub",
-      "RemoteType": "github",
-      "RemoteHost": "api.github.com",
-      "RemoteRepo": "PatientProfiles",
-      "RemoteUsername": "darwin-eu-dev",
-      "RemoteRef": "HEAD",
-      "RemoteSha": "bd0031b47dccd197c718cfbcb4ee60187d277c4d",
+      "Version": "0.4.0",
+      "Source": "Repository",
+      "Repository": "CRAN",
       "Requirements": [
         "CDMConnector",
         "DBI",
@@ -264,6 +254,7 @@
         "checkmate",
         "cli",
         "dplyr",
+        "gt",
         "lubridate",
         "magrittr",
         "pillar",
@@ -271,7 +262,7 @@
         "stringr",
         "tidyr"
       ],
-      "Hash": "8e0ad259825c417928fae94cbe21dc2f"
+      "Hash": "84b6b1c18891e63a4ba9b3d1c5981b72"
     },
     "R6": {
       "Package": "R6",
@@ -758,7 +749,7 @@
     },
     "dbplyr": {
       "Package": "dbplyr",
-      "Version": "2.3.2",
+      "Version": "2.4.0",
       "Source": "Repository",
       "Repository": "CRAN",
       "Requirements": [
@@ -782,7 +773,7 @@
         "vctrs",
         "withr"
       ],
-      "Hash": "d24305b92db333726aed162a2c23a147"
+      "Hash": "59351f28a81f0742720b85363c4fdd61"
     },
     "desc": {
       "Package": "desc",
