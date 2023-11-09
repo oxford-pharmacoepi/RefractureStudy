@@ -137,7 +137,7 @@ cdm_char_imm <- cdmSubsetCohort(cdm_char_imm, "imminent_fracture_cohort", verbos
 # instantiate medications
 info(logger, "INSTANTIATE MEDICATIONS - IMMINENT COHORT")
 codelistMedications <- codesFromConceptSet(here("1_InstantiateCohorts", "Medications"), cdm_char_imm)
-cdm_char_imm <- generateConceptCohortSet(cdm = cdm_char_imm, name = medications, conceptSet = codelistMedications)
+cdm_char_imm <- generateDrugUtilisationCohortSet(cdm = cdm_char_imm, name = medications, conceptSet = codelistMedications)
 
 # instantiate conditions
 info(logger, "INSTANTIATE CONDITIONS - IMMINENT COHORT")
@@ -196,7 +196,7 @@ cdm_char_no_imm <- cdmSubsetCohort(cdm_char_no_imm, "no_imminent_fracture_cohort
 # instantiate medications
 info(logger, "INSTANTIATE MEDICATIONS - NO IMMINENT COHORT")
 codelistMedications <- codesFromConceptSet(here("1_InstantiateCohorts", "Medications"), cdm_char_no_imm)
-cdm_char_no_imm <- generateConceptCohortSet(cdm = cdm_char_no_imm, name = medications, conceptSet = codelistMedications)
+cdm_char_no_imm <- generateDrugUtilisationCohortSet(cdm = cdm_char_no_imm, name = medications, conceptSet = codelistMedications)
 
 # instantiate conditions
 info(logger, "INSTANTIATE CONDITIONS - NO IMMINENT COHORT")
@@ -255,7 +255,7 @@ cdm_char_frac <- cdmSubsetCohort(cdm_char_frac, "fracture_cohort", verbose = T)
 # instantiate medications
 info(logger, "INSTANTIATE MEDICATIONS - FRACTURE COHORT")
 codelistMedications <- codesFromConceptSet(here("1_InstantiateCohorts", "Medications"), cdm_char_frac)
-cdm_char_frac <- generateConceptCohortSet(cdm = cdm_char_frac, name = medications, conceptSet = codelistMedications)
+cdm_char_frac <- generateDrugUtilisationCohortSet(cdm = cdm_char_frac, name = medications, conceptSet = codelistMedications)
 
 # instantiate conditions
 info(logger, "INSTANTIATE CONDITIONS - FRACTURE COHORT")
