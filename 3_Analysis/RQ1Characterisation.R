@@ -142,7 +142,7 @@ cdm_char_imm <- generateDrugUtilisationCohortSet(cdm = cdm_char_imm, name = medi
 # instantiate conditions
 info(logger, "INSTANTIATE CONDITIONS - IMMINENT COHORT")
 codelistConditions <- codesFromConceptSet(here("1_InstantiateCohorts", "Conditions"), cdm_char_imm)
-cdm_char_imm <- generateConceptCohortSet(cdm = cdm_char_imm, name = conditions, conceptSet = codelistConditions)
+cdm_char_imm <- generateConceptCohortSet(cdm = cdm_char_imm, name = conditions, conceptSet = codelistConditions, overwrite = T)
 
 # create table summary
 info(logger, "CREATE SUMMARY - IMMINENT COHORT")
@@ -201,7 +201,7 @@ cdm_char_no_imm <- generateDrugUtilisationCohortSet(cdm = cdm_char_no_imm, name 
 # instantiate conditions
 info(logger, "INSTANTIATE CONDITIONS - NO IMMINENT COHORT")
 codelistConditions <- codesFromConceptSet(here("1_InstantiateCohorts", "Conditions"), cdm_char_no_imm)
-cdm_char_no_imm <- generateConceptCohortSet(cdm = cdm_char_no_imm, name = conditions, conceptSet = codelistConditions)
+cdm_char_no_imm <- generateConceptCohortSet(cdm = cdm_char_no_imm, name = conditions, conceptSet = codelistConditions, overwrite = T)
 
 # create table summary
 info(logger, "CREATE SUMMARY - NO IMMINENT COHORT")
@@ -260,7 +260,7 @@ cdm_char_frac <- generateDrugUtilisationCohortSet(cdm = cdm_char_frac, name = me
 # instantiate conditions
 info(logger, "INSTANTIATE CONDITIONS - FRACTURE COHORT")
 codelistConditions <- codesFromConceptSet(here("1_InstantiateCohorts", "Conditions"), cdm_char_frac)
-cdm_char_frac <- generateConceptCohortSet(cdm = cdm_char_frac, name = conditions, conceptSet = codelistConditions)
+cdm_char_frac <- generateConceptCohortSet(cdm = cdm_char_frac, name = conditions, conceptSet = codelistConditions, overwrite = T)
 
 # create table summary
 info(logger, "CREATE SUMMARY - FRACTURE COHORT")
