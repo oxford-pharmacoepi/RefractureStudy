@@ -174,8 +174,8 @@ AttritionReportRQ3T<-
   dplyr::mutate(masked_subjects_excluded = ifelse((subjects_excluded<minimum_counts & subjects_excluded>0), paste0("<", minimum_counts), as.integer(.data$subjects_excluded))) %>%
   dplyr::select(-"subjects_excluded")
 
-write.xlsx(AttritionReportRQ3T, file = here::here(output_folder, "AttritionReportRQ3Target.xlsx"))
-write.xlsx(AttritionReportRQ3C1, file = here::here(output_folder, "AttritionReportRQ3CompCohort1.xlsx"))
+write.xlsx(AttritionReportRQ3T, file = here::here(sub_output_folder, "AttritionReportRQ3Target.xlsx"))
+write.xlsx(AttritionReportRQ3C1, file = here::here(sub_output_folder, "AttritionReportRQ3CompCohort1.xlsx"))
 
 for (i in (1:(numberPeriods+1))){
   targetCohort[[i]] <- denom_by_periods[[i]] %>% 
@@ -388,7 +388,7 @@ AttritionReportRQ3C2<-
   dplyr::mutate(masked_subjects_excluded = ifelse((subjects_excluded<minimum_counts & subjects_excluded>0), paste0("<", minimum_counts), as.integer(.data$subjects_excluded))) %>%
   dplyr::select(-"subjects_excluded")
 
-write.xlsx(AttritionReportRQ3C2, file = here::here(output_folder, "AttritionReportRQ3CompCohort2.xlsx"))
+write.xlsx(AttritionReportRQ3C2, file = here::here(sub_output_folder, "AttritionReportRQ3CompCohort2.xlsx"))
 
 ### Create Follow Up Time
 info(logger, "CREATING FOLLOW UP TIME FOR TARGET COHORT")
