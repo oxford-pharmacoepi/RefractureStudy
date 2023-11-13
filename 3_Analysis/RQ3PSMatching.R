@@ -10,7 +10,7 @@ rm(stratifiedCohort,
    fracture_table_rq3,
    fracture_table_rq3_index)
 
-psFolder <- here(output_folder, "tempData")
+psFolder <- here(sub_output_folder, "tempData")
 if (!dir.exists(psFolder)) {
   dir.create(psFolder)
 }
@@ -114,8 +114,8 @@ features_count_threshold <- features_count %>%
 
 subfeatures <- features %>% anti_join(features_count_threshold, by = "feature")
 
-save(features, file = here(output_folder, "tempData", "features.RData"))
-save(subfeatures, file = here(output_folder, "tempData", "subfeatures.RData"))
+save(features, file = here(sub_output_folder, "tempData", "features.RData"))
+save(subfeatures, file = here(sub_output_folder, "tempData", "subfeatures.RData"))
 rm(features)
 rm(subfeatures)
 rm(features_count, features_count_threshold)
@@ -146,7 +146,7 @@ allSubjectsCohort <- allSubjectsCohort %>%
   ) %>%
   collect()
 
-save(allSubjectsCohort, file = here(output_folder, "tempData", "allSubjectsCohort.RData"))
+save(allSubjectsCohort, file = here(sub_output_folder, "tempData", "allSubjectsCohort.RData"))
 rm(allSubjectsCohort)
 
 ################################################################
@@ -159,7 +159,7 @@ summary01 <- list()
 
 for (i in (1:length(targetCohort))){
   set.seed(12345)
-  load(here(output_folder, "tempData", "subfeatures.RData"))
+  load(here(sub_output_folder, "tempData", "subfeatures.RData"))
   subfeatures_01 <- subfeatures %>% 
     inner_join(rbind(targetCohort[[i]] %>% dplyr::select(subject_id, index_date), 
                      compCohort1[[i]] %>% dplyr::select(subject_id, index_date)),
@@ -175,7 +175,7 @@ for (i in (1:length(targetCohort))){
     pivot_wider(names_from = "feature", values_from =  "value", values_fill = 0)
   
   rm(subfeatures_01)
-  load(here(output_folder, "tempData", "allSubjectsCohort.RData"))
+  load(here(sub_output_folder, "tempData", "allSubjectsCohort.RData"))
   
   features_lasso01 <- allSubjectsCohort %>% dplyr::select(-c("cohort_definition_id", "cohort_end_date", "cohort_start_date")) %>%
     dplyr::filter(period == i) %>%
@@ -213,15 +213,15 @@ for (i in (1:length(targetCohort))){
   summary01[[i]] <- summary(match_results_01[[i]])
 }
 
-save(lasso_reg_01, file = here(output_folder, "tempData", "lasso_reg_01.RData"))
+save(lasso_reg_01, file = here(sub_output_folder, "tempData", "lasso_reg_01.RData"))
 rm(lasso_reg_01)
-save(selectedLassoFeatures01, file = here(output_folder, "tempData", "selectedLassoFeatures01.RData"))
+save(selectedLassoFeatures01, file = here(sub_output_folder, "tempData", "selectedLassoFeatures01.RData"))
 rm(selectedLassoFeatures01)
-save(match_results_01, file = here(output_folder, "tempData", "match_results_01.RData"))
+save(match_results_01, file = here(sub_output_folder, "tempData", "match_results_01.RData"))
 rm(match_results_01)
-save(subclasses01, file = here(output_folder, "tempData", "subclasses01.RData"))
+save(subclasses01, file = here(sub_output_folder, "tempData", "subclasses01.RData"))
 rm(subclasses01)
-save(summary01, file = here(output_folder, "tempData", "summary01.RData"))
+save(summary01, file = here(sub_output_folder, "tempData", "summary01.RData"))
 rm(summary01)
 
 #lasso regression, ps and matching between comp cohort 1 and 2
@@ -233,7 +233,7 @@ summary12 <- list()
 
 for (i in (1:length(compCohort1))){
   set.seed(12345)
-  load(here(output_folder, "tempData", "subfeatures.RData"))
+  load(here(sub_output_folder, "tempData", "subfeatures.RData"))
   subfeatures_12 <- subfeatures %>% 
     inner_join(rbind(compCohort1[[i]] %>% dplyr::select(subject_id, index_date), 
                      compCohort2[[i]] %>% dplyr::select(subject_id, index_date)),
@@ -249,7 +249,7 @@ for (i in (1:length(compCohort1))){
     pivot_wider(names_from = "feature", values_from =  "value", values_fill = 0)
   
   rm(subfeatures_12)
-  load(here(output_folder, "tempData", "allSubjectsCohort.RData"))
+  load(here(sub_output_folder, "tempData", "allSubjectsCohort.RData"))
   
   features_lasso12 <- allSubjectsCohort %>% dplyr::select(-c("cohort_definition_id", "cohort_end_date", "cohort_start_date")) %>%
     dplyr::filter(period == i) %>%
@@ -287,14 +287,14 @@ for (i in (1:length(compCohort1))){
   summary12[[i]] <- summary(match_results_12[[i]])
 }
 
-save(lasso_reg_12, file = here(output_folder, "tempData", "lasso_reg_12.RData"))
+save(lasso_reg_12, file = here(sub_output_folder, "tempData", "lasso_reg_12.RData"))
 rm(lasso_reg_12)
-save(selectedLassoFeatures12, file = here(output_folder, "tempData", "selectedLassoFeatures12.RData"))
+save(selectedLassoFeatures12, file = here(sub_output_folder, "tempData", "selectedLassoFeatures12.RData"))
 rm(selectedLassoFeatures12)
-save(match_results_12, file = here(output_folder, "tempData", "match_results_12.RData"))
+save(match_results_12, file = here(sub_output_folder, "tempData", "match_results_12.RData"))
 rm(match_results_12)
-save(subclasses12, file = here(output_folder, "tempData", "subclasses12.RData"))
+save(subclasses12, file = here(sub_output_folder, "tempData", "subclasses12.RData"))
 rm(subclasses12)
-save(summary12, file = here(output_folder, "tempData", "summary12.RData"))
+save(summary12, file = here(sub_output_folder, "tempData", "summary12.RData"))
 rm(summary12)
 rm(features_lasso01, features_lasso12, allSubjectsCohort)
