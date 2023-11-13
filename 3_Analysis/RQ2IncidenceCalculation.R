@@ -264,7 +264,13 @@ hip_plots_data <- hip_plots_data[sapply(hip_plots_data, nrow) >= minimum_counts]
 
 for (i in (1:length(hip_plots_data))){
   if(hip_plots_data[[i]] %>% filter(status=="imminent") %>% tally()==0) next
-  hip_plots_data[[i]]$subgroup_status <- factor(hip_plots_data[[i]]$subgroup_status, levels = c("censor", "non-hip, non-vertebra fracture", "hip fracture", "vertebra fracture", "death"))
+  level <- hip_plots_data[[i]] %>% 
+    dplyr::filter(!subgroup_status=="censor") %>%
+    dplyr::mutate(subgroup_status = as.character(subgroup_status)) %>%
+    dplyr::pull(subgroup_status) %>%
+    unique()
+  level <- c("censor", level)
+  hip_plots_data[[i]]$subgroup_status <- factor(hip_plots_data[[i]]$subgroup_status, levels = level)
   
   hip_plots_table[[i]]<- tidycmprsk::cuminc(Surv(follow_up_time, subgroup_status) ~ 1, hip_plots_data[[i]]) %>%
     tbl_cuminc(times = c(0, 91, 183, 274, 365, 456, 548, 639, 730), 
@@ -313,7 +319,13 @@ vert_plots_data <- vert_plots_data[sapply(vert_plots_data, nrow) >= minimum_coun
 
 for (i in (1:length(vert_plots_data))){
   if(vert_plots_data[[i]] %>% filter(status=="imminent") %>% tally()==0) next
-  vert_plots_data[[i]]$subgroup_status <- factor(vert_plots_data[[i]]$subgroup_status, levels = c("censor", "non-hip, non-vertebra fracture", "hip fracture", "vertebra fracture", "death"))
+  level <- vert_plots_data[[i]] %>% 
+    dplyr::filter(!subgroup_status=="censor") %>%
+    dplyr::mutate(subgroup_status = as.character(subgroup_status)) %>%
+    dplyr::pull(subgroup_status) %>%
+    unique()
+  level <- c("censor", level)
+  vert_plots_data[[i]]$subgroup_status <- factor(vert_plots_data[[i]]$subgroup_status, levels = level)
   
   vert_plots_table[[i]]<- tidycmprsk::cuminc(Surv(follow_up_time, subgroup_status) ~ 1, vert_plots_data[[i]]) %>%
     tbl_cuminc(times = c(0, 91, 183, 274, 365, 456, 548, 639, 730), 
@@ -362,7 +374,13 @@ nhnv_plots_data <- nhnv_plots_data[sapply(nhnv_plots_data, nrow) >= minimum_coun
 
 for (i in (1:length(nhnv_plots_data))){
   if(nhnv_plots_data[[i]] %>% filter(status=="imminent") %>% tally()==0) next
-  nhnv_plots_data[[i]]$subgroup_status <- factor(nhnv_plots_data[[i]]$subgroup_status, levels = c("censor", "non-hip, non-vertebra fracture", "hip fracture", "vertebra fracture", "death"))
+  level <- nhnv_plots_data[[i]] %>% 
+    dplyr::filter(!subgroup_status=="censor") %>%
+    dplyr::mutate(subgroup_status = as.character(subgroup_status)) %>%
+    dplyr::pull(subgroup_status) %>%
+    unique()
+  level <- c("censor", level)
+  nhnv_plots_data[[i]]$subgroup_status <- factor(nhnv_plots_data[[i]]$subgroup_status, levels = level)
   
   nhnv_plots_table[[i]]<- tidycmprsk::cuminc(Surv(follow_up_time, subgroup_status) ~ 1, nhnv_plots_data[[i]]) %>%
     tbl_cuminc(times = c(0, 91, 183, 274, 365, 456, 548, 639, 730), 
