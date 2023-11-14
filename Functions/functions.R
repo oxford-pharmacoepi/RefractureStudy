@@ -269,8 +269,8 @@ reformat_table_one <- function(result_imm, result_no_imm, result_frac){
   
   #medication variables
   medication_var <- table_one_frac %>% 
-    dplyr::filter(stringr::str_detect(variable, 'Ref')) %>%
-    dplyr::filter(!variable == "Ref medications antineoplastic agents flag m365 to 0") %>%
+    dplyr::filter(stringr::str_detect(variable, 'medications')) %>%
+    dplyr::filter(!stringr::str_detect(variable, 'antineoplastic agents')) %>%
     dplyr::select(variable) %>%
     dplyr::distinct() %>%
     dplyr::pull(variable)
@@ -293,11 +293,11 @@ reformat_table_one <- function(result_imm, result_no_imm, result_frac){
   reformatted_table1 <- reformatted_table1 %>% dplyr::distinct()
   ### adjusting colnames
   reformatted_table1_meds <- reformatted_table1 %>%
-    dplyr::filter(stringr::str_detect(x, 'Ref'))
+    dplyr::filter(stringr::str_detect(x, 'medications'))
   reformatted_table1_meds[["x"]]<-substr(reformatted_table1_meds$x, 16, nchar(reformatted_table1_meds$x)-21)
   reformatted_table1_meds <- reformatted_table1_meds %>% dplyr::mutate(x = paste0(x, ", n(%)"))
   
-  reformatted_table1 <- rbind(reformatted_table1 %>% dplyr::filter(!stringr::str_detect(x, 'Ref')), reformatted_table1_meds)
+  reformatted_table1 <- rbind(reformatted_table1 %>% dplyr::filter(!stringr::str_detect(x, 'medications')), reformatted_table1_meds)
   
   # reformatted_table1 <- reformatted_table1 %>%
   #   dplyr::mutate(y = ifelse((stringr::str_detect(z, '<5')|stringr::str_detect(w, '<5')), "obsecured", y))
