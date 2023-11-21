@@ -27,9 +27,9 @@ selected90[["selected_covariates"]] <- substr(selected90$selected_covariates, 2,
 write.xlsx(selected90, file = here::here(output_folder, "01selected90.xlsx"))
 
 load("~/RefractureStudy/Results_AURUM/30/tempData/selectedLassoFeatures12.RData")
-selected30 <- selectedLassoFeatures01
+selected30 <- selectedLassoFeatures12
 load("~/RefractureStudy/Results_AURUM/90/tempData/selectedLassoFeatures12.RData")
-selected90 <- selectedLassoFeatures01
+selected90 <- selectedLassoFeatures12
 
 selectedCovs30 <- list()
 selectedCovs90 <- list()
