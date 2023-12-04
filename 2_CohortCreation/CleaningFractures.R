@@ -253,12 +253,12 @@ AttritionReportFrac <- AttritionReportFrac %>%
 AttritionReportDenom <- AttritionReportDenom %>%
   dplyr::mutate(masked_records = ifelse((excluded_records < minimum_counts & excluded_records>0), paste0("<", minimum_counts), as.integer(.data$excluded_records)),
                 masked_subjects = ifelse((excluded_subjects < minimum_counts & excluded_subjects>0), paste0("<", minimum_counts), as.integer(.data$excluded_subjects))) %>%
-  dplyr::dplyr::select(-c("excluded_records", "excluded_subjects"))
+  dplyr::select(-c("excluded_records", "excluded_subjects"))
 
 AttritionReportFrac <- AttritionReportFrac %>%
   dplyr::mutate(masked_records = ifelse((records_excluded < minimum_counts & records_excluded>0), paste0("<", minimum_counts), as.integer(.data$records_excluded)),
                 masked_subjects = ifelse((subjects_excluded < minimum_counts & subjects_excluded>0), paste0("<", minimum_counts), as.integer(.data$subjects_excluded))) %>%
-  dplyr::dplyr::select(-c("records_excluded", "subjects_excluded"))
+  dplyr::select(-c("records_excluded", "subjects_excluded"))
 
 # write.xlsx(AttritionReportDenom, file = here::here(sub_output_folder, "AttritionReport1.xlsx"))
 # write.xlsx(AttritionReportFrac, file = here::here(sub_output_folder, "AttritionReport2.xlsx"))
