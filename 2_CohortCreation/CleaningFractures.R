@@ -7,7 +7,7 @@ cdm <- generateDenominatorCohortSet(
   sex = "Female",
   ageGroup = list(c(50, 150)))
 
-denom_count <-cdm[["denominator"]] %>% tally() %>% pull()
+denom_count <-cdm[["denominator"]] %>% dplyr::tally() %>% dplyr::pull()
 
 AttritionReportDenom<-cohortAttrition(cdm$denominator)
 
@@ -15,31 +15,31 @@ AttritionReportDenom<-cohortAttrition(cdm$denominator)
 info(logger, "LOADING FRACTURE CODES")
 conditions_sheet1 <- read_excel(paste0(here(), "/1_InstantiateCohorts/fracture_sites_conditions_codes.xlsx"), sheet = 1) 
 trauma <- read_excel(paste0(here(), "/1_InstantiateCohorts/trauma_codes.xlsx")) 
-trauma_condition <- trauma %>% filter(Domain == "Condition") %>% select(Id) %>% pull()
-trauma_observation <- trauma %>% filter(Domain == "Observation") %>% select(Id) %>% pull()
+trauma_condition <- trauma %>% dplyr::filter(Domain == "Condition") %>% dplyr::select(Id) %>% dplyr::pull()
+trauma_observation <- trauma %>% dplyr::filter(Domain == "Observation") %>% dplyr::select(Id) %>% dplyr::pull()
 
-hip_fracture_id <- conditions_sheet1 %>% filter(Site == "Hip") %>% select(Id) %>% pull()
-femur_fracture_id <- conditions_sheet1 %>% filter(Site == "Femur") %>% select(Id) %>% pull()
-pelvic_fracture_id <- conditions_sheet1 %>% filter(Site == "Pelvic") %>% select(Id) %>% pull()
-vert_fracture_id <- conditions_sheet1 %>% filter(Site == "Vertebra") %>% select(Id) %>% pull()
-humerus_fracture_id <- conditions_sheet1 %>% filter(Site == "Humerus") %>% select(Id) %>% pull()
-forearm_fracture_id <- conditions_sheet1 %>% filter(Site == "Forearm") %>% select(Id) %>% pull()
-tib_fracture_id <- conditions_sheet1 %>% filter(Site == "Tibia and Fibula") %>% select(Id) %>% pull()
-rib_fracture_id <- conditions_sheet1 %>% filter(Site == "Rib") %>% select(Id) %>% pull()
-foot_fracture_id <- conditions_sheet1 %>% filter(Site == "Foot") %>% select(Id) %>% pull()
-nonspecific_fracture_id <- conditions_sheet1 %>% filter(Site == "Nonspecific") %>% select(Id) %>% pull()
+hip_fracture_id <- conditions_sheet1 %>% dplyr::filter(Site == "Hip") %>% dplyr::select(Id) %>% dplyr::pull()
+femur_fracture_id <- conditions_sheet1 %>% dplyr::filter(Site == "Femur") %>% dplyr::select(Id) %>% dplyr::pull()
+pelvic_fracture_id <- conditions_sheet1 %>% dplyr::filter(Site == "Pelvic") %>% dplyr::select(Id) %>% dplyr::pull()
+vert_fracture_id <- conditions_sheet1 %>% dplyr::filter(Site == "Vertebra") %>% dplyr::select(Id) %>% dplyr::pull()
+humerus_fracture_id <- conditions_sheet1 %>% dplyr::filter(Site == "Humerus") %>% dplyr::select(Id) %>% dplyr::pull()
+forearm_fracture_id <- conditions_sheet1 %>% dplyr::filter(Site == "Forearm") %>% dplyr::select(Id) %>% dplyr::pull()
+tib_fracture_id <- conditions_sheet1 %>% dplyr::filter(Site == "Tibia and Fibula") %>% dplyr::select(Id) %>% dplyr::pull()
+rib_fracture_id <- conditions_sheet1 %>% dplyr::filter(Site == "Rib") %>% dplyr::select(Id) %>% dplyr::pull()
+foot_fracture_id <- conditions_sheet1 %>% dplyr::filter(Site == "Foot") %>% dplyr::select(Id) %>% dplyr::pull()
+nonspecific_fracture_id <- conditions_sheet1 %>% dplyr::filter(Site == "Nonspecific") %>% dplyr::select(Id) %>% dplyr::pull()
 
-any_fracture_id <- conditions_sheet1 %>% filter(!Site == "Exclude") %>% select(Id) %>% pull()
+any_fracture_id <- conditions_sheet1 %>% dplyr::filter(!Site == "Exclude") %>% dplyr::select(Id) %>% dplyr::pull()
 
 ### cohort with all records of fracture 
 info(logger, "COLLECTING ALL RECORDS OF FRACTURES FROM DENOMINATORS")
 cdm[["fracture"]] <- cdm[["denominator"]] %>% 
-  left_join(cdm[["condition_occurrence"]], by = c("subject_id" = "person_id")) %>%
-  filter(condition_concept_id %in% any_fracture_id) %>%
-  select(subject_id, cohort_start_date, cohort_end_date, condition_concept_id, condition_start_date) %>%
-  mutate(cohort_start_date = as.Date(as.character(cohort_start_date))) %>%
-  mutate(cohort_end_date = as.Date(as.character(cohort_end_date))) %>%
-  mutate(fracture_site = if (condition_concept_id %in% hip_fracture_id) {
+  dplyr::left_join(cdm[["condition_occurrence_primary_care"]], by = c("subject_id" = "person_id")) %>%
+  dplyr::filter(condition_concept_id %in% any_fracture_id) %>%
+  dplyr::select(subject_id, cohort_start_date, cohort_end_date, condition_concept_id, condition_start_date) %>%
+  dplyr::mutate(cohort_start_date = as.Date(as.character(cohort_start_date))) %>%
+  dplyr::mutate(cohort_end_date = as.Date(as.character(cohort_end_date))) %>%
+  dplyr::mutate(fracture_site = if (condition_concept_id %in% hip_fracture_id) {
     "Hip"
   }
   else if (condition_concept_id %in% femur_fracture_id) {
@@ -71,12 +71,12 @@ cdm[["fracture"]] <- cdm[["denominator"]] %>%
   }
   )
 rm(hip_fracture_id, femur_fracture_id, foot_fracture_id, tib_fracture_id, rib_fracture_id, forearm_fracture_id, vert_fracture_id, pelvic_fracture_id, humerus_fracture_id, nonspecific_fracture_id)
-fracture_table <- cdm[["fracture"]] %>% collect()
+fracture_table <- cdm[["fracture"]] %>% dplyr::collect()
 
 AttritionReportFrac<-tibble(
   cohort_definition_id = as.integer(1),
-  number_records = fracture_table %>% tally() %>% pull(),
-  number_subjects = fracture_table %>% distinct(subject_id) %>% tally() %>% pull(),
+  number_records = fracture_table %>% dplyr::tally() %>% dplyr::pull(),
+  number_subjects = fracture_table %>% distinct(subject_id) %>% dplyr::tally() %>% dplyr::pull(),
   reason = "Starting Population - Anyone With Fracture(s)"
 )
 
@@ -84,57 +84,57 @@ AttritionReportFrac<-tibble(
 info(logger, "LOADING EXCLUSION CRITERIA TABLES")
 cancer <- read_excel(paste0(here(), "/1_InstantiateCohorts/cancer_codes.xlsx"))
 mbd <- read_excel(paste0(here(), "/1_InstantiateCohorts/mbd_codes.xlsx"))
-cancer_codes <- cancer %>% select(Id) %>% pull()
-mbd_codes <- mbd %>% select(Id) %>% pull()
+cancer_codes <- cancer %>% dplyr::select(Id) %>% dplyr::pull()
+mbd_codes <- mbd %>% dplyr::select(Id) %>% dplyr::pull()
 
 cdm[["cancer"]] <- cdm[["denominator"]] %>% 
-  left_join(cdm[["condition_occurrence"]], by = c("subject_id" = "person_id")) %>%
-  filter(condition_concept_id %in% cancer_codes) %>%
-  select(subject_id, cohort_start_date, cohort_end_date, condition_concept_id, condition_start_date) %>%
-  mutate(cohort_start_date = as.Date(as.character(cohort_start_date))) %>%
-  mutate(cohort_end_date = as.Date(as.character(cohort_end_date))) %>%
-  rename(cancer_date =condition_start_date) %>%
-  compute()
+  dplyr::left_join(cdm[["condition_occurrence"]], by = c("subject_id" = "person_id")) %>%
+  dplyr::filter(condition_concept_id %in% cancer_codes) %>%
+  dplyr::select(subject_id, cohort_start_date, cohort_end_date, condition_concept_id, condition_start_date) %>%
+  dplyr::mutate(cohort_start_date = as.Date(as.character(cohort_start_date))) %>%
+  dplyr::mutate(cohort_end_date = as.Date(as.character(cohort_end_date))) %>%
+  dplyr::rename(cancer_date =condition_start_date) %>%
+  CDMConnector::computeQuery()
 
 cdm[["mbd"]] <- cdm[["denominator"]] %>% 
-  left_join(cdm[["condition_occurrence"]], by = c("subject_id" = "person_id")) %>%
-  filter(condition_concept_id %in% mbd_codes) %>%
-  select(subject_id, cohort_start_date, cohort_end_date, condition_concept_id, condition_start_date) %>%
-  mutate(cohort_start_date = as.Date(as.character(cohort_start_date))) %>%
-  mutate(cohort_end_date = as.Date(as.character(cohort_end_date))) %>%
-  rename(mbd_date =condition_start_date) %>%
-  compute()
+  dplyr::left_join(cdm[["condition_occurrence"]], by = c("subject_id" = "person_id")) %>%
+  dplyr::filter(condition_concept_id %in% mbd_codes) %>%
+  dplyr::select(subject_id, cohort_start_date, cohort_end_date, condition_concept_id, condition_start_date) %>%
+  dplyr::mutate(cohort_start_date = as.Date(as.character(cohort_start_date))) %>%
+  dplyr::mutate(cohort_end_date = as.Date(as.character(cohort_end_date))) %>%
+  dplyr::rename(mbd_date =condition_start_date) %>%
+  CDMConnector::computeQuery()
 
 ### Removing cancer records before the birth year
 cdm[["cancer"]] <- cdm[["cancer"]] %>%
-  left_join(cdm[["person"]], by = c("subject_id" = "person_id"), copy = T) %>%
-  mutate(cancer_year = lubridate::year(cancer_date)) %>%
-  filter(cancer_year > year_of_birth) %>%
-  select(subject_id, cohort_start_date, cohort_end_date, condition_concept_id, cancer_date) %>%
-  compute()
+  dplyr::left_join(cdm[["person"]], by = c("subject_id" = "person_id"), copy = T) %>%
+  dplyr::mutate(cancer_year = lubridate::year(cancer_date)) %>%
+  dplyr::filter(cancer_year > year_of_birth) %>%
+  dplyr::select(subject_id, cohort_start_date, cohort_end_date, condition_concept_id, cancer_date) %>%
+  CDMConnector::computeQuery()
 
 ### Removing bone disease records before the birth year
 cdm[["mbd"]] <- cdm[["mbd"]] %>%
-  left_join(cdm[["person"]], by = c("subject_id" = "person_id"), copy = T) %>%
-  mutate(mbd_year = lubridate::year(mbd_date)) %>%
-  filter(mbd_year > year_of_birth) %>%
-  select(subject_id, cohort_start_date, cohort_end_date, condition_concept_id, mbd_date) %>%
-  compute()
+  dplyr::left_join(cdm[["person"]], by = c("subject_id" = "person_id"), copy = T) %>%
+  dplyr::mutate(mbd_year = lubridate::year(mbd_date)) %>%
+  dplyr::filter(mbd_year > year_of_birth) %>%
+  dplyr::select(subject_id, cohort_start_date, cohort_end_date, condition_concept_id, mbd_date) %>%
+  CDMConnector::computeQuery()
 
 ### Removing fractures before the birth year
 info(logger, "REMOVING FRACTURES BEFORE THE BIRTH YEAR")
 fracture_table <- fracture_table %>%
-  left_join(cdm[["person"]], by = c("subject_id" = "person_id"), copy = T) %>%
-  mutate(fracture_year = as.numeric(format(condition_start_date, "%Y"))) %>%
-  filter(fracture_year > year_of_birth) %>%
-  select(subject_id, cohort_start_date, cohort_end_date, condition_concept_id, condition_start_date, fracture_site)
+  dplyr::left_join(cdm[["person"]], by = c("subject_id" = "person_id"), copy = T) %>%
+  dplyr::mutate(fracture_year = as.numeric(format(condition_start_date, "%Y"))) %>%
+  dplyr::filter(fracture_year > year_of_birth) %>%
+  dplyr::select(subject_id, cohort_start_date, cohort_end_date, condition_concept_id, condition_start_date, fracture_site)
 
 AttritionReportFrac<- AttritionReportFrac %>% 
   union_all(  
     tibble(
       cohort_definition_id = as.integer(1),
-      number_records = fracture_table %>% tally() %>% pull(),
-      number_subjects = fracture_table %>% distinct(subject_id) %>% tally() %>% pull(),
+      number_records = fracture_table %>% dplyr::tally() %>% dplyr::pull(),
+      number_subjects = fracture_table %>% distinct(subject_id) %>% dplyr::tally() %>% dplyr::pull(),
       reason = "Excluding fracture happening before the birth year"
     )
   ) 
@@ -142,18 +142,18 @@ AttritionReportFrac<- AttritionReportFrac %>%
 ### Removing the fractures that happen on the same day as a trauma 
 info(logger, "REMOVING FRACTURES THAT HAPPEN ON THE SAME DAY AS A TRAUMA")
 fracture_table <- fracture_table %>%
-  anti_join(cdm[["condition_occurrence"]] %>% filter(condition_concept_id %in% trauma_condition), by = c("subject_id" = "person_id", "condition_start_date"), copy = T)
+  anti_join(cdm[["condition_occurrence"]] %>% dplyr::filter(condition_concept_id %in% trauma_condition), by = c("subject_id" = "person_id", "condition_start_date"), copy = T)
 
 fracture_table <- fracture_table %>% 
-  anti_join(cdm[["observation"]] %>% filter(observation_concept_id %in% trauma_observation), by = c("subject_id" = "person_id", "condition_start_date" = "observation_date"), copy = T) 
+  anti_join(cdm[["observation"]] %>% dplyr::filter(observation_concept_id %in% trauma_observation), by = c("subject_id" = "person_id", "condition_start_date" = "observation_date"), copy = T) 
 
 fracture_table<-fracture_table %>%
   anti_join(
     fracture_table %>% 
-      filter(!fracture_site=="Nonspecific") %>% 
-      group_by(subject_id, condition_start_date) %>% 
-      summarise(number_site = n_distinct(fracture_site), .groups = "drop") %>% 
-      filter(number_site>=3),
+      dplyr::filter(!fracture_site=="Nonspecific") %>% 
+      dplyr::group_by(subject_id, condition_start_date) %>% 
+      dplyr::summarise(number_site = n_distinct(fracture_site), .groups = "drop") %>% 
+      dplyr::filter(number_site>=3),
     by = c("subject_id", "condition_start_date")
   )
 
@@ -161,8 +161,8 @@ AttritionReportFrac<- AttritionReportFrac %>%
   union_all(  
     tibble(
       cohort_definition_id = as.integer(1),
-      number_records = fracture_table %>% tally() %>% pull(),
-      number_subjects = fracture_table %>% distinct(subject_id) %>% tally() %>% pull(),
+      number_records = fracture_table %>% dplyr::tally() %>% dplyr::pull(),
+      number_subjects = fracture_table %>% distinct(subject_id) %>% dplyr::tally() %>% dplyr::pull(),
       reason = "fracture happening on the same day as a trauma code"
     )
   ) 
@@ -174,41 +174,43 @@ sites <- c("Hip", "Femur", "Pelvic", "Vertebra", "Humerus", "Forearm", "Tibia an
 fracture_table_back_up <- fracture_table
 index_fractures <- tibble()
 
-while(nrow(fracture_table_back_up)>0){
-  fracture_correction <- list()
-  for (i in (1:10)){
-    fracture_correction[[sites[i]]] <- fracture_table_back_up %>% 
-      group_by(subject_id) %>% 
-      filter(fracture_site == sites[[i]] | fracture_site == sites[[10]]) %>% 
-      summarise(min_date = min(condition_start_date, na.rm =T)) %>% 
-      mutate(site = sites[[i]])
+suppressWarnings(
+  while(nrow(fracture_table_back_up)>0){
+    fracture_correction <- list()
+    for (i in (1:10)){
+      fracture_correction[[sites[i]]] <- fracture_table_back_up %>% 
+        dplyr::group_by(subject_id) %>% 
+        dplyr::filter(fracture_site == sites[[i]] | fracture_site == sites[[10]]) %>% 
+        dplyr::summarise(min_date = min(condition_start_date, na.rm =T)) %>% 
+        dplyr::mutate(site = sites[[i]])
+    }
+    
+    fracture_correction_nonspecific <- list()
+    
+    for (i in (1:10)){
+      fracture_correction_nonspecific <- rbind(fracture_correction_nonspecific, fracture_correction[[i]])
+    }
+    
+    fracture_table_back_up <- fracture_table_back_up %>% 
+      dplyr::left_join(fracture_correction_nonspecific, by = c("subject_id", "fracture_site" = "site")) %>% # compute min date
+      dplyr::mutate(gap_to_min_date = condition_start_date - min_date) %>%
+      dplyr::filter(gap_to_min_date == 0 | gap_to_min_date > washout_period[[k]]) %>%
+      dplyr::group_by(subject_id, condition_start_date, fracture_site) %>%
+      dplyr::arrange(condition_concept_id, .by_group = TRUE) %>% 
+      dplyr::filter(row_number()==1) %>%
+      dplyr::ungroup()
+    
+    fracture_table_back_up <- fracture_table_back_up %>%
+      dplyr::left_join(fracture_table_back_up %>% dplyr::group_by(subject_id) %>% dplyr::filter (gap_to_min_date == 0) %>% dplyr::count(), by = "subject_id") %>%
+      dplyr::filter (!((n>1) & (gap_to_min_date==0) & (fracture_site=="Nonspecific")))
+    
+    index_fractures <- rbind(index_fractures, fracture_table_back_up %>% dplyr::filter(gap_to_min_date==0) %>% dplyr::select(-min_date, -gap_to_min_date, -n))
+    
+    fracture_table_back_up <- fracture_table_back_up %>% 
+      dplyr::filter(!gap_to_min_date==0) %>%
+      dplyr::select(-min_date, -gap_to_min_date, -n)
   }
-  
-  fracture_correction_nonspecific <- list()
-  
-  for (i in (1:10)){
-    fracture_correction_nonspecific <- rbind(fracture_correction_nonspecific, fracture_correction[[i]])
-  }
-  
-  fracture_table_back_up <- fracture_table_back_up %>% 
-    left_join(fracture_correction_nonspecific, by = c("subject_id", "fracture_site" = "site")) %>% # compute min date
-    mutate(gap_to_min_date = condition_start_date - min_date) %>%
-    filter(gap_to_min_date == 0 | gap_to_min_date > washout_period[[k]]) %>%
-    group_by(subject_id, condition_start_date, fracture_site) %>%
-    arrange(condition_concept_id, .by_group = TRUE) %>% 
-    filter(row_number()==1) %>%
-    ungroup()
-  
-  fracture_table_back_up <- fracture_table_back_up %>%
-    left_join(fracture_table_back_up %>% group_by(subject_id) %>% filter (gap_to_min_date == 0) %>% count(), by = "subject_id") %>%
-    filter (!((n>1) & (gap_to_min_date==0) & (fracture_site=="Nonspecific")))
-  
-  index_fractures <- rbind(index_fractures, fracture_table_back_up %>% filter(gap_to_min_date==0) %>% select(-min_date, -gap_to_min_date, -n))
-  
-  fracture_table_back_up <- fracture_table_back_up %>% 
-    filter(!gap_to_min_date==0) %>%
-    select(-min_date, -gap_to_min_date, -n)
-}
+)
 
 fracture_table <- index_fractures
 
@@ -216,8 +218,8 @@ AttritionReportFrac<- AttritionReportFrac %>%
   union_all(  
     tibble(
       cohort_definition_id = as.integer(1),
-      number_records = fracture_table %>% tally() %>% pull(),
-      number_subjects = fracture_table %>% distinct(subject_id) %>% tally() %>% pull(),
+      number_records = fracture_table %>% dplyr::tally() %>% dplyr::pull(),
+      number_subjects = fracture_table %>% distinct(subject_id) %>% dplyr::tally() %>% dplyr::pull(),
       reason = "Clean out using washout period"
     )
   ) 
@@ -229,17 +231,17 @@ info(logger, "APPLYING HIERARCHY TO PREVENT MORE THAN ONE RECORD ON THE SAME DAY
 fracture_table$fracture_site<-factor(fracture_table$fracture_site, levels = sites)
 
 fracture_table <- fracture_table %>%
-  group_by(subject_id, condition_start_date) %>%
-  arrange(fracture_site, .by_group = TRUE) %>% 
-  filter(row_number()==1) %>%
-  ungroup()
+  dplyr::group_by(subject_id, condition_start_date) %>%
+  dplyr::arrange(fracture_site, .by_group = TRUE) %>% 
+  dplyr::filter(row_number()==1) %>%
+  dplyr::ungroup()
 
 AttritionReportFrac<- AttritionReportFrac %>% 
   union_all(  
     tibble(
       cohort_definition_id = as.integer(1),
-      number_records = fracture_table %>% tally() %>% pull(),
-      number_subjects = fracture_table %>% distinct(subject_id) %>% tally() %>% pull(),
+      number_records = fracture_table %>% dplyr::tally() %>% dplyr::pull(),
+      number_subjects = fracture_table %>% distinct(subject_id) %>% dplyr::tally() %>% dplyr::pull(),
       reason = "Excluding records on the same day for the same person according to hierarchy"
     )
   )
@@ -251,12 +253,12 @@ AttritionReportFrac <- AttritionReportFrac %>%
 AttritionReportDenom <- AttritionReportDenom %>%
   dplyr::mutate(masked_records = ifelse((excluded_records < minimum_counts & excluded_records>0), paste0("<", minimum_counts), as.integer(.data$excluded_records)),
                 masked_subjects = ifelse((excluded_subjects < minimum_counts & excluded_subjects>0), paste0("<", minimum_counts), as.integer(.data$excluded_subjects))) %>%
-  dplyr::select(-c("excluded_records", "excluded_subjects"))
+  dplyr::dplyr::select(-c("excluded_records", "excluded_subjects"))
 
 AttritionReportFrac <- AttritionReportFrac %>%
   dplyr::mutate(masked_records = ifelse((records_excluded < minimum_counts & records_excluded>0), paste0("<", minimum_counts), as.integer(.data$records_excluded)),
                 masked_subjects = ifelse((subjects_excluded < minimum_counts & subjects_excluded>0), paste0("<", minimum_counts), as.integer(.data$subjects_excluded))) %>%
-  dplyr::select(-c("records_excluded", "subjects_excluded"))
+  dplyr::dplyr::select(-c("records_excluded", "subjects_excluded"))
 
 # write.xlsx(AttritionReportDenom, file = here::here(sub_output_folder, "AttritionReport1.xlsx"))
 # write.xlsx(AttritionReportFrac, file = here::here(sub_output_folder, "AttritionReport2.xlsx"))
