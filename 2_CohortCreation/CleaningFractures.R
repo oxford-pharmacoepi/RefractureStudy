@@ -34,7 +34,7 @@ any_fracture_id <- conditions_sheet1 %>% dplyr::filter(!Site == "Exclude") %>% d
 ### cohort with all records of fracture 
 info(logger, "COLLECTING ALL RECORDS OF FRACTURES FROM DENOMINATORS")
 cdm[["fracture"]] <- cdm[["denominator"]] %>% 
-  dplyr::left_join(cdm[["condition_occurrence_primary_care"]], by = c("subject_id" = "person_id")) %>%
+  dplyr::left_join(cdm[["condition_occurrence"]], by = c("subject_id" = "person_id")) %>%
   dplyr::filter(condition_concept_id %in% any_fracture_id) %>%
   dplyr::select(subject_id, cohort_start_date, cohort_end_date, condition_concept_id, condition_start_date) %>%
   dplyr::mutate(cohort_start_date = as.Date(as.character(cohort_start_date))) %>%
