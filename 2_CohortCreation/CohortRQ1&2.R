@@ -15,8 +15,8 @@ AttritionReportRQ2<- AttritionReportFrac[,1:4] %>%
   union_all(  
     tibble(
       cohort_definition_id = as.integer(1),
-      number_records = fracture_table_rq2_index %>% tally() %>% pull(),
-      number_subjects = fracture_table_rq2_index %>% distinct(subject_id) %>% tally() %>% pull(),
+      number_records = fracture_table_rq2_index %>% dplyr::tally() %>% dplyr::pull(),
+      number_subjects = fracture_table_rq2_index %>% dplyr::distinct(subject_id) %>% dplyr::tally() %>% dplyr::pull(),
       reason = "Excluding records that has at least one fracture 730 days prior"
     )
   ) 
@@ -32,8 +32,8 @@ AttritionReportRQ2<- AttritionReportRQ2 %>%
   union_all(  
     tibble(
       cohort_definition_id = as.integer(1),
-      number_records = fracture_table_rq2_index %>% tally() %>% pull(),
-      number_subjects = fracture_table_rq2_index %>% distinct(subject_id) %>% tally() %>% pull(),
+      number_records = fracture_table_rq2_index %>% dplyr::tally() %>% dplyr::pull(),
+      number_subjects = fracture_table_rq2_index %>% dplyr::distinct(subject_id) %>% dplyr::tally() %>% dplyr::pull(),
       reason = "Excluding records before the subject turning 50"
     )
   )
@@ -41,18 +41,18 @@ AttritionReportRQ2<- AttritionReportRQ2 %>%
 # At least 730 days prior obs
 info(logger, "EXCLUDING INDIVIDUALS WHO DO NOT HAVE SUFFICIENT PRIOR OBSERVATION AND/OR OUTSIDE OF OBSERVATION PERIOD")
 fracture_table_rq2_index <-fracture_table_rq2_index %>% 
-  left_join(cdm[["observation_period"]], by = c("subject_id" = "person_id"), copy = T) %>% 
-  select(subject_id:fracture_site, observation_period_start_date, observation_period_end_date) %>%
-  mutate(days_prior_obs = condition_start_date - observation_period_start_date, days_after_obs = observation_period_end_date - condition_start_date) %>%
-  filter(days_prior_obs >= prior_observation, days_after_obs >= 0) %>%
-  select(subject_id, cohort_start_date, cohort_end_date, condition_concept_id, condition_start_date, fracture_site)
+  dplyr::left_join(cdm[["observation_period"]], by = c("subject_id" = "person_id"), copy = T) %>% 
+  dplyr::select(subject_id:fracture_site, observation_period_start_date, observation_period_end_date) %>%
+  dplyr::mutate(days_prior_obs = condition_start_date - observation_period_start_date, days_after_obs = observation_period_end_date - condition_start_date) %>%
+  dplyr::filter(days_prior_obs >= prior_observation, days_after_obs >= 0) %>%
+  dplyr::select(subject_id, cohort_start_date, cohort_end_date, condition_concept_id, condition_start_date, fracture_site)
 
 AttritionReportRQ2<- AttritionReportRQ2 %>% 
   union_all(  
     tibble(
       cohort_definition_id = as.integer(1),
-      number_records = fracture_table_rq2_index %>% tally() %>% pull(),
-      number_subjects = fracture_table_rq2_index %>% distinct(subject_id) %>% tally() %>% pull(),
+      number_records = fracture_table_rq2_index %>% dplyr::tally() %>% dplyr::pull(),
+      number_subjects = fracture_table_rq2_index %>% dplyr::distinct(subject_id) %>% dplyr::tally() %>% dplyr::pull(),
       reason = "Excluding records with insufficient prior observation and/or outside of observation period"
     )
   ) 
@@ -67,8 +67,8 @@ AttritionReportRQ2<- AttritionReportRQ2 %>%
   union_all(  
     tibble(
       cohort_definition_id = as.integer(1),
-      number_records = fracture_table_rq2_index %>% tally() %>% pull(),
-      number_subjects = fracture_table_rq2_index %>% distinct(subject_id) %>% tally() %>% pull(),
+      number_records = fracture_table_rq2_index %>% dplyr::tally() %>% dplyr::pull(),
+      number_subjects = fracture_table_rq2_index %>% dplyr::distinct(subject_id) %>% dplyr::tally() %>% dplyr::pull(),
       reason = "Excluding records on the same day as death"
     )
   ) 
@@ -87,8 +87,8 @@ AttritionReportRQ2<- AttritionReportRQ2 %>%
   union_all(  
     tibble(
       cohort_definition_id = as.integer(1),
-      number_records = fracture_table_rq2_index %>% tally() %>% pull(),
-      number_subjects = fracture_table_rq2_index %>% distinct(subject_id) %>% tally() %>% pull(),
+      number_records = fracture_table_rq2_index %>% dplyr::tally() %>% dplyr::pull(),
+      number_subjects = fracture_table_rq2_index %>% dplyr::distinct(subject_id) %>% dplyr::tally() %>% dplyr::pull(),
       reason = "Excluding records happened after cancer"
     )
   ) 
@@ -107,8 +107,8 @@ AttritionReportRQ2<- AttritionReportRQ2 %>%
   union_all(  
     tibble(
       cohort_definition_id = as.integer(1),
-      number_records = fracture_table_rq2_index %>% tally() %>% pull(),
-      number_subjects = fracture_table_rq2_index %>% distinct(subject_id) %>% tally() %>% pull(),
+      number_records = fracture_table_rq2_index %>% dplyr::tally() %>% dplyr::pull(),
+      number_subjects = fracture_table_rq2_index %>% dplyr::distinct(subject_id) %>% dplyr::tally() %>% dplyr::pull(),
       reason = "Excluding records happened after metabolic bone diseases"
     )
   )  
@@ -123,8 +123,8 @@ AttritionReportRQ2<- AttritionReportRQ2 %>%
   union_all(  
     tibble(
       cohort_definition_id = as.integer(1),
-      number_records = fracture_table_rq2_index %>% tally() %>% pull(),
-      number_subjects = fracture_table_rq2_index %>% distinct(subject_id) %>% tally() %>% pull(),
+      number_records = fracture_table_rq2_index %>% dplyr::tally() %>% dplyr::pull(),
+      number_subjects = fracture_table_rq2_index %>% dplyr::distinct(subject_id) %>% dplyr::tally() %>% dplyr::pull(),
       reason = "Excluding records that happen on the last day of observation period"
     )
   ) 
@@ -136,14 +136,14 @@ fracture_table_rq2_index <- fracture_table_rq2_index %>%
   dplyr::filter(condition_start_date<=cohort_end_date, condition_start_date>=cohort_start_date) %>%
   dplyr::mutate(class = "index")
 
-fracture_table_rq2_index_ids <- fracture_table_rq2_index %>% pull(subject_id)
+fracture_table_rq2_index_ids <- fracture_table_rq2_index %>% dplyr::pull(subject_id)
 
 AttritionReportRQ2<- AttritionReportRQ2 %>% 
   union_all(  
     tibble(
       cohort_definition_id = as.integer(1),
-      number_records = fracture_table_rq2_index %>% tally() %>% pull(),
-      number_subjects = fracture_table_rq2_index %>% distinct(subject_id) %>% tally() %>% pull(),
+      number_records = fracture_table_rq2_index %>% dplyr::tally() %>% dplyr::pull(),
+      number_subjects = fracture_table_rq2_index %>% dplyr::distinct(subject_id) %>% dplyr::tally() %>% dplyr::pull(),
       reason = "Excluding records that happen outside of study period"
     )
   ) 
@@ -166,7 +166,6 @@ AttritionReport <- rbind(AttritionReportDenom %>% dplyr::select(number_subjects,
   
 write.xlsx(AttritionReport, file = here::here(sub_output_folder, "AttritionReport.xlsx"))
 
-###
 fracture_table_rq2 <- fracture_table
 
 fracture_table_rq2 <- fracture_table_rq2 %>%
