@@ -282,5 +282,7 @@ if (country_setting != "UK") {
   write_xlsx(visit_type_by_specialty, "visit_type_by_specialty.xlsx")
 }
 
-
+if (country_setting == "Netherlands") {
+  write_xlsx(combined_frequency_table, "combined_frequency_table.xlsx")
+}
 
