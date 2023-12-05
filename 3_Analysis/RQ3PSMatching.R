@@ -287,6 +287,7 @@ for (i in (1:length(compCohort1))){
                                    ratio=5)
   subclasses12[[i]] <- match.data(match_results_12[[i]])
   summary12[[i]] <- summary(match_results_12[[i]])
+  rm(allSubjectsCohort, features_lasso12)
 }
 
 save(lasso_reg_12, file = here(sub_output_folder, "tempData", "lasso_reg_12.RData"))
@@ -299,4 +300,5 @@ save(subclasses12, file = here(sub_output_folder, "tempData", "subclasses12.RDat
 rm(subclasses12)
 save(summary12, file = here(sub_output_folder, "tempData", "summary12.RData"))
 rm(summary12)
-rm(features_lasso01, features_lasso12, allSubjectsCohort)
+rm(targetCohort, compCohort1, compCohort2)
+gc()
