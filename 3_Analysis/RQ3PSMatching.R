@@ -216,14 +216,17 @@ for (i in (1:length(targetCohort))){
 }
 
 save(lasso_reg_01, file = here(sub_output_folder, "tempData", "lasso_reg_01.RData"))
+save(lasso_reg_01, file = here(sub_output_folder, "lasso_reg_01.RData"))
 rm(lasso_reg_01)
 save(selectedLassoFeatures01, file = here(sub_output_folder, "tempData", "selectedLassoFeatures01.RData"))
+save(selectedLassoFeatures01, file = here(sub_output_folder, "selectedLassoFeatures01.RData"))
 rm(selectedLassoFeatures01)
 save(match_results_01, file = here(sub_output_folder, "tempData", "match_results_01.RData"))
 rm(match_results_01)
 save(subclasses01, file = here(sub_output_folder, "tempData", "subclasses01.RData"))
 rm(subclasses01)
 save(summary01, file = here(sub_output_folder, "tempData", "summary01.RData"))
+save(summary01, file = here(sub_output_folder, "summary01.RData"))
 rm(summary01)
 
 #lasso regression, ps and matching between comp cohort 1 and 2
@@ -291,14 +294,17 @@ for (i in (1:length(compCohort1))){
 }
 
 save(lasso_reg_12, file = here(sub_output_folder, "tempData", "lasso_reg_12.RData"))
+save(lasso_reg_12, file = here(sub_output_folder, "lasso_reg_12.RData"))
 rm(lasso_reg_12)
 save(selectedLassoFeatures12, file = here(sub_output_folder, "tempData", "selectedLassoFeatures12.RData"))
+save(selectedLassoFeatures12, file = here(sub_output_folder, "selectedLassoFeatures12.RData"))
 rm(selectedLassoFeatures12)
 save(match_results_12, file = here(sub_output_folder, "tempData", "match_results_12.RData"))
 rm(match_results_12)
 save(subclasses12, file = here(sub_output_folder, "tempData", "subclasses12.RData"))
 rm(subclasses12)
 save(summary12, file = here(sub_output_folder, "tempData", "summary12.RData"))
+save(summary12, file = here(sub_output_folder, "summary12.RData"))
 rm(summary12)
-rm(targetCohort, compCohort1, compCohort2)
+rm(targetCohort, compCohort1, compCohort2, coef.lasso_reg)
 gc()
