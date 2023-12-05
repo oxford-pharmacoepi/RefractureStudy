@@ -13,7 +13,7 @@ joined_visit_provider_tables <- cdm$visit_detail %>% inner_join(cdm$provider)
 visit_data <- joined_visit_provider_tables %>%
   left_join(provider_cost_inputs, by = "specialty_source_value", copy=TRUE) %>%
   filter(Include == "1") %>% # Filter for only meaningful specialties
-  select(person_id, provider_id, specialty_source_value, visit_detail_start_date, visit_detail_id) %>%
+  select(person_id, provider_id, specialty_source_value, visit_detail_start_date, visit_detail_id, unit_cost) %>%
   filter(visit_detail_start_date >= study_start_date & # include only visits in the study period
            visit_detail_start_date <= study_end_date) %>%
   rename(subject_id=person_id) %>% # just renaming for consistency with cohort data
@@ -46,25 +46,34 @@ check_dates <- collect(check_dates)
 
 ## Sub-setting the visit data
 visit_data <- joined_visit_provider_tables %>%
-  select(person_id, provider_id, specialty_concept_id, visit_start_date, visit_id, visit_concept_id) %>% # in France we also have visit_concept_id 
+  select(person_id, provider_id, specialty_concept_id, visit_start_date, visit_occurrence_id, visit_concept_id, unit_cost) %>% # in France we also have visit_concept_id 
   filter(visit_start_date >= study_start_date & # include only visits in the study period
            visit_start_date <= study_end_date) %>%
   rename(subject_id=person_id) %>% # just renaming for consistency with cohort data
   collect()
 
 ## Keep only distinct rows - eliminate all visits in the same day with the same specialist and of the same type, by the same patient
-visits_specialist_day <- visit_data %>% distinct(visit_detail_start_date, subject_id, specialty_source_value) %>% tally()
+visits_specialist_day <- visit_data %>% distinct(visit_start_date, subject_id, specialty_source_value) %>% tally()
 
 visit_data <-visit_data %>% distinct(visit_start_date, subject_id, specialty_concept_id, visit_concept_id, .keep_all=TRUE)
 
 visit_data <- visit_data %>% 
   rename(specialty = specialty_concept_id) # renaming for consistency with other countries as this variable is used for the HCRU and costs too
 
+
+# Check table
+
+visit_type_by_specialty <- visit_data %>%
+  group_by(specialty, visit_concept_id) %>%
+  summarise(visit_count = n(), .groups = 'drop') %>%
+  pivot_wider(names_from = visit_concept_id, values_from = visit_count, values_fill = list(visit_count = 0))
+
+
 ## Filter visit_data by concept_id
 
-visit_data_home <- visit_data %>% filter(visit_concept_id == 581476)
-visit_data_tele <- visit_data %>% filter(visit_concept_id == 5083)
-visit_data_office <- visit_data %>% filter(visit_concept_id == 581477)
+# visit_data_home <- visit_data %>% filter(visit_concept_id == 581476)
+# visit_data_tele <- visit_data %>% filter(visit_concept_id == 5083)
+# visit_data_office <- visit_data %>% filter(visit_concept_id == 581477)
 
 }
 
@@ -83,14 +92,14 @@ check_dates <- collect(check_dates)
 
 ## Sub-setting the visit data
 visit_data <- joined_visit_provider_tables %>%
-  select(person_id, provider_id, specialty_concept_id, visit_start_date, visit_id) %>% 
+  select(person_id, provider_id, specialty_concept_id, visit_start_date, visit_occurrence_id, unit_cost) %>% 
   filter(visit_start_date >= study_start_date & # include only visits in the study period
            visit_start_date <= study_end_date) %>%
   rename(subject_id=person_id) %>% # just renaming for consistency with cohort data
   collect()
 
 ## Keep only distinct rows - eliminate all visits in the same day with the same specialist by the same patient
-visits_specialist_day <- visit_data %>% distinct(visit_detail_start_date, subject_id, specialty_source_value) %>% tally()
+visits_specialist_day <- visit_data %>% distinct(visit_start_date, subject_id, specialty_source_value) %>% tally()
 
 visit_data <-visit_data %>% distinct(visit_start_date, subject_id, specialty_concept_id, .keep_all=TRUE)
 
@@ -115,14 +124,14 @@ check_dates <- collect(check_dates)
 
 ## Sub-setting the visit data
 visit_data <- joined_visit_provider_tables %>%
-  select(person_id, provider_id, specialty_source_value, visit_start_date, visit_id) %>%
+  select(person_id, provider_id, specialty_source_value, visit_start_date, visit_occurrence_id, unit_cost) %>%
   filter(visit_start_date >= study_start_date & # include only visits in the study period
            visit_start_date <= study_end_date) %>%
   rename(subject_id=person_id) %>% # just renaming for consistency with cohort data
   collect()
 
 ## Keep only distinct rows - eliminate all visits in the same day with the same specialist by the same patient
-visits_specialist_day <- visit_data %>% distinct(visit_detail_start_date, subject_id, specialty_source_value) %>% tally()
+visits_specialist_day <- visit_data %>% distinct(visit_start_date, subject_id, specialty_source_value) %>% tally()
 
 visit_data <-visit_data %>% distinct(visit_start_date, subject_id, specialty_source_value, .keep_all=TRUE)
 
@@ -148,27 +157,37 @@ check_dates <- collect(check_dates)
 
 ## Sub-setting the visit data
 visit_data <- joined_visit_provider_tables %>%
-  select(person_id, provider_id, specialty_concept_id, visit_start_date, visit_id, visit_concept_id) %>% # in France we also have visit_concept_id 
+  select(person_id, provider_id, specialty_concept_id, visit_start_date, visit_occurrence_id, visit_concept_id, unit_cost) %>% # in France we also have visit_concept_id 
   filter(visit_start_date >= study_start_date & # include only visits in the study period
            visit_start_date <= study_end_date) %>%
   rename(subject_id=person_id) %>% # just renaming for consistency with cohort data
   collect()
 
 ## Keep only distinct rows - eliminate all visits in the same day with the same specialist and of the same type, by the same patient
-visits_specialist_day <- visit_data %>% distinct(visit_detail_start_date, subject_id, specialty_source_value) %>% tally()
+visits_specialist_day <- visit_data %>% distinct(visit_start_date, subject_id, specialty_source_value) %>% tally()
 
 visit_data <-visit_data %>% distinct(visit_start_date, subject_id, specialty_concept_id, visit_concept_id, .keep_all=TRUE)
 
 visit_data <- visit_data %>% 
   rename(specialty = specialty_concept_id) # renaming for consistency with other countries as this variable is used for the HCRU and costs too
 
+
+# Check table
+
+visit_type_by_specialty <- visit_data %>%
+  group_by(specialty, visit_concept_id) %>%
+  summarise(visit_count = n(), .groups = 'drop') %>%
+  pivot_wider(names_from = visit_concept_id, values_from = visit_count, values_fill = list(visit_count = 0))
+
+
+
 ## Filter visit_data by concept_id
 
-visit_data_home <- visit_data %>% filter(visit_concept_id == 581476)
-visit_data_tele <- visit_data %>% filter(visit_concept_id == 5083)
-visit_data_outp <- visit_data %>% filter(visit_concept_id == 9202) ## is this primary care?
-visit_data_inp <- visit_data %>% filter(visit_concept_id == 9201) ## this is not primary care
-visit_data_intcare <- visit_data %>% filter(visit_concept_id == 32037) ## this is not primary care
+# visit_data_home <- visit_data %>% filter(visit_concept_id == 581476)
+# visit_data_tele <- visit_data %>% filter(visit_concept_id == 5083)
+# visit_data_outp <- visit_data %>% filter(visit_concept_id == 9202) ## is this primary care?
+# visit_data_inp  <- visit_data %>% filter(visit_concept_id == 9201) ## this is not primary care
+# visit_data_intcare <- visit_data %>% filter(visit_concept_id == 32037) ## this is not primary care
 
 }
 
@@ -187,14 +206,14 @@ check_dates <- collect(check_dates)
 
 ## Sub-setting the visit data
 visit_data <- joined_visit_provider_tables %>%
-  select(person_id, provider_id, specialty_concept_id, visit_start_date, visit_id, visit_concept_id, visit_source_value) %>% # in France we also have visit_concept_id 
+  select(person_id, provider_id, specialty_concept_id, visit_start_date, visit_occurrence_id, visit_concept_id, visit_source_value, unit_cost) %>% # in France we also have visit_concept_id 
   filter(visit_start_date >= study_start_date & # include only visits in the study period
            visit_start_date <= study_end_date) %>%
   rename(subject_id=person_id) %>% # just renaming for consistency with cohort data
   collect()
 
 ## Keep only distinct rows - eliminate all visits in the same day with the same specialist and of the same type, by the same patient
-visits_specialist_day <- visit_data %>% distinct(visit_detail_start_date, subject_id, specialty_source_value) %>% tally()
+visits_specialist_day <- visit_data %>% distinct(visit_start_date, subject_id, specialty_source_value) %>% tally()
 
 visit_data <-visit_data %>% distinct(visit_start_date, subject_id, specialty_concept_id, visit_concept_id, .keep_all=TRUE)
 
@@ -208,11 +227,19 @@ visit_data <-visit_data %>%
 visit_data <- visit_data %>% 
   rename(specialty = specialty_concept_id) # renaming for consistency with other countries as this variable is used for the HCRU and costs too
 
+# Check table
+
+visit_type_by_specialty <- visit_data %>%
+  group_by(specialty, visit_concept_id) %>%
+  summarise(visit_count = n(), .groups = 'drop') %>%
+  pivot_wider(names_from = visit_concept_id, values_from = visit_count, values_fill = list(visit_count = 0))
+
+
 ## Filter visit_data by concept_id
 
-visit_data_home <- visit_data %>% filter(visit_concept_id == 581476)
-visit_data_outp <- visit_data %>% filter(visit_concept_id == 9202) ## is this primary care?
-visit_data_inp <- visit_data %>% filter(visit_concept_id == 9201) ## this is not primary care
-visit_data_er <- visit_data %>% filter(visit_concept_id == 9203) ## this is not primary care
-visit_data_er_inp <- visit_data %>% filter(visit_concept_id == 262) ## this is not primary care
+# visit_data_home <- visit_data %>% filter(visit_concept_id == 581476)
+# visit_data_outp <- visit_data %>% filter(visit_concept_id == 9202) ## is this primary care?
+# visit_data_inp <- visit_data %>% filter(visit_concept_id == 9201) ## this is not primary care
+# visit_data_er <- visit_data %>% filter(visit_concept_id == 9203) ## this is not primary care
+# visit_data_er_inp <- visit_data %>% filter(visit_concept_id == 262) ## this is not primary care
 }
