@@ -11,7 +11,7 @@ subclasses12_back_up <- subclasses12
 
 for (i in (1:length(subclasses01_back_up))){
   subclasses01_back_up[[i]] <- subclasses01_back_up[[i]] %>% 
-    dplyr::select(subject_id, group)
+    dplyr::select(subject_id, group, index_date)
 }
 
 target_matched <- Reduce(dplyr::union_all, subclasses01_back_up) %>%
@@ -31,7 +31,7 @@ cohort1_matched_to <- Reduce(dplyr::union_all, subclasses01_back_up) %>%
 
 for (i in (1:length(subclasses12_back_up))){
   subclasses12_back_up[[i]] <- subclasses12_back_up[[i]] %>% 
-    dplyr::select(subject_id, group)
+    dplyr::select(subject_id, group, index_date)
 }
 
 #Cohort1 - from

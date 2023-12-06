@@ -171,7 +171,6 @@ for (i in (1:length(targetCohort))){
   subfeatures_01 <- lowerBoundLasso01(subfeatures_01, 50)
   
   features_lasso01 <- subfeatures_01 %>% 
-    dplyr::select(-"index_date") %>%
     dplyr::distinct() %>%
     dplyr::mutate(value = 1) %>%
     pivot_wider(names_from = "feature", values_from =  "value", values_fill = 0)
@@ -183,7 +182,7 @@ for (i in (1:length(targetCohort))){
     dplyr::filter(period == i) %>%
     dplyr::select(-"period") %>%
     dplyr::filter(group %in% c("comparator 1", "target")) %>%
-    dplyr::inner_join(features_lasso01, by = "subject_id")
+    dplyr::inner_join(features_lasso01, by = "subject_id", relationship = "many-to-many")
   
   features_lasso01$prior_observation <- as.double(features_lasso01$prior_observation)
   features_lasso01 <- features_lasso01 %>% 
@@ -204,7 +203,7 @@ for (i in (1:length(targetCohort))){
   features_lasso01 <- features_lasso01 %>%
     dplyr::select(all_of(c("subject_id", "group", selectedLassoFeatures01[[i]])))
   
-  match_results_01[[i]] <- matchit(group ~ . -subject_id, 
+  match_results_01[[i]] <- matchit(group ~ . -subject_id - index_date, 
                                    data=features_lasso01,
                                    antiexact = ~subject_id,
                                    method="nearest", 
@@ -213,6 +212,7 @@ for (i in (1:length(targetCohort))){
                                    ratio=5)
   subclasses01[[i]] <- match.data(match_results_01[[i]])
   summary01[[i]] <- summary(match_results_01[[i]])
+  rm(allSubjectsCohort, features_lasso01)
 }
 
 save(lasso_reg_01, file = here(sub_output_folder, "tempData", "lasso_reg_01.RData"))
@@ -228,6 +228,8 @@ rm(subclasses01)
 save(summary01, file = here(sub_output_folder, "tempData", "summary01.RData"))
 save(summary01, file = here(sub_output_folder, "summary01.RData"))
 rm(summary01)
+rm(coef.lasso_reg)
+gc()
 
 #lasso regression, ps and matching between comp cohort 1 and 2
 lasso_reg_12 <- list()
@@ -248,7 +250,6 @@ for (i in (1:length(compCohort1))){
   subfeatures_12 <- lowerBoundLasso12(subfeatures_12, 50)
   
   features_lasso12 <- subfeatures_12 %>% 
-    dplyr::select(-"index_date") %>%
     dplyr::distinct() %>%
     dplyr::mutate(value = 1) %>%
     pivot_wider(names_from = "feature", values_from =  "value", values_fill = 0)
@@ -260,7 +261,7 @@ for (i in (1:length(compCohort1))){
     dplyr::filter(period == i) %>%
     dplyr::select(-"period") %>%
     dplyr::filter(group %in% c("comparator 2", "comparator 1")) %>%
-    dplyr::inner_join(features_lasso12, by = "subject_id")
+    dplyr::inner_join(features_lasso12, by = "subject_id", relationship = "many-to-many")
   
   features_lasso12$prior_observation <- as.double(features_lasso12$prior_observation)
   features_lasso12 <- features_lasso12 %>% 
@@ -281,7 +282,7 @@ for (i in (1:length(compCohort1))){
   features_lasso12 <- features_lasso12 %>%
     dplyr::select(all_of(c("subject_id", "group", selectedLassoFeatures12[[i]])))
   
-  match_results_12[[i]] <- matchit(group ~ .-subject_id, 
+  match_results_12[[i]] <- matchit(group ~ .-subject_id -index_date, 
                                    data=features_lasso12,
                                    antiexact = ~subject_id,
                                    method="nearest", 
@@ -306,5 +307,4 @@ rm(subclasses12)
 save(summary12, file = here(sub_output_folder, "tempData", "summary12.RData"))
 save(summary12, file = here(sub_output_folder, "summary12.RData"))
 rm(summary12)
-rm(targetCohort, compCohort1, compCohort2, coef.lasso_reg)
 gc()
