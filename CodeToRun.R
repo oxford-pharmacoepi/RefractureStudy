@@ -27,6 +27,7 @@ library(purrr)
 library(MatchIt)
 library(ggsurvfit)
 library(tidycmprsk)
+library(matrixStats)
 
 # database metadata and connection details -----
 # The name/ acronym for the database
@@ -85,6 +86,10 @@ study_end_date <- as.Date("2018-03-31")
 
 # prior obs
 prior_observation <- 730
+
+# Country setting 
+# Has to be one of the following: UK, Germany, France, Italy, Spain and Netherlands
+country_setting <- "..."
 
 # create cdm reference ----
 cdm <- CDMConnector::cdm_from_con(
