@@ -78,6 +78,7 @@ target_total_visits_percentage <- visits_count_wide_temp_2 %>%
 (plot1 <- target_total_visits_percentage %>% 
     # filter(total_visits_per_w > 0) %>% 
     ggplot(aes(x = total_visits_per_w, y = Percent_Subjects)) +
+
     geom_bar(stat = "identity") +
     labs(x = "Total Number of Visits", y = "% of Subjects (entries)",
          title = "Target cohort - visits") +
@@ -87,6 +88,16 @@ target_total_visits_percentage <- visits_count_wide_temp_2 %>%
       axis.title = element_text(hjust = 0.5, size = 10),
       panel.spacing = unit(0.1, "lines")
     ))
+
+  geom_bar(stat = "identity") +
+  labs(x = "Total Number of Visits", y = "% of Subjects (entries)",
+       title = "Target cohort - visits") +
+  hrbrthemes::theme_ipsum() +
+  theme(
+    plot.title = element_text(face = "bold", hjust = 0.5, size = 12),
+    axis.title = element_text(hjust = 0.5, size = 10),
+    panel.spacing = unit(0.1, "lines")
+  ))
 
 # save the plot
 ggsave(here::here("4_Healtheconomics", "Results", "target_distribution_of_visits.PNG"))
@@ -119,7 +130,10 @@ target_specialty_visits <- target_visits_count_wide_to_long %>%
 
 # Top 3 visited specialties: General Medical Practitioner,Community Practitioner, Health Care Support Worker
 target_total_visits_sp <- target_visits_count_wide_to_long %>% 
+
   # filter(specialty %in% c("General Medical Practitioner")) %>% 
+
+ # filter(specialty %in% c("General Medical Practitioner")) %>% 
   group_by(visits) %>% 
   summarise(count_v = n()) %>% 
   mutate(percent_count = count_v/sum(count_v) *100) %>% 
@@ -147,7 +161,10 @@ joined_df <- full_join(target_visits_count_wide_to_long, target_total_visits_sp,
       panel.spacing = unit(0.1, "lines"),
       strip.text.y = element_text(angle = 0)
     ) 
+
 )
+ )
+
 
 # save the plot
 ggsave(here::here("4_Healtheconomics", "Results", "target_distribution_of_visits_top3.PNG"))
@@ -159,5 +176,8 @@ htmlwidgets::saveWidget(plotly::ggplotly(plot2), here::here("4_Healtheconomics",
 
 
 # Cohort1 ----
+
+
+# Cohort2 ----
 
 # Cohort2 ----
