@@ -1,6 +1,6 @@
-# cdm[["condition_occurrence_primary_care"]] <- cdm[["condition_occurrence"]] %>% 
-#   dplyr::filter(condition_type_concept_id == 32827) %>% 
-#   CDMConnector::computeQuery()
+if (!(country_setting %in% c("UK", "Germany", "France", "Italy", "Spain", "Netherlands"))) {
+  stop('country_setting should be one of the following: "UK", "Germany", "France", "Italy", "Spain", "Netherlands"')
+}
 
 for (k in (1:length(washout_period))){
   sub_output_folder <- here(output_folder, washout_period[[k]])
