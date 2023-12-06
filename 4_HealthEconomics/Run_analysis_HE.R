@@ -284,5 +284,8 @@ if (country_setting != "UK") {
 
 if (country_setting == "Netherlands") {
   write_xlsx(combined_frequency_table, "combined_frequency_table.xlsx")
+
+}
+
 }
 
