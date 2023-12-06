@@ -1446,6 +1446,16 @@
       ],
       "Hash": "93cecf1e5f828d0fc1605a00ad48e3a2"
     },
+    "matrixStats": {
+      "Package": "matrixStats",
+      "Version": "1.1.0",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "R"
+      ],
+      "Hash": "68d317093459a3f0852b1dd52d9e1ea6"
+    },
     "memoise": {
       "Package": "memoise",
       "Version": "2.0.1",
