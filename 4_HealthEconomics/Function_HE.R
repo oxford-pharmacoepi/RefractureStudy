@@ -6,27 +6,27 @@ analyse_visits <- function(cohort_combined, visit_data) {
 
 ### Filtering visits based on the cohort_combined
 filtered_visits <- visit_data %>%
-  left_join(cohort_combined, by = "subject_id", relationship = "many-to-many") %>%
-  filter(visit_detail_start_date >= index_date & visit_detail_start_date <= follow_up_end) %>%
-  group_by(subject_id, index_date, specialty) %>% # we group by index date to ensure each visit is associated with an entry
-  summarise(visit_count = n()) %>%
-  ungroup()
+  dplyr::left_join(cohort_combined, by = "subject_id", relationship = "many-to-many") %>%
+  dplyr::filter(visit_detail_start_date >= index_date & visit_detail_start_date <= follow_up_end) %>%
+  dplyr::group_by(subject_id, index_date, specialty) %>% # we group by index date to ensure each visit is associated with an entry
+  dplyr::summarise(visit_count = n()) %>%
+  dplyr::ungroup()
 
 ### Pivot the data
 visits_count_wide <- filtered_visits %>%
   pivot_wider(names_from = specialty, values_from = visit_count, values_fill = NA)
 
 ### Join the wide dataframe back to cohort_combined and count tot num visits
-visits_count_wide <- left_join(cohort_combined, visits_count_wide, by = c("subject_id", "index_date"))
+visits_count_wide <- cohort_combined %>% dplyr::left_join(visits_count_wide, by = c("subject_id", "index_date"))
 #%>%   mutate(total_visits = rowSums(select(., 8:ncol(.)), na.rm = TRUE)) # specialties start from 8th column - remember to change if needed
 
 ### summary for user only (subjects/visit= NA, not counted)
 user_only_summary <- visits_count_wide %>%
-  gather(specialty, visits, 8:(ncol(.))) %>% # Convert wide format to long format, gathering all columns from the 8th onward - change if you change columns or add new
-  mutate(visits_per_year = visits / exposed_yrs) %>%
-  filter(visits > 0) %>%
-  group_by(specialty) %>%
-  summarise(
+  tidyr::gather(specialty, visits, 8:(ncol(.))) %>% # Convert wide format to long format, gathering all columns from the 8th onward - change if you change columns or add new
+  dplyr::mutate(visits_per_year = visits / exposed_yrs) %>%
+  dplyr::filter(visits > 0) %>%
+  dplyr::group_by(specialty) %>%
+  dplyr::summarise(
     tot_visits = sum(visits),
     tot_exposed_yrs = sum(exposed_yrs),
     mean_visits_per_year = round(tot_visits / tot_exposed_yrs, 2), # Manual calculation of mean
@@ -39,11 +39,11 @@ user_only_summary <- visits_count_wide %>%
 
 ### summary for all subjects (subjects/visits = NA, treated as zero)
 all_summary <- visits_count_wide %>%
-  gather(specialty, visits, 8:(ncol(.))) %>% # Convert wide format to long format, gathering all columns from the 8th onward - change if you change columns or add new
-  complete(subject_id, specialty, fill = list(visits = 0)) %>% # filling missing visits with 0
-  mutate(visits_per_year = visits / exposed_yrs) %>%
-  group_by(specialty) %>%
-  summarise(
+  tidyr::gather(specialty, visits, 8:(ncol(.))) %>% # Convert wide format to long format, gathering all columns from the 8th onward - change if you change columns or add new
+  tidyr::complete(subject_id, specialty, fill = list(visits = 0)) %>% # filling missing visits with 0
+  dplyr::mutate(visits_per_year = visits / exposed_yrs) %>%
+  dplyr::group_by(specialty) %>%
+  dplyr::summarise(
     tot_visits = sum(visits),
     tot_exposed_yrs = sum(exposed_yrs),
     mean_visits_per_year = round(tot_visits / tot_exposed_yrs, 2), # Manual calculation of mean
@@ -55,8 +55,8 @@ all_summary <- visits_count_wide %>%
 
 # Calculating non-service users
 non_service_users <- visits_count_wide %>%
-  filter(rowSums(is.na(select(., 8:ncol(.)))) == (ncol(.) - 7)) %>%
-  summarise (non_service_users = n_distinct(subject_id))
+  dplyr::filter(rowSums(is.na(select(., 8:ncol(.)))) == (ncol(.) - 7)) %>%
+  dplyr::summarise (non_service_users = n_distinct(subject_id))
 
 return(list(user_only_summary = user_only_summary, all_summary = all_summary, non_service_users=non_service_users))
 }
@@ -68,32 +68,33 @@ analyse_visits_cost <- function(cohort_combined, visit_data) {
   
  ### Filtering visits based on the cohort_combined
   filtered_visits <- visit_data %>%
-    left_join(cohort_combined, by = "subject_id", relationship = "many-to-many") %>%
-    filter(visit_detail_start_date >= index_date & visit_detail_start_date <= follow_up_end) %>%
-    group_by(subject_id, index_date, specialty, unit_cost) %>% # we group by index date to ensure each visit is associated with an entry
-    summarise(visit_count = n()) %>%
-    ungroup()
+    dplyr::left_join(cohort_combined, by = "subject_id", relationship = "many-to-many") %>%
+    dplyr::filter(visit_detail_start_date >= index_date & visit_detail_start_date <= follow_up_end) %>%
+    dplyr::group_by(subject_id, index_date, specialty, unit_cost) %>% # we group by index date to ensure each visit is associated with an entry
+    dplyr::summarise(visit_count = n()) %>%
+    dplyr::ungroup()
   
   ### Compute costs visits
   filtered_visits <- filtered_visits %>%  
-    mutate (visit_cost = visit_count * unit_cost) %>% 
-    select (-unit_cost, -visit_count)
+    dplyr::mutate (visit_cost = visit_count * unit_cost) %>% 
+    dplyr::select (-unit_cost, -visit_count)
   
   ### Pivot the data
   visits_cost_wide <- filtered_visits %>%
     pivot_wider(names_from = specialty, values_from = visit_cost, values_fill = NA)
   
   ### Join the wide dataframe back to cohort_combined and count tot num visits
-  visits_cost_wide <- left_join(cohort_combined, visits_cost_wide, by = c("subject_id", "index_date"))
+  visits_cost_wide <- cohort_combined %>% 
+    dplyr::left_join(visits_cost_wide, by = c("subject_id", "index_date"))
 
   ### summary for user only (subjects/visit= NA, not counted)
   
   user_only_cost_summary <- visits_cost_wide %>%
-    gather(specialty, visits_costs, 8:(ncol(.))) %>% 
-    mutate(visits_costs_per_year = visits_costs / exposed_yrs) %>%
-    filter(visits_costs > 0) %>%
-    group_by(specialty) %>%
-    summarise(
+    tidyr::gather(specialty, visits_costs, 8:(ncol(.))) %>% 
+    dplyr::mutate(visits_costs_per_year = visits_costs / exposed_yrs) %>%
+    dplyr::filter(visits_costs > 0) %>%
+    dplyr::group_by(specialty) %>%
+    dplyr::summarise(
       tot_visits_costs = sum(visits_costs),
       tot_exposed_yrs = sum(exposed_yrs),
       mean_cost_visits_per_year = round(tot_visits_costs / tot_exposed_yrs, 2), # Manual calculation of mean
@@ -106,11 +107,11 @@ analyse_visits_cost <- function(cohort_combined, visit_data) {
   
   ### summary for all subjects (subjects/visits = NA, treated as zero)
   all_cost_summary <-  visits_cost_wide %>%
-    gather(specialty, visits_costs, 8:(ncol(.))) %>%  # Convert wide format to long format, gathering all columns from the 8th onward - change if you change columns or add new
-    complete(subject_id, specialty, fill = list(visits_costs = 0)) %>% # filling missing visits with 0
-    mutate(visits_costs_per_year = visits_costs / exposed_yrs) %>%
-    group_by(specialty) %>%
-    summarise(
+    tidyr::gather(specialty, visits_costs, 8:(ncol(.))) %>%  # Convert wide format to long format, gathering all columns from the 8th onward - change if you change columns or add new
+    tidyr::complete(subject_id, specialty, fill = list(visits_costs = 0)) %>% # filling missing visits with 0
+    dplyr::mutate(visits_costs_per_year = visits_costs / exposed_yrs) %>%
+    dplyr::group_by(specialty) %>%
+    dplyr::summarise(
       tot_visits_costs = sum(visits_costs),
       tot_exposed_yrs = sum(exposed_yrs),
       mean_cost_visits_per_year = round(tot_visits_costs / tot_exposed_yrs, 2), # Manual calculation of mean
@@ -128,8 +129,8 @@ analyse_visits_cost <- function(cohort_combined, visit_data) {
 
 cohort_summary <- function(data, cohort_name, non_service_users) {
   entries_per_woman <- data %>% 
-    group_by(subject_id) %>% 
-    summarise(entries_per_woman = n(), .groups = "drop") # Drop groups after summarising) 
+    dplyr::group_by(subject_id) %>% 
+    dplyr::summarise(entries_per_woman = n(), .groups = "drop") # Drop groups after summarising) 
   
   summary <- tibble(
     cohort = cohort_name,
