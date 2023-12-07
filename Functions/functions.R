@@ -549,7 +549,7 @@ analyse_visits_cost <- function(cohort_combined, visit_data) {
     CDMConnector::computeQuery()
   
   ### summary for user only (subjects/visit= NA, not counted)
-  
+  not_in <- colnames(visits_cost_wide)[(colnames(visits_cost_wide)%in% specialty_names)]
   user_only_cost_summary <- visits_cost_wide %>%
     pivot_longer(all_of(not_in), names_to = "specialty", values_to = "visits_costs") %>% 
     dplyr::mutate(visits_costs_per_year = visits_costs / exposed_yrs) %>%
