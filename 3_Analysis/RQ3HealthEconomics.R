@@ -109,24 +109,26 @@ summary_cohort_comp2 <- bind_rows(cohort1_comp2_summary, cohort2_summary)
 # Write the list of data frames to an Excel file, each list should appear on a separate sheet
 
 #HCRU
-write.xlsx(target_results, "target_results.xlsx")
-write.xlsx(cohort1_comp1_results, "cohort1_comp1_results.xlsx")
-write.xlsx(cohort1_comp2_results, "cohort1_comp2_results.xlsx")
-write.xlsx(cohort2_results, "cohort2_results.xlsx")
+write.xlsx(target_results, file = here(sub_output_folder, "target_results.xlsx"))
+write.xlsx(target_results, file = here(sub_output_folder, "cohort1_comp1_results.xlsx"))
+write.xlsx(target_results, file = here(sub_output_folder, "cohort1_comp2_results.xlsx"))
+write.xlsx(target_results, file = here(sub_output_folder, "cohort2_results.xlsx"))
+
 #Cost
-write.xlsx(target_results_cost, "target_results_cost.xlsx")
-write.xlsx(cohort1_comp1_results_cost, "cohort1_comp1_results_cost.xlsx")
-write.xlsx(cohort1_comp2_results_cost, "cohort1_comp2_results_cost.xlsx")
-write.xlsx(cohort2_results_cost, "cohort2_results_cost.xlsx")
+write.xlsx(target_results_cost, file = here(sub_output_folder, "target_results_cost.xlsx"))
+write.xlsx(target_results_cost, file = here(sub_output_folder, "cohort1_comp1_results_cost.xlsx"))
+write.xlsx(target_results_cost, file = here(sub_output_folder, "cohort1_comp2_results_cost.xlsx"))
+write.xlsx(target_results_cost, file = here(sub_output_folder, "cohort2_results_cost.xlsx"))
+
 #summary
-write.xlsx(summary_cohort_comp1, "summary_cohort_comp1.xlsx")
-write.xlsx(summary_cohort_comp2, "summary_cohort_comp2.xlsx")
+write.xlsx(summary_cohort_comp1, file = here(sub_output_folder, "summary_cohort_comp1.xlsx"))
+write.xlsx(summary_cohort_comp2, file = here(sub_output_folder, "summary_cohort_comp2.xlsx"))
 #Other
 if (country_setting != "UK") {
-  write.xlsx(check_dates, "check_dates.xlsx")
-  write.xlsx(visit_type_by_specialty, "visit_type_by_specialty.xlsx")
+  write.xlsx(check_dates, file = here(sub_output_folder, "check_dates.xlsx"))
+  write.xlsx(visit_type_by_specialty, file = here(sub_output_folder, "visit_type_by_specialty.xlsx"))
 }
 
 if (country_setting == "Netherlands") {
-  write.xlsx(combined_frequency_table, "combined_frequency_table.xlsx")
+  write.xlsx(combined_frequency_table, file = here(sub_output_folder, "combined_frequency_table.xlsx"))
 }
