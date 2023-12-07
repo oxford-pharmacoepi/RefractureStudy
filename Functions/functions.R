@@ -456,20 +456,25 @@ analyse_visits <- function(cohort_combined, visit_data) {
     dplyr::left_join(cohort_combined, by = "subject_id", relationship = "many-to-many", copy = T) %>%
     dplyr::filter(visit_detail_start_date >= index_date & visit_detail_start_date <= follow_up_end) %>%
     dplyr::group_by(subject_id, index_date, specialty) %>% # we group by index date to ensure each visit is associated with an entry
-    dplyr::summarise(visit_count = n()) %>%
-    dplyr::ungroup()
+    dplyr::summarise(visit_count = n(), .groups = "drop") %>%
+    dplyr::ungroup() %>% 
+    CDMConnector::computeQuery()
   
   ### Pivot the data
   visits_count_wide <- filtered_visits %>%
-    pivot_wider(names_from = specialty, values_from = visit_count, values_fill = NA)
+    pivot_wider(names_from = specialty, values_from = visit_count, values_fill = NA) %>% 
+    CDMConnector::computeQuery()
   
   ### Join the wide dataframe back to cohort_combined and count tot num visits
-  visits_count_wide <- cohort_combined %>% dplyr::left_join(visits_count_wide, by = c("subject_id", "index_date"))
+  visits_count_wide <- cohort_combined %>% 
+    dplyr::left_join(visits_count_wide, by = c("subject_id", "index_date"), copy = T) %>% 
+    CDMConnector::computeQuery()
   #%>%   mutate(total_visits = rowSums(select(., 8:ncol(.)), na.rm = TRUE)) # specialties start from 8th column - remember to change if needed
   
   ### summary for user only (subjects/visit= NA, not counted)
+  not_in <- colnames(visits_count_wide)[(colnames(visits_count_wide)%in% specialty_names)]
   user_only_summary <- visits_count_wide %>%
-    tidyr::gather(specialty, visits, 8:(ncol(.))) %>% # Convert wide format to long format, gathering all columns from the 8th onward - change if you change columns or add new
+    pivot_longer(all_of(not_in), names_to = "specialty", values_to = "visits") %>% 
     dplyr::mutate(visits_per_year = visits / exposed_yrs) %>%
     dplyr::filter(visits > 0) %>%
     dplyr::group_by(specialty) %>%
@@ -480,13 +485,16 @@ analyse_visits <- function(cohort_combined, visit_data) {
       sd_visits_per_year = round(sd(visits_per_year, na.rm = TRUE), 2),
       min_visits_per_year = round(min(visits_per_year, na.rm = TRUE), 2),
       max_visits_per_year = round(max(visits_per_year, na.rm = TRUE), 2),
-      num_subjects_visited = n_distinct(subject_id)
-    )
+      num_subjects_visited = n_distinct(subject_id),
+      .groups = "drop"
+    ) %>% 
+    dplyr::ungroup() %>% 
+    CDMConnector::computeQuery()
   
   
   ### summary for all subjects (subjects/visits = NA, treated as zero)
   all_summary <- visits_count_wide %>%
-    tidyr::gather(specialty, visits, 8:(ncol(.))) %>% # Convert wide format to long format, gathering all columns from the 8th onward - change if you change columns or add new
+    pivot_longer(all_of(not_in), names_to = "specialty", values_to = "visits") %>% 
     tidyr::complete(subject_id, specialty, fill = list(visits = 0)) %>% # filling missing visits with 0
     dplyr::mutate(visits_per_year = visits / exposed_yrs) %>%
     dplyr::group_by(specialty) %>%
@@ -498,16 +506,18 @@ analyse_visits <- function(cohort_combined, visit_data) {
       min_visits_per_year = round(min(visits_per_year, na.rm = TRUE), 2),
       max_visits_per_year = round(max(visits_per_year, na.rm = TRUE), 2),
       num_subjects_visited = n_distinct(subject_id)
-    )
+    ) %>% 
+    dplyr::ungroup() %>% 
+    CDMConnector::computeQuery()
   
   # Calculating non-service users
   non_service_users <- visits_count_wide %>%
     dplyr::filter(rowSums(is.na(select(., 8:ncol(.)))) == (ncol(.) - 7)) %>%
-    dplyr::summarise (non_service_users = n_distinct(subject_id))
+    dplyr::summarise (non_service_users = n_distinct(subject_id)) %>% 
+    CDMConnector::computeQuery()
   
   return(list(user_only_summary = user_only_summary, all_summary = all_summary, non_service_users=non_service_users))
 }
-
 
 # Estimate costs primary care visits 
 
@@ -515,29 +525,33 @@ analyse_visits_cost <- function(cohort_combined, visit_data) {
   
   ### Filtering visits based on the cohort_combined
   filtered_visits <- visit_data %>%
-    dplyr::left_join(cohort_combined, by = "subject_id", relationship = "many-to-many") %>%
+    dplyr::left_join(cohort_combined, by = "subject_id", relationship = "many-to-many", copy = T) %>%
     dplyr::filter(visit_detail_start_date >= index_date & visit_detail_start_date <= follow_up_end) %>%
     dplyr::group_by(subject_id, index_date, specialty, unit_cost) %>% # we group by index date to ensure each visit is associated with an entry
-    dplyr::summarise(visit_count = n()) %>%
-    dplyr::ungroup()
+    dplyr::summarise(visit_count = n(), .groups = "drop") %>%
+    dplyr::ungroup() %>% 
+    CDMConnector::computeQuery()
   
   ### Compute costs visits
   filtered_visits <- filtered_visits %>%  
     dplyr::mutate (visit_cost = visit_count * unit_cost) %>% 
-    dplyr::select (-unit_cost, -visit_count)
+    dplyr::select (-unit_cost, -visit_count) %>% 
+    CDMConnector::computeQuery()
   
   ### Pivot the data
   visits_cost_wide <- filtered_visits %>%
-    pivot_wider(names_from = specialty, values_from = visit_cost, values_fill = NA)
+    pivot_wider(names_from = specialty, values_from = visit_cost, values_fill = NA) %>% 
+    CDMConnector::computeQuery()
   
   ### Join the wide dataframe back to cohort_combined and count tot num visits
   visits_cost_wide <- cohort_combined %>% 
-    dplyr::left_join(visits_cost_wide, by = c("subject_id", "index_date"))
+    dplyr::left_join(visits_cost_wide, by = c("subject_id", "index_date"), copy = T) %>% 
+    CDMConnector::computeQuery()
   
   ### summary for user only (subjects/visit= NA, not counted)
   
   user_only_cost_summary <- visits_cost_wide %>%
-    tidyr::gather(specialty, visits_costs, 8:(ncol(.))) %>% 
+    pivot_longer(all_of(not_in), names_to = "specialty", values_to = "visits_costs") %>% 
     dplyr::mutate(visits_costs_per_year = visits_costs / exposed_yrs) %>%
     dplyr::filter(visits_costs > 0) %>%
     dplyr::group_by(specialty) %>%
@@ -548,14 +562,16 @@ analyse_visits_cost <- function(cohort_combined, visit_data) {
       sd_cost_visits_per_year = round(sd(visits_costs_per_year, na.rm = TRUE), 2),
       min_cost_visits_per_year = round(min(visits_costs_per_year, na.rm = TRUE), 2),
       max_cost_visits_per_year = round(max(visits_costs_per_year, na.rm = TRUE), 2),
-      num_subjects_visited = n_distinct(subject_id)
-    )
+      num_subjects_visited = n_distinct(subject_id),
+      .groups = "drop"
+    ) %>% 
+    dplyr::ungroup() %>% 
+    CDMConnector::computeQuery()
   
   
   ### summary for all subjects (subjects/visits = NA, treated as zero)
   all_cost_summary <-  visits_cost_wide %>%
-    tidyr::gather(specialty, visits_costs, 8:(ncol(.))) %>%  # Convert wide format to long format, gathering all columns from the 8th onward - change if you change columns or add new
-    tidyr::complete(subject_id, specialty, fill = list(visits_costs = 0)) %>% # filling missing visits with 0
+    pivot_longer(all_of(not_in), names_to = "specialty", values_to = "visits_costs") %>% 
     dplyr::mutate(visits_costs_per_year = visits_costs / exposed_yrs) %>%
     dplyr::group_by(specialty) %>%
     dplyr::summarise(
@@ -565,8 +581,11 @@ analyse_visits_cost <- function(cohort_combined, visit_data) {
       sd_cost_visits_per_year = round(sd(visits_costs_per_year, na.rm = TRUE), 2),
       min_cost_visits_per_year = round(min(visits_costs_per_year, na.rm = TRUE), 2),
       max_cost_visits_per_year = round(max(visits_costs_per_year, na.rm = TRUE), 2),
-      num_subjects_visited = n_distinct(subject_id)
-    )  
+      num_subjects_visited = n_distinct(subject_id),
+      .groups = "drop"
+    )  %>% 
+    dplyr::ungroup() %>% 
+    CDMConnector::computeQuery()
   
   return(list(user_only_cost_summary = user_only_cost_summary, all_cost_summary = all_cost_summary))
 }
