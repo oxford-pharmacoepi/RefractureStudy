@@ -137,7 +137,7 @@ immFracture <- function (fractureTable){
 # finding the common columns of target cohort and comp cohort 1 where each has at least lower_bound of covariates 
 lowerBoundLasso01 <- function(subfeatures_01, lower_bound){
   subfeatures_01_0 <- subfeatures_01 %>% 
-    dplyr::inner_join(targetCohort[[i]] %>% dplyr::select(subject_id, index_date), by = c("subject_id", "index_date")) %>%
+    dplyr::inner_join(targetCohort[[l]] %>% dplyr::select(subject_id, index_date), by = c("subject_id", "index_date")) %>%
     dplyr::distinct() %>%
     dplyr::group_by(feature) %>%
     dplyr::tally() %>% 
@@ -145,7 +145,7 @@ lowerBoundLasso01 <- function(subfeatures_01, lower_bound){
     dplyr::pull(feature)
   
   subfeatures_01_1 <- subfeatures_01 %>%
-    dplyr::inner_join(compCohort1[[i]] %>% dplyr::select(subject_id, index_date), by = c("subject_id", "index_date")) %>%
+    dplyr::inner_join(compCohort1[[l]] %>% dplyr::select(subject_id, index_date), by = c("subject_id", "index_date")) %>%
     dplyr::distinct() %>%
     dplyr::group_by(feature) %>%
     dplyr::tally() %>% dplyr::filter(n>=lower_bound) %>% 
@@ -161,14 +161,14 @@ lowerBoundLasso01 <- function(subfeatures_01, lower_bound){
 # finding the common columns of target cohort and comp cohort 1 where each has at least lower_bound of covariates 
 lowerBoundLasso12 <- function(subfeatures_12, lower_bound){
   subfeatures_12_1 <- subfeatures_12 %>% 
-    dplyr::inner_join(compCohort1[[i]] %>% dplyr::select(subject_id, index_date), by = c("subject_id", "index_date")) %>%
+    dplyr::inner_join(compCohort1[[l]] %>% dplyr::select(subject_id, index_date), by = c("subject_id", "index_date")) %>%
     dplyr::distinct() %>%
     dplyr::group_by(feature) %>%
     dplyr::tally() %>% dplyr::filter(n>=lower_bound) %>% 
     dplyr::pull(feature)
   
   subfeatures_12_2 <- subfeatures_12 %>%
-    dplyr::inner_join(compCohort2[[i]] %>% dplyr::select(subject_id, index_date), by = c("subject_id", "index_date")) %>%
+    dplyr::inner_join(compCohort2[[l]] %>% dplyr::select(subject_id, index_date), by = c("subject_id", "index_date")) %>%
     dplyr::distinct() %>%
     dplyr::group_by(feature) %>%
     dplyr::tally() %>% 
@@ -453,7 +453,7 @@ analyse_visits <- function(cohort_combined, visit_data) {
   
   ### Filtering visits based on the cohort_combined
   filtered_visits <- visit_data %>%
-    dplyr::left_join(cohort_combined, by = "subject_id", relationship = "many-to-many") %>%
+    dplyr::left_join(cohort_combined, by = "subject_id", relationship = "many-to-many", copy = T) %>%
     dplyr::filter(visit_detail_start_date >= index_date & visit_detail_start_date <= follow_up_end) %>%
     dplyr::group_by(subject_id, index_date, specialty) %>% # we group by index date to ensure each visit is associated with an entry
     dplyr::summarise(visit_count = n()) %>%

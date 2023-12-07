@@ -26,6 +26,9 @@ for (i in (1:length(targetCohort))){
   compCohort1[[i]] <- compCohort1[[i]] %>% dplyr::mutate(group = "comparator 1", period = i)
   compCohort2[[i]] <- compCohort2[[i]] %>% dplyr::mutate(group = "comparator 2", period = i)
 }
+save(targetCohort, file = here(sub_output_folder, "tempData", "targetCohort.RData"))
+save(compCohort1, file = here(sub_output_folder, "tempData", "compCohort1.RData"))
+save(compCohort2, file = here(sub_output_folder, "tempData", "compCohort2.RData"))
 
 for (i in (1:length(targetCohort))){
   allSubjects <- rbind(allSubjects,
@@ -33,6 +36,8 @@ for (i in (1:length(targetCohort))){
                        compCohort1[[i]] %>% dplyr::select(subject_id, index_date, group, period) %>% dplyr::distinct(),
                        compCohort2[[i]] %>% dplyr::select(subject_id, index_date, group, period) %>% dplyr::distinct())
 }
+
+rm(targetCohort, compCohort1, compCohort2)
 
 cdm[["condition_occurrence_2"]] <- cdm[["condition_occurrence"]] %>% 
   dplyr::filter(!(condition_concept_id %in% any_fracture_id)) %>% 
@@ -159,13 +164,16 @@ selectedLassoFeatures01 <- list()
 match_results_01 <- list()
 subclasses01 <- list()
 summary01 <- list()
+load(here(sub_output_folder, "tempData", "targetCohort.RData"))
+load(here(sub_output_folder, "tempData", "compCohort1.RData"))
+load(here(sub_output_folder, "tempData", "compCohort2.RData"))
 
-for (i in (1:length(targetCohort))){
+for (l in (1:length(targetCohort))){
   set.seed(12345)
   load(here(sub_output_folder, "tempData", "subfeatures.RData"))
   subfeatures_01 <- subfeatures %>% 
-    dplyr::inner_join(rbind(targetCohort[[i]] %>% dplyr::select(subject_id, index_date), 
-                     compCohort1[[i]] %>% dplyr::select(subject_id, index_date)),
+    dplyr::inner_join(rbind(targetCohort[[l]] %>% dplyr::select(subject_id, index_date), 
+                     compCohort1[[l]] %>% dplyr::select(subject_id, index_date)),
                by = c("subject_id", "index_date"))
   rm(subfeatures)
   
@@ -180,7 +188,7 @@ for (i in (1:length(targetCohort))){
   load(here(sub_output_folder, "tempData", "allSubjectsCohort.RData"))
   
   features_lasso01 <- allSubjectsCohort %>% dplyr::select(-c("cohort_definition_id", "cohort_end_date", "cohort_start_date")) %>%
-    dplyr::filter(period == i) %>%
+    dplyr::filter(period == l) %>%
     dplyr::select(-"period") %>%
     dplyr::filter(group %in% c("comparator 1", "target")) %>%
     dplyr::inner_join(features_lasso01, by = "subject_id", relationship = "many-to-many")
@@ -193,26 +201,26 @@ for (i in (1:length(targetCohort))){
   y <- features_lasso01$group
   y<-as.integer(y)
   lambdas <- 10^seq(2, -3, by = -.1)
-  lasso_reg_01[[i]] <- cv.glmnet(x, y, lambda = lambdas, standardize = TRUE, nfolds = 5, family = "binomial", alpha = 1)
+  lasso_reg_01[[l]] <- cv.glmnet(x, y, lambda = lambdas, standardize = TRUE, nfolds = 5, family = "binomial", alpha = 1)
   rm(x,y)
   
-  coef.lasso_reg <- coef(lasso_reg_01[[i]], s = lasso_reg_01[[i]]$lambda.1se)
-  selectedLassoFeatures01[[i]] <- names(coef.lasso_reg[(coef.lasso_reg[,1]!=0),1])
-  selectedLassoFeatures01[[i]] <- selectedLassoFeatures01[[i]][selectedLassoFeatures01[[i]] != "(Intercept)"]
-  selectedLassoFeatures01[[i]] <- c("age", selectedLassoFeatures01[[i]]) %>% unique()
+  coef.lasso_reg <- coef(lasso_reg_01[[l]], s = lasso_reg_01[[l]]$lambda.1se)
+  selectedLassoFeatures01[[l]] <- names(coef.lasso_reg[(coef.lasso_reg[,1]!=0),1])
+  selectedLassoFeatures01[[l]] <- selectedLassoFeatures01[[l]][selectedLassoFeatures01[[l]] != "(Intercept)"]
+  selectedLassoFeatures01[[l]] <- c("age", selectedLassoFeatures01[[l]]) %>% unique()
   
   features_lasso01 <- features_lasso01 %>%
-    dplyr::select(all_of(c("subject_id", "group", selectedLassoFeatures01[[i]])))
+    dplyr::select(all_of(c("subject_id", "group", selectedLassoFeatures01[[l]])))
   
-  match_results_01[[i]] <- matchit(group ~ . -subject_id - index_date, 
+  match_results_01[[l]] <- matchit(group ~ . -subject_id -index_date, 
                                    data=features_lasso01,
                                    antiexact = ~subject_id,
                                    method="nearest", 
                                    caliper= c(0.20, age = 5), 
                                    std.caliper = c(TRUE, FALSE),
                                    ratio=5)
-  subclasses01[[i]] <- match.data(match_results_01[[i]])
-  summary01[[i]] <- summary(match_results_01[[i]])
+  subclasses01[[l]] <- match.data(match_results_01[[l]])
+  summary01[[l]] <- summary(match_results_01[[l]])
   rm(allSubjectsCohort, features_lasso01)
 }
 
@@ -239,12 +247,12 @@ match_results_12 <- list()
 subclasses12 <- list()
 summary12 <- list()
 
-for (i in (1:length(compCohort1))){
+for (l in (1:length(compCohort1))){
   set.seed(12345)
   load(here(sub_output_folder, "tempData", "subfeatures.RData"))
   subfeatures_12 <- subfeatures %>% 
-    dplyr::inner_join(rbind(compCohort1[[i]] %>% dplyr::select(subject_id, index_date), 
-                     compCohort2[[i]] %>% dplyr::select(subject_id, index_date)),
+    dplyr::inner_join(rbind(compCohort1[[l]] %>% dplyr::select(subject_id, index_date), 
+                     compCohort2[[l]] %>% dplyr::select(subject_id, index_date)),
                by = c("subject_id", "index_date"))
   rm(subfeatures)
   
@@ -259,7 +267,7 @@ for (i in (1:length(compCohort1))){
   load(here(sub_output_folder, "tempData", "allSubjectsCohort.RData"))
   
   features_lasso12 <- allSubjectsCohort %>% dplyr::select(-c("cohort_definition_id", "cohort_end_date", "cohort_start_date")) %>%
-    dplyr::filter(period == i) %>%
+    dplyr::filter(period == l) %>%
     dplyr::select(-"period") %>%
     dplyr::filter(group %in% c("comparator 2", "comparator 1")) %>%
     dplyr::inner_join(features_lasso12, by = "subject_id", relationship = "many-to-many")
@@ -272,26 +280,26 @@ for (i in (1:length(compCohort1))){
   y <- features_lasso12$group
   y<-as.integer(y)
   lambdas <- 10^seq(2, -3, by = -.1)
-  lasso_reg_12[[i]] <- cv.glmnet(x, y, lambda = lambdas, standardize = TRUE, nfolds = 5, family = "binomial", alpha = 1)
+  lasso_reg_12[[l]] <- cv.glmnet(x, y, lambda = lambdas, standardize = TRUE, nfolds = 5, family = "binomial", alpha = 1)
   rm(x,y)
   
-  coef.lasso_reg <- coef(lasso_reg_12[[i]], s = lasso_reg_12[[i]]$lambda.1se)
-  selectedLassoFeatures12[[i]] <- names(coef.lasso_reg[(coef.lasso_reg[,1]!=0),1])
-  selectedLassoFeatures12[[i]] <- selectedLassoFeatures12[[i]][selectedLassoFeatures12[[i]] != "(Intercept)"]
-  selectedLassoFeatures12[[i]] <- c("age", selectedLassoFeatures12[[i]]) %>% unique()
+  coef.lasso_reg <- coef(lasso_reg_12[[l]], s = lasso_reg_12[[l]]$lambda.1se)
+  selectedLassoFeatures12[[l]] <- names(coef.lasso_reg[(coef.lasso_reg[,1]!=0),1])
+  selectedLassoFeatures12[[l]] <- selectedLassoFeatures12[[l]][selectedLassoFeatures12[[l]] != "(Intercept)"]
+  selectedLassoFeatures12[[l]] <- c("age", selectedLassoFeatures12[[l]]) %>% unique()
   
   features_lasso12 <- features_lasso12 %>%
-    dplyr::select(all_of(c("subject_id", "group", selectedLassoFeatures12[[i]])))
+    dplyr::select(all_of(c("subject_id", "group", selectedLassoFeatures12[[l]])))
   
-  match_results_12[[i]] <- matchit(group ~ .-subject_id -index_date, 
+  match_results_12[[l]] <- matchit(group ~ .-subject_id -index_date, 
                                    data=features_lasso12,
                                    antiexact = ~subject_id,
                                    method="nearest", 
                                    caliper= c(0.20, age = 5), 
                                    std.caliper = c(TRUE, FALSE),
                                    ratio=5)
-  subclasses12[[i]] <- match.data(match_results_12[[i]])
-  summary12[[i]] <- summary(match_results_12[[i]])
+  subclasses12[[l]] <- match.data(match_results_12[[l]])
+  summary12[[l]] <- summary(match_results_12[[l]])
   rm(allSubjectsCohort, features_lasso12)
 }
 
