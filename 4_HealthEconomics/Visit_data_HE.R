@@ -89,7 +89,7 @@ if (country_setting == "France") {
   
 ## Join visit_occurrence and provider tables - visit_detail is empty for IQVIA
 joined_visit_provider_tables <- cdm$visit_occurrence %>% 
-  dplyr::inner_join(cdm$provider))
+  dplyr::inner_join(cdm$provider)
 
 ## check that visit_start_date and visit_end_date are the same
 check_dates <- joined_visit_provider_tables %>%
