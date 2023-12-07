@@ -35,7 +35,8 @@ for (i in (1:length(targetCohort))){
 }
 
 cdm[["condition_occurrence_2"]] <- cdm[["condition_occurrence"]] %>% 
-  dplyr::filter(!(condition_concept_id %in% any_fracture_id)) %>% CDMConnector::computeQuery()
+  dplyr::filter(!(condition_concept_id %in% any_fracture_id)) %>% 
+  CDMConnector::computeQuery()
 
 features <- cdm$condition_occurrence_2 %>%
   dplyr::inner_join(allSubjects, by = c("person_id" = "subject_id"), copy = T) %>%
@@ -116,7 +117,7 @@ features_count_threshold <- features_count %>%
 
 subfeatures <- features %>% dplyr::anti_join(features_count_threshold, by = "feature")
 
-save(features, file = here(sub_output_folder, "tempData", "features.RData"))
+# save(features, file = here(sub_output_folder, "tempData", "features.RData"))
 save(subfeatures, file = here(sub_output_folder, "tempData", "subfeatures.RData"))
 rm(features)
 rm(subfeatures)
