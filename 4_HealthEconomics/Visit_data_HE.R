@@ -5,7 +5,7 @@ if (country_setting == "UK") {
   
   # Join visit_detail and provider tables
   joined_visit_provider_tables <- cdm$visit_detail %>% 
-    dplyr::inner_join(cdm$provider, by = c("provider_id", "care_site_id")) 
+    dplyr::inner_join(cdm$provider) 
   
   ## Sub-setting the visit data
   cdm[["visit_data"]] <- joined_visit_provider_tables %>%
@@ -45,7 +45,7 @@ if (country_setting == "France") {
   
   ## Join visit_occurrence and provider tables - visit_detail is empty for IQVIA
   joined_visit_provider_tables <- cdm$visit_occurrence %>% 
-    dplyr::inner_join(cdm$provider, by = c("provider_id", "care_site_id"))
+    dplyr::inner_join(cdm$provider)
   
   ## check that visit_start_date and visit_end_date are the same
   check_dates <- joined_visit_provider_tables %>%
@@ -89,7 +89,7 @@ if (country_setting == "France") {
   
 ## Join visit_occurrence and provider tables - visit_detail is empty for IQVIA
 joined_visit_provider_tables <- cdm$visit_occurrence %>% 
-  dplyr::inner_join(cdm$provider, by = c("provider_id", "care_site_id"))
+  dplyr::inner_join(cdm$provider))
 
 ## check that visit_start_date and visit_end_date are the same
 check_dates <- joined_visit_provider_tables %>%
@@ -137,7 +137,7 @@ if (country_setting == "Germany") {
   
   ## Join visit_occurrence and provider tables - visit_detail is empty for IQVIA
   joined_visit_provider_tables <- cdm$visit_occurrence %>% 
-    dplyr::inner_join(cdm$provider, by = c("provider_id", "care_site_id"))
+    dplyr::inner_join(cdm$provider)
   
   ## check that visit_start_date and visit_end_date are the same
   check_dates <- joined_visit_provider_tables %>%
@@ -166,7 +166,7 @@ if (country_setting == "Germany") {
   
 ## Join visit_occurrence and provider tables - visit_detail is empty for IQVIA
 joined_visit_provider_tables <- cdm$visit_occurrence %>% 
-  dplyr::inner_join(cdm$provider, by = c("provider_id", "care_site_id"))
+  dplyr::inner_join(cdm$provider)
 
 ## check that visit_start_date and visit_end_date are the same
 check_dates <- joined_visit_provider_tables %>%
@@ -199,7 +199,7 @@ if (country_setting == "Italy") {
   
   ## Join visit_occurrence and provider tables - visit_detail is empty for IQVIA
   joined_visit_provider_tables <- cdm$visit_occurrence %>% 
-    dplyr::inner_join(cdm$provider, by = c("provider_id", "care_site_id"))
+    dplyr::inner_join(cdm$provider)
   
   ## check that visit_start_date and visit_end_date are the same
   check_dates <- joined_visit_provider_tables %>%
@@ -233,7 +233,7 @@ if (country_setting == "Spain") {
   
   ## Join visit_occurrence and provider tables - visit_detail is empty for IQVIA
   joined_visit_provider_tables <- cdm$visit_occurrence %>% 
-    dplyr::inner_join(cdm$provider, by = c("provider_id", "care_site_id"))
+    dplyr::inner_join(cdm$provider)
   
   ## check that visit_start_date and visit_end_date are the same
   check_dates <- joined_visit_provider_tables %>%
@@ -279,7 +279,7 @@ if (country_setting == "Spain") {
 
 ## Join visit_occurrence and provider tables - visit_detail is empty for IQVIA
 joined_visit_provider_tables <- cdm$visit_occurrence %>% 
-  dplyr::inner_join(cdm$provider, by = c("provider_id", "care_site_id"))
+  dplyr::inner_join(cdm$provider)
 
 ## check that visit_start_date and visit_end_date are the same
 check_dates <- joined_visit_provider_tables %>%
@@ -328,12 +328,12 @@ if (country_setting == "Netherlands") {
   ## First, I join visit_occurrence and note tables (visit_occurrence does not have values for provider_id, visit_detail is empty)
   
   joined_visit_note_tables <- cdm$visit_occurrence %>% 
-    dplyr::inner_join(cdm$note, by = "person_id")
+    dplyr::inner_join(cdm$note)
   
   ## Second, I join the resulting table with provider table where I can find the specialty
   
   joined_visit_provider_tables <- joined_visit_note_tables %>% 
-    dplyr::inner_join(cdm$provider, by = "person_id") # I will use the specialty_source_value that is in the provider table
+    dplyr::inner_join(cdm$provider) # I will use the specialty_source_value that is in the provider table
   
   ## ADD A FREQUENCY TABLE FOR SPECIALTY_CONCEPT_ID and SPECIALTY_SOURCE_VALUE
   
@@ -400,16 +400,16 @@ if (country_setting == "Netherlands") {
   # visit_data_inp <- visit_data %>% filter(visit_concept_id == 9201) ## this is not primary care
   # visit_data_er <- visit_data %>% filter(visit_concept_id == 9203) ## this is not primary care
   # visit_data_er_inp <- visit_data %>% filter(visit_concept_id == 262) ## this is not primary care
-}
+
 ## First, I join visit_occurrence and note tables (visit_occurrence does not have values for provider_id, visit_detail is empty)
   
 joined_visit_note_tables <- cdm$visit_occurrence %>% 
-  dplyr::inner_join(cdm$note, by = "person_id")
+  dplyr::inner_join(cdm$note)
 
 ## Second, I join the resulting table with provider table where I can find the specialty
 
 joined_visit_provider_tables <- joined_visit_note_tables %>% 
-  dplyr::inner_join(cdm$provider, by = "person_id") # I will use the specialty_source_value that is in the provider table
+  dplyr::inner_join(cdm$provider) # I will use the specialty_source_value that is in the provider table
 
 ## ADD A FREQUENCY TABLE FOR SPECIALTY_CONCEPT_ID and SPECIALTY_SOURCE_VALUE
 
@@ -467,7 +467,7 @@ visit_type_by_specialty <- visit_data %>%
   dplyr::group_by(specialty, visit_concept_id) %>%
   dplyr::summarise(visit_count = n(), .groups = 'drop') %>%
   pivot_wider(names_from = visit_concept_id, values_from = visit_count, values_fill = list(visit_count = 0))
-
+}
 
 ## Filter visit_data by concept_id
 
