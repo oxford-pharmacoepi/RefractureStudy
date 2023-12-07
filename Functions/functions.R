@@ -491,7 +491,6 @@ analyse_visits <- function(cohort_combined, visit_data) {
     dplyr::ungroup() %>% 
     CDMConnector::computeQuery()
   
-  
   ### summary for all subjects (subjects/visits = NA, treated as zero)
   all_summary <- visits_count_wide %>%
     pivot_longer(all_of(not_in), names_to = "specialty", values_to = "visits") %>% 
@@ -511,10 +510,13 @@ analyse_visits <- function(cohort_combined, visit_data) {
     CDMConnector::computeQuery()
   
   # Calculating non-service users
-  non_service_users <- visits_count_wide %>%
-    dplyr::filter(rowSums(is.na(select(., 8:ncol(.)))) == (ncol(.) - 7)) %>%
-    dplyr::summarise (non_service_users = n_distinct(subject_id)) %>% 
-    CDMConnector::computeQuery()
+  visits_count_wide_test <- visits_count_wide[(colnames(visits_count_wide)%in% specialty_names)]
+  visits_count_wide_test[is.na(visits_count_wide_test)] <- 0
+  visits_count_wide_test$row_sum <- rowSums(visits_count_wide_test)
+  non_service_users <- visits_count_wide_test %>% 
+    dplyr::filter(row_sum == 0) %>% 
+    dplyr::tally() %>%
+    dplyr::rename(nonservice=n)
   
   return(list(user_only_summary = user_only_summary, all_summary = all_summary, non_service_users=non_service_users))
 }

@@ -123,6 +123,7 @@ write.xlsx(target_results_cost, file = here(sub_output_folder, "cohort2_results_
 #summary
 write.xlsx(summary_cohort_comp1, file = here(sub_output_folder, "summary_cohort_comp1.xlsx"))
 write.xlsx(summary_cohort_comp2, file = here(sub_output_folder, "summary_cohort_comp2.xlsx"))
+
 #Other
 if (country_setting != "UK") {
   write.xlsx(check_dates, file = here(sub_output_folder, "check_dates.xlsx"))
