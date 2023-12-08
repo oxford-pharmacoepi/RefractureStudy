@@ -12,6 +12,7 @@ sheet_name <- switch(country_setting,
 
 # Import the data from the selected sheet
 provider_cost_inputs <- read_excel(file_path, sheet = sheet_name)
+
 specialty_names <- provider_cost_inputs %>% dplyr::filter(Include == 1) %>% dplyr::pull(specialty_source_value)
 
 # VISIT DATA ----
@@ -20,7 +21,7 @@ source(here("4_HealthEconomics", "Visit_data_HE.R"))
 
 # COHORT DATA ----
 
-source(here("4_HealthEconomics", "CohortRQ3_HE.R")) # might be better to combine with Xihang code
+source(here("4_HealthEconomics", "CohortRQ3_HE.R")) 
 
 # ANALYSIS -----
 ## 1. Visits - HCRU ----
@@ -60,6 +61,8 @@ cohort2_non_service_users <-cohort2_results$non_service_users %>% dplyr::collect
 
 ## 2. Visits - Cost ----
 
+if (country_setting != "Netherlands") {
+  
 ### Apply the (2) function - Estimate costs primary care visits 
 
 # Comparison 1: Target versus Matched cohort 1 
@@ -68,6 +71,8 @@ cohort1_comp1_results_cost <- analyse_visits_cost(cohort1_matched_to, cdm[["visi
 # Comparison 2: cohort 1 versus matched cohort 2
 cohort1_comp2_results_cost <- analyse_visits_cost(cohort1_matched_from, cdm[["visit_data"]]) 
 cohort2_results_cost <- analyse_visits_cost(cohort2_matched, cdm[["visit_data"]]) 
+
+}
 
 ### Generate results
 ## Comparison 1: Target versus Matched cohort 1 
@@ -110,15 +115,19 @@ summary_cohort_comp2 <- bind_rows(cohort1_comp2_summary, cohort2_summary)
 
 #HCRU
 write.xlsx(target_results, file = here(sub_output_folder, "target_results.xlsx"))
-write.xlsx(target_results, file = here(sub_output_folder, "cohort1_comp1_results.xlsx"))
-write.xlsx(target_results, file = here(sub_output_folder, "cohort1_comp2_results.xlsx"))
-write.xlsx(target_results, file = here(sub_output_folder, "cohort2_results.xlsx"))
+write.xlsx(cohort1_comp1_results, file = here(sub_output_folder, "cohort1_comp1_results.xlsx"))
+write.xlsx(cohort1_comp2_results, file = here(sub_output_folder, "cohort1_comp2_results.xlsx"))
+write.xlsx(cohort2_results, file = here(sub_output_folder, "cohort2_results.xlsx"))
 
+if (country_setting != "Netherlands") {
+  
 #Cost
 write.xlsx(target_results_cost, file = here(sub_output_folder, "target_results_cost.xlsx"))
-write.xlsx(target_results_cost, file = here(sub_output_folder, "cohort1_comp1_results_cost.xlsx"))
-write.xlsx(target_results_cost, file = here(sub_output_folder, "cohort1_comp2_results_cost.xlsx"))
-write.xlsx(target_results_cost, file = here(sub_output_folder, "cohort2_results_cost.xlsx"))
+write.xlsx(cohort1_comp1_results_cost, file = here(sub_output_folder, "cohort1_comp1_results_cost.xlsx"))
+write.xlsx(cohort1_comp2_results_cost, file = here(sub_output_folder, "cohort1_comp2_results_cost.xlsx"))
+write.xlsx(cohort2_results_cost, file = here(sub_output_folder, "cohort2_results_cost.xlsx"))
+
+}
 
 #summary
 write.xlsx(summary_cohort_comp1, file = here(sub_output_folder, "summary_cohort_comp1.xlsx"))
@@ -130,6 +139,3 @@ if (country_setting != "UK") {
   write.xlsx(visit_type_by_specialty, file = here(sub_output_folder, "visit_type_by_specialty.xlsx"))
 }
 
-if (country_setting == "Netherlands") {
-  write.xlsx(combined_frequency_table, file = here(sub_output_folder, "combined_frequency_table.xlsx"))
-}

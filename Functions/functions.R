@@ -460,6 +460,36 @@ analyse_visits <- function(cohort_combined, visit_data) {
     dplyr::ungroup() %>% 
     CDMConnector::computeQuery()
   
+  # create a new datafrrame from excel
+  
+  provider_cost_inputs_2 <- provider_cost_inputs 
+  
+  # Improved conditional renaming based on the value of country_setting
+  if (country_setting == "UK" || country_setting == "Italy") {
+    # Specific handling for Netherlands
+  } else if (country_setting == "Netherlands") {
+    provider_cost_inputs_2 <- provider_cost_inputs_2 %>%
+      rename(specialty = visit_concept_id) # I keep the name specialty just so the function can run, renaming it at the end.
+  } else {
+    # Handling for other countries
+    provider_cost_inputs_2 <- provider_cost_inputs_2 %>%
+      rename(specialty = specialty_concept_id)
+  }
+  
+  # Select columns at the end
+  provider_cost_inputs_2 <- provider_cost_inputs_2 %>%
+    select(specialty, description_athena)
+  
+  # Create names for countries that use concept_ids
+  
+  filtered_visits <- filtered_visits %>%
+    left_join(provider_cost_inputs_2, by = "specialty") %>%
+    mutate(specialty_temp = ifelse(is.na(description_athena), specialty, description_athena)) %>%
+    select(-description_athena, -specialty) %>% 
+    rename (specialty = specialty_temp)
+  
+  rm(provider_cost_inputs_2)
+  
   ### Pivot the data
   visits_count_wide <- filtered_visits %>%
     pivot_wider(names_from = specialty, values_from = visit_count, values_fill = NA) %>% 
@@ -518,6 +548,17 @@ analyse_visits <- function(cohort_combined, visit_data) {
     dplyr::tally() %>%
     dplyr::rename(nonservice=n)
   
+  # Adding this so to rename specialty into type for Netherlands
+  
+  if (country_setting == "Netherlands") {
+      user_only_summary <- user_only_summary %>% 
+        rename (type = specialty)
+      
+      all_summary <- all_summary %>% 
+        rename (type = specialty)
+  }
+  
+  
   return(list(user_only_summary = user_only_summary, all_summary = all_summary, non_service_users=non_service_users))
 }
 
@@ -533,6 +574,36 @@ analyse_visits_cost <- function(cohort_combined, visit_data) {
     dplyr::summarise(visit_count = n(), .groups = "drop") %>%
     dplyr::ungroup() %>% 
     CDMConnector::computeQuery()
+  
+  # create a new dataframe from excel
+  
+  provider_cost_inputs_2 <- provider_cost_inputs 
+  
+  # Improved conditional renaming based on the value of country_setting
+  if (country_setting == "UK" || country_setting == "Italy") {
+    # Specific handling for Netherlands
+  } else if (country_setting == "Netherlands") {
+    provider_cost_inputs_2 <- provider_cost_inputs_2 %>%
+      rename(specialty = visit_concept_id)
+  } else {
+    # Handling for other countries
+    provider_cost_inputs_2 <- provider_cost_inputs_2 %>%
+      rename(specialty = specialty_concept_id)
+  }
+  
+  # Select columns at the end
+  provider_cost_inputs_2 <- provider_cost_inputs_2 %>%
+    select(specialty, description_athena)
+  
+  # Create names for countries that use concept_ids
+  
+  filtered_visits <- filtered_visits %>%
+    left_join(provider_cost_inputs_2, by = "specialty") %>%
+    mutate(specialty_temp = ifelse(is.na(description_athena), specialty, description_athena)) %>%
+    select(-description_athena, -specialty) %>% 
+    rename (specialty = specialty_temp)
+  
+  rm(provider_cost_inputs_2)
   
   ### Compute costs visits
   filtered_visits <- filtered_visits %>%  
