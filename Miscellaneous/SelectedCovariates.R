@@ -1,6 +1,6 @@
 load("~/RefractureStudy/Results_AURUM/30/tempData/selectedLassoFeatures01.RData")
 selected30 <- selectedLassoFeatures01
-load("~/RefractureStudy/Results_AURUM/90/tempData/selectedLassoFeatures01.RData")
+load("~/RefractureStudy/Results_AURUM_LINKED/90/tempData/selectedLassoFeatures01.RData")
 selected90 <- selectedLassoFeatures01
 
 selectedCovs30 <- list()
@@ -53,3 +53,27 @@ for (i in (1:length(selected90))){
 selected90 <- Reduce(union_all, selectedCovs90)
 selected90[["selected_covariates"]] <- substr(selected90$selected_covariates, 2, nchar(selected90$selected_covariates)-2)
 write.xlsx(selected90, file = here::here(output_folder, "12selected90.xlsx"))
+
+###coeff
+coefficients_ps_12 <- list()
+for (i in (1:length(match_results_12))){
+  coefficients_ps_12[[i]] <- match_results_12[[i]]$model$coefficients %>% 
+    as.data.frame() %>% 
+    mutate(period = i) %>% 
+    rename(coef = '.')
+  coefficients_ps_12[[i]]$cov <- row.names(coefficients_ps_12[[i]])
+  coefficients_ps_12[[i]] <- coefficients_ps_12[[i]] %>% select(cov, coef, period)
+}
+
+coefficients_ps_01 <- list()
+for (i in (1:length(match_results_01))){
+  coefficients_ps_01[[i]] <- match_results_01[[i]]$model$coefficients %>% 
+    as.data.frame() %>% 
+    mutate(period = i) %>% 
+    rename(coef = '.')
+  coefficients_ps_01[[i]]$cov <- row.names(coefficients_ps_01[[i]])
+  coefficients_ps_01[[i]] <- coefficients_ps_01[[i]] %>% select(cov, coef, period)
+}
+
+write.xlsx(coefficients_ps_01, file = here::here(output_folder, "coefficients_ps_01_90.xlsx"))
+write.xlsx(coefficients_ps_12, file = here::here(output_folder, "coefficients_ps_12_90.xlsx"))
