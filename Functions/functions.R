@@ -459,37 +459,33 @@ analyse_visits <- function(cohort_combined, visit_data) {
     dplyr::summarise(visit_count = n(), .groups = "drop") %>%
     dplyr::ungroup() %>% 
     CDMConnector::computeQuery()
+
+  # Initialize provider_cost_inputs_2
+  provider_cost_inputs_2 <- provider_cost_inputs
   
-  # create a new datafrrame from excel
-  
-  provider_cost_inputs_2 <- provider_cost_inputs 
-  
-  # Improved conditional renaming based on the value of country_setting
-  if (country_setting == "UK" || country_setting == "Italy") {
+  if(country_setting == "Netherlands"){
     provider_cost_inputs_2 <- provider_cost_inputs_2 %>%
-      rename(specialty = specialty_source_value)
-    # Specific handling for Netherlands
-  } else if (country_setting == "Netherlands") {
+      dplyr::rename(specialty = visit_concept_id) %>%
+      dplyr::select(specialty, description_athena)
+    # Join and create new names for specialties
+    filtered_visits <- filtered_visits %>%
+      dplyr::left_join(provider_cost_inputs_2, by = "specialty") %>%
+      dplyr::mutate(specialty_temp = ifelse(is.na(description_athena), specialty, description_athena)) %>%
+      dplyr::select(-description_athena, -specialty) %>% 
+      dplyr::rename(specialty = specialty_temp) %>% 
+      CDMConnector::computeQuery()
+  } else if(country_setting != "UK" & country_setting != "Italy"){
     provider_cost_inputs_2 <- provider_cost_inputs_2 %>%
-      rename(specialty = visit_concept_id) # I keep the name specialty just so the function can run, renaming it at the end.
-  } else {
-    # Handling for other countries
-    provider_cost_inputs_2 <- provider_cost_inputs_2 %>%
-      rename(specialty = specialty_concept_id)
+      dplyr::rename(specialty = specialty_concept_id)
+    # Join and create new names for specialties
+    filtered_visits <- filtered_visits %>%
+      dplyr::left_join(provider_cost_inputs_2, by = "specialty") %>%
+      dplyr::mutate(specialty_temp = ifelse(is.na(description_athena), specialty, description_athena)) %>%
+      dplyr::select(-description_athena, -specialty) %>% 
+      dplyr::rename(specialty = specialty_temp)
   }
-  
-  # Select columns at the end
-  provider_cost_inputs_2 <- provider_cost_inputs_2 %>%
-    select(specialty, description_athena)
-  
-  # Create names for countries that use concept_ids
-  
-  filtered_visits <- filtered_visits %>%
-    left_join(provider_cost_inputs_2, by = "specialty") %>%
-    mutate(specialty_temp = ifelse(is.na(description_athena), specialty, description_athena)) %>%
-    select(-description_athena, -specialty) %>% 
-    rename (specialty = specialty_temp)
-  
+
+  # Remove provider_cost_inputs_2 
   rm(provider_cost_inputs_2)
   
   ### Pivot the data
@@ -506,6 +502,7 @@ analyse_visits <- function(cohort_combined, visit_data) {
   ### summary for user only (subjects/visit= NA, not counted)
   not_in <- colnames(visits_count_wide)[(colnames(visits_count_wide)%in% specialty_names)]
   user_only_summary <- visits_count_wide %>%
+    dplyr::mutate(exposed_yrs = as.numeric(follow_up_end - index_date)/ 365.25) %>% 
     pivot_longer(all_of(not_in), names_to = "specialty", values_to = "visits") %>% 
     dplyr::mutate(visits_per_year = visits / exposed_yrs) %>%
     dplyr::filter(visits > 0) %>%
@@ -525,6 +522,7 @@ analyse_visits <- function(cohort_combined, visit_data) {
   
   ### summary for all subjects (subjects/visits = NA, treated as zero)
   all_summary <- visits_count_wide %>%
+    dplyr::mutate(exposed_yrs = as.numeric(follow_up_end - index_date)/ 365.25) %>% 
     pivot_longer(all_of(not_in), names_to = "specialty", values_to = "visits") %>% 
     tidyr::complete(subject_id, specialty, fill = list(visits = 0)) %>% # filling missing visits with 0
     dplyr::mutate(visits_per_year = visits / exposed_yrs) %>%

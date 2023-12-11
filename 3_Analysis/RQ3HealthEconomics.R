@@ -58,7 +58,6 @@ cohort2_results_user <-cohort2_results$user_only_summary %>% dplyr::collect()
 cohort2_results_all  <-cohort2_results$all_summary %>% dplyr::collect()
 cohort2_non_service_users <-cohort2_results$non_service_users %>% dplyr::collect()
 
-
 ## 2. Visits - Cost ----
 
 if (country_setting != "Netherlands") {
