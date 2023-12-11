@@ -9,7 +9,10 @@ suppressWarnings(
      fracture_table,
      fracture_table_rq3_imminent,
      fracture_table_rq3,
-     fracture_table_rq3_index)
+     fracture_table_rq3_index,
+     fracture_table_back_up,
+     fracture_correction,
+     fracture_table_rq2_index_ids)
 )
 
 psFolder <- here(sub_output_folder, "tempData")
@@ -32,12 +35,10 @@ save(compCohort2, file = here(sub_output_folder, "tempData", "compCohort2.RData"
 
 for (i in (1:length(targetCohort))){
   allSubjects <- rbind(allSubjects,
-                       targetCohort[[i]] %>% dplyr::select(subject_id, index_date, group, period) %>% dplyr::distinct(),
-                       compCohort1[[i]] %>% dplyr::select(subject_id, index_date, group, period) %>% dplyr::distinct(),
-                       compCohort2[[i]] %>% dplyr::select(subject_id, index_date, group, period) %>% dplyr::distinct())
+                       targetCohort[[i]] %>% dplyr::select(subject_id, index_date, follow_up_end, group, period) %>% dplyr::distinct(),
+                       compCohort1[[i]] %>% dplyr::select(subject_id, index_date, follow_up_end, group, period) %>% dplyr::distinct(),
+                       compCohort2[[i]] %>% dplyr::select(subject_id, index_date, follow_up_end, group, period) %>% dplyr::distinct())
 }
-
-rm(targetCohort, compCohort1, compCohort2)
 
 cdm[["condition_occurrence_2"]] <- cdm[["condition_occurrence"]] %>% 
   dplyr::filter(!(condition_concept_id %in% any_fracture_id)) %>% 
@@ -48,6 +49,7 @@ features <- cdm$condition_occurrence_2 %>%
   dplyr::select(
     "subject_id" = "person_id",
     "index_date",
+    "follow_up_end",
     "concept_id" = "condition_concept_id", 
     "date" = "condition_start_date"
   ) %>%
@@ -55,7 +57,7 @@ features <- cdm$condition_occurrence_2 %>%
   dplyr::mutate(dif_time = !!datediff("index_date", "date")) %>%
   dplyr::mutate(window = as.integer(if_else(dif_time >= -180, 1, if_else(dif_time >= -730, 2, 3)))) %>% # window 1: <180, 2: 180-730, 3: >730
   dplyr::mutate(feature = paste0("f", concept_id, "_", window)) %>%
-  dplyr::select("subject_id", "index_date", "feature") %>%
+  dplyr::select("subject_id", "follow_up_end", "index_date", "feature") %>%
   dplyr::distinct() %>%
   union_all(
     cdm$drug_era %>%
@@ -63,6 +65,7 @@ features <- cdm$condition_occurrence_2 %>%
       dplyr::select(
         "subject_id" = "person_id", 
         "index_date",
+        "follow_up_end",
         "concept_id" = "drug_concept_id", 
         "date" = "drug_era_start_date"
       ) %>%
@@ -72,7 +75,7 @@ features <- cdm$condition_occurrence_2 %>%
       dplyr::filter(dif_time >= -365) %>%
       dplyr::mutate(window = as.integer(if_else(dif_time >= -180, 1, if_else(dif_time >= -730, 2, 3)))) %>%
       dplyr::mutate(feature = paste0("f", concept_id, "_", window)) %>%
-      dplyr::select("subject_id", "index_date", "feature") %>%
+      dplyr::select("subject_id", "follow_up_end", "index_date", "feature") %>%
       dplyr::distinct()
   ) %>%
   union_all(
@@ -81,6 +84,7 @@ features <- cdm$condition_occurrence_2 %>%
       dplyr::select(
         "subject_id" = "person_id", 
         "index_date",
+        "follow_up_end",
         "concept_id" = "procedure_concept_id", 
         "date" = "procedure_date"
       ) %>%
@@ -90,7 +94,7 @@ features <- cdm$condition_occurrence_2 %>%
       dplyr::filter(dif_time >= -365) %>%
       dplyr::mutate(window = as.integer(if_else(dif_time >= -180, 1, if_else(dif_time >= -730, 2, 3)))) %>%
       dplyr::mutate(feature = paste0("f", concept_id, "_", window)) %>%
-      dplyr::select("subject_id", "index_date", "feature") %>%
+      dplyr::select("subject_id", "follow_up_end", "index_date", "feature") %>%
       dplyr::distinct()
   ) %>%
   union_all(
@@ -99,6 +103,7 @@ features <- cdm$condition_occurrence_2 %>%
       dplyr::select(
         "subject_id" = "person_id", 
         "index_date",
+        "follow_up_end",
         "concept_id" = "measurement_concept_id", 
         "date" = "measurement_date"
       ) %>%
@@ -108,7 +113,7 @@ features <- cdm$condition_occurrence_2 %>%
       dplyr::filter(dif_time >= -365) %>%
       dplyr::mutate(window = as.integer(if_else(dif_time >= -180, 1, if_else(dif_time >= -730, 2, 3)))) %>%
       dplyr::mutate(feature = paste0("f", concept_id, "_", window)) %>%
-      dplyr::select("subject_id", "index_date", "feature") %>%
+      dplyr::select("subject_id", "follow_up_end", "index_date", "feature") %>%
       dplyr::distinct()
   ) %>%
   dplyr::collect()
@@ -197,7 +202,7 @@ for (l in (1:length(targetCohort))){
   features_lasso01 <- features_lasso01 %>% 
     dplyr::mutate(group = factor(group, c("comparator 1", "target")))
   
-  x <- data.matrix(features_lasso01 %>% dplyr::select(-c("group", "subject_id")))
+  x <- data.matrix(features_lasso01 %>% dplyr::select(-c("group", "subject_id", "index_date", "follow_up_end")))
   y <- features_lasso01$group
   y<-as.integer(y)
   lambdas <- 10^seq(2, -3, by = -.1)
@@ -210,9 +215,9 @@ for (l in (1:length(targetCohort))){
   selectedLassoFeatures01[[l]] <- c("age", selectedLassoFeatures01[[l]]) %>% unique()
   
   features_lasso01 <- features_lasso01 %>%
-    dplyr::select(all_of(c("subject_id", "group", selectedLassoFeatures01[[l]])))
+    dplyr::select(all_of(c("subject_id", "group", "follow_up_end", "index_date", selectedLassoFeatures01[[l]])))
   
-  match_results_01[[l]] <- matchit(group ~ . -subject_id -index_date, 
+  match_results_01[[l]] <- matchit(group ~ . -subject_id -follow_up_end -index_date, 
                                    data=features_lasso01,
                                    antiexact = ~subject_id,
                                    method="nearest", 
@@ -276,7 +281,7 @@ for (l in (1:length(compCohort1))){
   features_lasso12 <- features_lasso12 %>% 
     dplyr::mutate(group = factor(group, c("comparator 2", "comparator 1")))
   
-  x <- data.matrix(features_lasso12 %>% dplyr::select(-c("group", "subject_id")))
+  x <- data.matrix(features_lasso12 %>% dplyr::select(-c("group", "subject_id", "index_date", "follow_up_end")))
   y <- features_lasso12$group
   y<-as.integer(y)
   lambdas <- 10^seq(2, -3, by = -.1)
@@ -289,9 +294,9 @@ for (l in (1:length(compCohort1))){
   selectedLassoFeatures12[[l]] <- c("age", selectedLassoFeatures12[[l]]) %>% unique()
   
   features_lasso12 <- features_lasso12 %>%
-    dplyr::select(all_of(c("subject_id", "group", selectedLassoFeatures12[[l]])))
+    dplyr::select(all_of(c("subject_id", "group", "index_date", "follow_up_end", selectedLassoFeatures12[[l]])))
   
-  match_results_12[[l]] <- matchit(group ~ .-subject_id -index_date, 
+  match_results_12[[l]] <- matchit(group ~ .-subject_id -index_date -follow_up_end, 
                                    data=features_lasso12,
                                    antiexact = ~subject_id,
                                    method="nearest", 
@@ -316,4 +321,5 @@ rm(subclasses12)
 save(summary12, file = here(sub_output_folder, "tempData", "summary12.RData"))
 save(summary12, file = here(sub_output_folder, "summary12.RData"))
 rm(summary12)
+rm(compCohort1, compCohort2, targetCohort, coef.lasso_reg)
 gc()
