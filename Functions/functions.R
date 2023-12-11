@@ -466,6 +466,8 @@ analyse_visits <- function(cohort_combined, visit_data) {
   
   # Improved conditional renaming based on the value of country_setting
   if (country_setting == "UK" || country_setting == "Italy") {
+    provider_cost_inputs_2 <- provider_cost_inputs_2 %>%
+      rename(specialty = specialty_source_value)
     # Specific handling for Netherlands
   } else if (country_setting == "Netherlands") {
     provider_cost_inputs_2 <- provider_cost_inputs_2 %>%
