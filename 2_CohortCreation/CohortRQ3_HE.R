@@ -11,7 +11,7 @@ subclasses12_back_up <- subclasses12
 
 for (i in (1:length(subclasses01_back_up))){
   subclasses01_back_up[[i]] <- subclasses01_back_up[[i]] %>% 
-    dplyr::select(subject_id, group, index_date)
+    dplyr::select(subject_id, group, index_date, follow_up_end)
 }
 
 target_matched <- Reduce(dplyr::union_all, subclasses01_back_up) %>%
@@ -31,7 +31,7 @@ cohort1_matched_to <- Reduce(dplyr::union_all, subclasses01_back_up) %>%
 
 for (i in (1:length(subclasses12_back_up))){
   subclasses12_back_up[[i]] <- subclasses12_back_up[[i]] %>% 
-    dplyr::select(subject_id, group, index_date)
+    dplyr::select(subject_id, group, index_date, follow_up_end)
 }
 
 #Cohort1 - from
@@ -50,37 +50,18 @@ cohort2_matched <- Reduce(dplyr::union_all, subclasses12_back_up) %>%
 
 rm(subclasses01, subclasses01_back_up, subclasses12, subclasses12_back_up)
 
-# adding in follow up end
-target_back_up <- targetCohort
-for (i in (1:length(targetCohort))){
-  target_back_up[[i]] <- targetCohort[[i]] %>% 
-    dplyr::select(subject_id, index_date, follow_up_end) %>% 
-    dplyr::mutate(exposed_yrs = as.numeric(follow_up_end - index_date)/ 365.25)
-}
-target_back_up <- Reduce(dplyr::union_all, target_back_up) %>%  dplyr::distinct()
-target_matched <- target_matched %>% dplyr::inner_join(target_back_up, by = c("subject_id", "index_date"))
+target_matched <- target_matched %>% 
+  dplyr::mutate(exposed_yrs = as.numeric(follow_up_end - index_date)/ 365.25)
 
-c1_back_up <- compCohort1
-for (i in (1:length(compCohort1))){
-  c1_back_up[[i]] <- compCohort1[[i]] %>% 
-    dplyr::select(subject_id, index_date, follow_up_end) %>% 
-    dplyr::mutate(exposed_yrs = as.numeric(follow_up_end - index_date)/ 365.25)
-}
-c1_back_up <- Reduce(dplyr::union_all, c1_back_up) %>%  dplyr::distinct()
-cohort1_matched_to <- cohort1_matched_to %>% dplyr::inner_join(c1_back_up, by = c("subject_id", "index_date"))
+cohort1_matched_to <- cohort1_matched_to %>% 
+  dplyr::mutate(exposed_yrs = as.numeric(follow_up_end - index_date)/ 365.25)
 
-cohort1_matched_from <- cohort1_matched_from %>% dplyr::inner_join(c1_back_up, by = c("subject_id", "index_date"))
+cohort1_matched_from <- cohort1_matched_from %>% 
+  dplyr::mutate(exposed_yrs = as.numeric(follow_up_end - index_date)/ 365.25)
 
-c2_back_up <- compCohort2
-for (i in (1:length(compCohort2))){
-  c2_back_up[[i]] <- compCohort2[[i]] %>% 
-    dplyr::select(subject_id, index_date, follow_up_end) %>% 
-    dplyr::mutate(exposed_yrs = as.numeric(follow_up_end - index_date)/ 365.25)
-}
-c2_back_up <- Reduce(dplyr::union_all, c2_back_up) %>%  dplyr::distinct()
-cohort2_matched <- cohort2_matched %>% dplyr::inner_join(c2_back_up, by = c("subject_id", "index_date"))
+cohort2_matched <- cohort2_matched %>% 
+  dplyr::mutate(exposed_yrs = as.numeric(follow_up_end - index_date)/ 365.25)
 
-rm(target_back_up, c1_back_up, c2_back_up)
 ## UNMATCHED COHORTS ## ------
 # Combine list of all vectors from Cohort 1,2, and Target list into one dataframe and adding a period variable
 # cohort1_combined_unmatched <- imap_dfr(compCohort1, ~tibble(.x, fracture_period = .y)) %>% 
