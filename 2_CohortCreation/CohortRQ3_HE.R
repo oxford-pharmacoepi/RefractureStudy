@@ -17,15 +17,13 @@ for (i in (1:length(subclasses01_back_up))){
 target_matched <- Reduce(dplyr::union_all, subclasses01_back_up) %>%
   dplyr::filter(group == "target") %>% 
   dplyr::mutate(cohort = "target") %>%
-  dplyr::select(-group) %>%
-  dplyr::distinct(subject_id, .keep_all = TRUE)
+  dplyr::select(-group)
 
 #Cohort1 - to
 cohort1_matched_to <- Reduce(dplyr::union_all, subclasses01_back_up) %>%
   dplyr::filter(group == "comparator 1") %>% 
   dplyr::mutate(cohort = "cohort1") %>%
-  dplyr::select(-group) %>%
-  dplyr::distinct(subject_id, .keep_all = TRUE)
+  dplyr::select(-group) 
 
 ## Comparison 2: cohort 1 versus matched cohort 2
 
@@ -38,15 +36,13 @@ for (i in (1:length(subclasses12_back_up))){
 cohort1_matched_from <- Reduce(dplyr::union_all, subclasses12_back_up) %>%
   dplyr::filter(group == "comparator 1") %>% 
   dplyr::mutate(cohort = "cohort1") %>%
-  dplyr::select(-group) %>%
-  dplyr::distinct(subject_id, .keep_all = TRUE)
+  dplyr::select(-group) 
 
 #Cohort2
 cohort2_matched <- Reduce(dplyr::union_all, subclasses12_back_up) %>%
   dplyr::filter(group == "comparator 2") %>% 
   dplyr::mutate(cohort = "cohort2") %>%
-  dplyr::select(-group) %>%
-  dplyr::distinct(subject_id, .keep_all = TRUE)
+  dplyr::select(-group) 
 
 rm(subclasses01, subclasses01_back_up, subclasses12, subclasses12_back_up)
 

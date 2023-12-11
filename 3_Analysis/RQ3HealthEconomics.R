@@ -71,26 +71,25 @@ cohort1_comp1_results_cost <- analyse_visits_cost(cohort1_matched_to, cdm[["visi
 cohort1_comp2_results_cost <- analyse_visits_cost(cohort1_matched_from, cdm[["visit_data"]]) 
 cohort2_results_cost <- analyse_visits_cost(cohort2_matched, cdm[["visit_data"]]) 
 
-}
-
 ### Generate results
 ## Comparison 1: Target versus Matched cohort 1 
 # Target
-target_results_user_cost <-target_results_cost$user_only_summary %>% dplyr::collect()
-target_results_all_cost <-target_results_cost$all_summary %>% dplyr::collect()
+target_results_user_cost <-target_results_cost$user_only_cost_summary %>% dplyr::collect()
+target_results_all_cost <-target_results_cost$all_cost_summary %>% dplyr::collect()
 
 # Matched Cohort1
-cohort1_comp1_results_user_cost <-cohort1_comp1_results_cost$user_only_summary %>% dplyr::collect()
-cohort1_comp1_results_all_cost  <-cohort1_comp1_results_cost$all_summary %>% dplyr::collect()
+cohort1_comp1_results_user_cost <-cohort1_comp1_results_cost$user_only_cost_summary %>% dplyr::collect()
+cohort1_comp1_results_all_cost  <-cohort1_comp1_results_cost$all_cost_summary %>% dplyr::collect()
 
 ## Comparison 2: cohort 1 versus matched cohort 2
 # Cohort 1
-cohort1_comp2_results_user_cost <-cohort1_comp2_results_cost$user_only_summary %>% dplyr::collect()
-cohort1_comp2_results_all_cost  <-cohort1_comp2_results_cost$all_summary %>% dplyr::collect()
+cohort1_comp2_results_user_cost <-cohort1_comp2_results_cost$user_only_cost_summary %>% dplyr::collect()
+cohort1_comp2_results_all_cost  <-cohort1_comp2_results_cost$all_cost_summary %>% dplyr::collect()
 
 # Matched - cohort 2
-cohort2_results_user_cost <-cohort2_results_cost$user_only_summary %>% dplyr::collect()
-cohort2_results_all_cost  <-cohort2_results_cost$all_summary %>% dplyr::collect()
+cohort2_results_user_cost <-cohort2_results_cost$user_only_cost_summary %>% dplyr::collect()
+cohort2_results_all_cost  <-cohort2_results_cost$all_cost_summary %>% dplyr::collect()
+}
 
 ## 3. Cohort - Summary ------
 
@@ -106,7 +105,6 @@ cohort2_summary <- cohort_summary(cohort2_matched, "Matched cohort2", cohort2_no
 ### Combine the summaries for the two comparisons
 summary_cohort_comp1 <- bind_rows(target_summary, cohort1_comp1_summary)
 summary_cohort_comp2 <- bind_rows(cohort1_comp2_summary, cohort2_summary)
-
 
 ## 4. Save to csv
 
@@ -137,4 +135,3 @@ if (country_setting != "UK") {
   write.xlsx(check_dates, file = here(sub_output_folder, "check_dates.xlsx"))
   write.xlsx(visit_type_by_specialty, file = here(sub_output_folder, "visit_type_by_specialty.xlsx"))
 }
-

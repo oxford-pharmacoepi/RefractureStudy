@@ -580,31 +580,17 @@ analyse_visits_cost <- function(cohort_combined, visit_data) {
   provider_cost_inputs_2 <- provider_cost_inputs 
   
   # Improved conditional renaming based on the value of country_setting
-  if (country_setting == "UK" || country_setting == "Italy") {
-    # Specific handling for Netherlands
-  } else if (country_setting == "Netherlands") {
+  if(country_setting != "UK" & country_setting != "Italy"){
     provider_cost_inputs_2 <- provider_cost_inputs_2 %>%
-      rename(specialty = visit_concept_id)
-  } else {
-    # Handling for other countries
-    provider_cost_inputs_2 <- provider_cost_inputs_2 %>%
-      rename(specialty = specialty_concept_id)
+      dplyr::rename(specialty = specialty_concept_id)
+    # Join and create new names for specialties
+    filtered_visits <- filtered_visits %>%
+      dplyr::left_join(provider_cost_inputs_2, by = "specialty") %>%
+      dplyr::mutate(specialty_temp = ifelse(is.na(description_athena), specialty, description_athena)) %>%
+      dplyr::select(-description_athena, -specialty) %>% 
+      dplyr::rename(specialty = specialty_temp)
   }
-  
-  # Select columns at the end
-  provider_cost_inputs_2 <- provider_cost_inputs_2 %>%
-    select(specialty, description_athena)
-  
-  # Create names for countries that use concept_ids
-  
-  filtered_visits <- filtered_visits %>%
-    left_join(provider_cost_inputs_2, by = "specialty") %>%
-    mutate(specialty_temp = ifelse(is.na(description_athena), specialty, description_athena)) %>%
-    select(-description_athena, -specialty) %>% 
-    rename (specialty = specialty_temp)
-  
-  rm(provider_cost_inputs_2)
-  
+
   ### Compute costs visits
   filtered_visits <- filtered_visits %>%  
     dplyr::mutate (visit_cost = visit_count * unit_cost) %>% 
@@ -624,6 +610,7 @@ analyse_visits_cost <- function(cohort_combined, visit_data) {
   ### summary for user only (subjects/visit= NA, not counted)
   not_in <- colnames(visits_cost_wide)[(colnames(visits_cost_wide)%in% specialty_names)]
   user_only_cost_summary <- visits_cost_wide %>%
+    dplyr::mutate(exposed_yrs = as.numeric(follow_up_end - index_date)/ 365.25) %>% 
     pivot_longer(all_of(not_in), names_to = "specialty", values_to = "visits_costs") %>% 
     dplyr::mutate(visits_costs_per_year = visits_costs / exposed_yrs) %>%
     dplyr::filter(visits_costs > 0) %>%
@@ -644,6 +631,7 @@ analyse_visits_cost <- function(cohort_combined, visit_data) {
   
   ### summary for all subjects (subjects/visits = NA, treated as zero)
   all_cost_summary <-  visits_cost_wide %>%
+    dplyr::mutate(exposed_yrs = as.numeric(follow_up_end - index_date)/ 365.25) %>% 
     pivot_longer(all_of(not_in), names_to = "specialty", values_to = "visits_costs") %>% 
     dplyr::mutate(visits_costs_per_year = visits_costs / exposed_yrs) %>%
     dplyr::group_by(specialty) %>%
@@ -668,14 +656,17 @@ analyse_visits_cost <- function(cohort_combined, visit_data) {
 
 cohort_summary <- function(data, cohort_name, non_service_users) {
   entries_per_woman <- data %>% 
+    dplyr::mutate(exposed_yrs = as.numeric(follow_up_end - index_date)/ 365.25) %>% 
     dplyr::group_by(subject_id) %>% 
-    dplyr::summarise(entries_per_woman = n(), .groups = "drop") # Drop groups after summarising) 
+    dplyr::summarise(entries_per_woman = n(), 
+                     tot_exposed_yrs = sum(exposed_yrs),
+                     .groups = "drop") # Drop groups after summarising) 
   
   summary <- tibble(
     cohort = cohort_name,
     num_distinct_women = n_distinct(data$subject_id),
     num_entries = nrow(data),
-    tot_exposed_yrs = sum(data$exposed_yrs),
+    tot_exposed_yrs = sum(entries_per_woman$tot_exposed_yrs),
     mean_entries_per_woman = round(mean(entries_per_woman$entries_per_woman), 2),
     sd_entries_per_woman = round(sd(entries_per_woman$entries_per_woman), 2),
     min_entries_per_woman = min(entries_per_woman$entries_per_woman),
