@@ -21,7 +21,7 @@ source(here("4_HealthEconomics", "Visit_data_HE.R"))
 
 # COHORT DATA ----
 
-source(here("4_HealthEconomics", "CohortRQ3_HE.R")) 
+source(here("2_CohortCreation", "CohortRQ3_HE.R")) 
 
 # ANALYSIS -----
 ## 1. Visits - HCRU ----
