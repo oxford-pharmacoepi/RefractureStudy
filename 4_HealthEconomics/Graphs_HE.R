@@ -1,180 +1,54 @@
 # ************************************************************************* #
-# Purpose: To generate plots for visits and cohorts separate for three cohorts
-# Authors: LNN & GF
-# Date:
-# Last date edited:
+# Purpose: To generate plots
+# Authors: LN 
 # ************************************************************************** #
-
-# # Libraries ----
-# install.packages("renv") # if not already installed, install renv from CRAN
-# renv::activate() 
-# renv::restore() # this should prompt you to install the various packages required for the study
-
-# Libraries for plots
-library(ggplot2) # for plots
-library(hrbrthemes) # for theme of the plots
-library(plotly) # to make the graphs interactive
-library(htmlwidgets) # to save the interactive plots as html file
-
-
+# To begin with, please, add visit_count_wide as a resulting output of analyse_visit function
 
 # Graphs ----
 # Target Cohort ----
 
-# target_visits_count_wide <- target_results$visits_count_wide
-# 
-# 
-# # Assuming the first 7 columns are not specialties, and the rest are
-# target_specialty_cols <- names(target_visits_count_wide)[9:ncol(target_visits_count_wide)]
-# 
-# # Add a new column for the sum of all visits per subject
-# target_visits_count_wide$total_visits <- rowSums(target_visits_count_wide[, target_specialty_cols], na.rm = TRUE)
-# 
+target_temp <- analyse_visits(target_matched, visit_data = visit_data)
+target_temp2 <- target_temp$visits_count_wide
 
+# replace NAs with 0
+target_temp3 <- target_temp2 %>% 
+  mutate(across(everything(), .fns = ~replace_na(.,0)))
 
-### Filtering visits based on the cohort_combined
-# convert the dataframes into data.table object
-setDT(visit_data)
-target_combinedDT <- setDT(target_combined)
+# columns to sum row-wise
+columns_to_sum_target1 <- colnames(target_temp3)[8:73]  
 
-# This has been reciprocated from the functions.R
-filtered_visits_dt <- visit_data[target_combinedDT, on = .(subject_id)]
+# adding a new column with row-wise sum of selected columns
+target_temp4 <- target_temp3 %>%
+  mutate(total_visits_per_w  = rowSums(select(., all_of(columns_to_sum_target1))),
+         cohort = "target_matched")
 
-filtered_visits_dt1 <- filtered_visits_dt[visit_detail_start_date >= index_date & visit_detail_start_date <= follow_up_end,]
+# calculate the percentage of subjects for each total visit count
+target_temp5 <- target_temp4 %>%
+  group_by(total_visits_per_w) %>%
+  summarize(Subject_Count = n(), .groups = 'drop') %>%
+  mutate(Percent_Subjects = Subject_Count / sum(Subject_Count) * 100)
 
-
-filtered_visits_dt1 <- filtered_visits_dt1[
-  ,`visit_count` := .N, by = list(subject_id, index_date, specialty)
-]
-
-# filtered_visits_temp <- visit_data %>%
-#   left_join(target_combinedDT, by = "subject_id", relationship = "many-to-many") %>%
-#   filter(visit_detail_start_date >= index_date & visit_detail_start_date <= follow_up_end) %>%
-#   group_by(subject_id, index_date, specialty) %>% # we group by index date to ensure each visit is associated with an entry
-#   summarise(visit_count = n()) %>%
-#   ungroup()
-
-visits_count_wide_temp <- filtered_visits_dt1 %>%
-  pivot_wider(names_from = specialty, values_from = visit_count, values_fill = NA)
-
-# replace all NAs with 0
-visits_count_wide_temp_1 <- visits_count_wide_temp %>% 
-  dplyr::mutate(across(everything(), .fns = ~replace_na(.,0)))
-# count the visits
-# Columns to sum row-wise
-columns_to_sum <- colnames(visits_count_wide_temp_1)[12:77]  # Include all 66 column names here
-
-# Adding a new column with row-wise sum of selected columns
-visits_count_wide_temp_2 <- visits_count_wide_temp_1 %>%
-  dplyr::mutate(total_visits_per_w  = rowSums(select(., all_of(columns_to_sum_pt1))),
-         cohort = "target")
-
-# Calculate the percentage of subjects for each total visit count
-target_total_visits_percentage <- visits_count_wide_temp_2 %>%
-  dplyr::group_by(total_visits_per_w) %>%
-  dplyr::summarize(Subject_Count = n(), .groups = 'drop') %>%
-  dplyr::mutate(Percent_Subjects = Subject_Count / sum(Subject_Count) * 100)
-
-# Plotting
-plot1 <- target_total_visits_percentage %>% 
-    # filter(total_visits_per_w > 0) %>% 
-    ggplot(aes(x = total_visits_per_w, y = Percent_Subjects)) +
-
-    geom_bar(stat = "identity") +
-    labs(x = "Total Number of Visits", y = "% of Subjects (entries)",
-         title = "Target cohort - visits") +
-    hrbrthemes::theme_ipsum() +
-    theme(
-      plot.title = element_text(face = "bold", hjust = 0.5, size = 12),
-      axis.title = element_text(hjust = 0.5, size = 10),
-      panel.spacing = unit(0.1, "lines")
-    )
-
-  geom_bar(stat = "identity") +
-  labs(x = "Total Number of Visits", y = "% of Subjects (entries)",
-       title = "Target cohort - visits") +
-  hrbrthemes::theme_ipsum() +
-  theme(
-    plot.title = element_text(face = "bold", hjust = 0.5, size = 12),
-    axis.title = element_text(hjust = 0.5, size = 10),
-    panel.spacing = unit(0.1, "lines")
-  )
-
-# save the plot
-ggsave(here::here("4_Healtheconomics", "Results", "target_distribution_of_visits.PNG"))
-
-# create an interactive plot
-plotly1 <- ggplotly(plot1)
-
-# save interactive plot as a html file
-htmlwidgets::saveWidget(plotly::ggplotly(plot1), here::here("4_Healtheconomics", "Results", "target_distribution_of_visits_v2.html"))
-
-# Filter subjects with more than 100 visits
-target_subjects_over_100_visits <- visits_count_wide_temp_2 %>%
-  dplyr::filter(total_visits_per_w > 100) %>%
-  dplyr::select(subject_id) 
-
-# View the resulting data
-print(target_subjects_over_100_visits)
+# plotting - target matched ----
+(plot1 <- target_temp5 %>% 
+   ggplot(aes(x = total_visits_per_w, y = Percent_Subjects)) +
+   geom_bar(stat = "identity", fill="#A52A2A", alpha=0.9) +
+   labs(x = "Total Number of Visits", y = "% of Subjects (entries)",
+        title = "Target - visits") +
+   hrbrthemes::theme_ipsum() +
+   theme(
+     plot.title = element_text(face = "bold", hjust = 0.5, size = 12),
+     axis.title = element_text(hjust = 0.5, size = 11),
+     panel.spacing = unit(0.1, "lines")
+   ))
 
 # convert to long format
-target_visits_count_wide_to_long <- visits_count_wide_temp_2 %>% 
-  tidyr::gather(specialty, visits, 12:(ncol(.))) %>% 
-  tidyr::complete(subject_id, specialty, fill = list(visits = 0)) 
+target_temp6 <- target_temp4 %>%
+  gather(specialty, visits, 8:73) %>%
+  complete(subject_id, specialty, fill = list(visits = 0))
 
-# grouping by specialty to see which specilities had the majority of visits
-target_specialty_visits <- target_visits_count_wide_to_long %>% 
-  dplyr::group_by(specialty) %>% 
-  dplyr::summarise(Subject_Count_visits = sum(visits), .groups = 'drop') %>%
-  dplyr::arrange(desc(Subject_Count_visits)) 
-
-
-# Top 3 visited specialties: General Medical Practitioner,Community Practitioner, Health Care Support Worker
-target_total_visits_sp <- target_visits_count_wide_to_long %>% 
-
-  # filter(specialty %in% c("General Medical Practitioner")) %>% 
-
- # filter(specialty %in% c("General Medical Practitioner")) %>% 
-  dplyr::group_by(visits) %>% 
-  dplyr::summarise(count_v = n()) %>% 
-  dplyr::mutate(percent_count = count_v/sum(count_v) *100) %>% 
-  dplyr::ungroup()
-
-joined_df <- dplyr::full_join(target_visits_count_wide_to_long, target_total_visits_sp,
-                       by =  "visits")
-# target_total_visits_top3 <- target_visits_count_wide_to_long %>% 
-#   filter(specialty %in% c("General Medical Practitioner",
-#                           "Community Practitioner", "Health Care Support Worker"))
-# Plotting -
-plot2 <- joined_df %>% 
-    # filter(visits >0) %>% 
-    ggplot(aes(x = visits, y = percent_count)) +
-    geom_bar(stat = "identity", position = position_dodge()) +
-    # geom_histogram(bins = 30)+
-    labs(x = "Total Number of Visits", y = "% of Subjects (entries)",
-         title = "Target cohort top 3 with the most visits") +
-    # facet_grid(rows = vars(specialty), scales = "free", space = "free") +
-    facet_wrap(~ specialty, scales = "free_x", ncol = 12)+
-    hrbrthemes::theme_ipsum() +
-    theme(
-      plot.title = element_text(face = "bold", hjust = 0.5, size = 12),
-      axis.title = element_text(hjust = 0.5, size = 10),
-      panel.spacing = unit(0.1, "lines"),
-      strip.text.y = element_text(angle = 0)
-    ) 
-
-# save the plot
-ggsave(here::here("4_Healtheconomics", "Results", "target_distribution_of_visits_top3.PNG"))
-
-# create an interactive plot
-ggplotly(plot2)
-
-htmlwidgets::saveWidget(plotly::ggplotly(plot2), here::here("4_Healtheconomics", "Results", "target_distribution_of_visits_top3.html"))
-
-
-# Cohort1 ----
-
-
-# Cohort2 ----
-
-# Cohort2 ----
+# grouping by specialty to see which specialties had the majority of visits
+target_specialty_visits_top10 <- target_temp6 %>% 
+  group_by(specialty) %>% 
+  summarise(Subject_Count_visits = sum(visits), .groups = 'drop') %>%
+  arrange(desc(Subject_Count_visits)) %>% 
+  slice(1:10)
