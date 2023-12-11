@@ -44,10 +44,17 @@ for (k in (1:length(washout_period))){
   source(here("2_CohortCreation", "CohortRQ3.R"))
   info(logger, "GENERATING COHORTS FOR RESEARCH QUESTION 3 IS DONE")
 
-  # carrying out analyses for Research Question 3
-  info(logger, "CARRYING OUT ANALYSES FOR RESEARCH QUESTION 3")
+  # carrying out analyses for Research Question 3 - Matching
+  info(logger, "CARRYING OUT ANALYSES FOR RESEARCH QUESTION 3 - MATCHING")
   source(here("3_Analysis", "RQ3PSMatching.R"))
-  info(logger, "CARRYING OUT ANALYSES FOR RESEARCH QUESTION 3 IS DONE")
+  info(logger, "CARRYING OUT ANALYSES FOR RESEARCH QUESTION 3 - MATCHING IS DONE")
+  
+  #carrying out analyses for Research Question 3
+  info(logger, "CARRYING OUT ANALYSES FOR RESEARCH QUESTION 3 - HEALTH ECO")
+  suppressWarnings(  
+    source(here("3_Analysis", "RQ3HealthEconomics.R"))
+    )
+  info(logger, "CARRYING OUT ANALYSES FOR RESEARCH QUESTION 3 - HEALTH ECO IS DONE")
   
 }
 
