@@ -7,6 +7,11 @@
 # Graphs ----
 # Target Cohort ----
 
+plotFolder <- here(sub_output_folder, "plots_HE")
+if (!dir.exists(plotFolder)) {
+  dir.create(plotFolder)
+}
+
 target_temp <- analyse_visits(target_matched, visit_data = cdm[["visit_data"]])
 target_temp2 <- target_temp$visits_count_wide
 
@@ -87,7 +92,7 @@ target_temp6_top10 <- target_temp6 %>%
 )
 
 # save the plot
-ggsave(here::here(sub_output_folder, "target_distribution_of_visits_top10_specialties.PNG"),
+ggsave(here::here(plotFolder, "target_distribution_of_visits_top10_specialties.PNG"),
        bx_plot1, width = 8, height = 6)
 
 
@@ -96,7 +101,7 @@ bx_plotly1 <- plot_ly(target_temp6_top10, y = ~specialty, x = ~visits,boxpoints 
                       showlegend = FALSE)
 
 # save theplot
-htmlwidgets::saveWidget(as_widget(bx_plotly1), here::here(sub_output_folder, "target_distribution_of_visits_top10_specialties_plotly.html"))
+htmlwidgets::saveWidget(as_widget(bx_plotly1), here::here(plotFolder, "target_distribution_of_visits_top10_specialties_plotly.html"))
 
 # cohort1_matched_to ----
 cohort1_matched_to_temp <- analyse_visits(cohort1_matched_to, visit_data = cdm[["visit_data"]])
@@ -139,7 +144,7 @@ cohort1_matched_to_temp5 <- cohort1_matched_to_temp4 %>%
 # let's combine the two bar graphs
 (plot_combo1 <- plot1 + plot1.1)
 
-ggsave(here::here(sub_output_folder, "target-matched_cohort1_distribution_of_visits.PNG"),
+ggsave(here::here(plotFolder, "target-matched_cohort1_distribution_of_visits.PNG"),
        plot_combo1, width = 8, height = 6)
 
 # ---- Cohort1 ----
@@ -183,7 +188,7 @@ cohort1_temp5 <- cohort1_temp4 %>%
     ))
 
 # save the plot
-ggsave(here::here(sub_output_folder, "cohort1_distribution_of_visits.PNG"),
+ggsave(here::here(plotFolder, "cohort1_distribution_of_visits.PNG"),
        plot2, width = 6, height = 4)
 
 # box plot of count of visits by specialty
@@ -233,13 +238,13 @@ cohort1_temp6_top10 <- cohort1_temp6 %>%
 )
 
 # save the object
-ggsave(here::here(sub_output_folder, "cohort1_distribution_of_visits_top10_specialties.PNG"),
+ggsave(here::here(plotFolder, "cohort1_distribution_of_visits_top10_specialties.PNG"),
        bx_plot2, width = 8, height = 6)
 
 # creating a plotly object
 bx_plotly2 <- plot_ly(cohort1_temp6_top10, y = ~specialty, x = ~visits,boxpoints = "all", color = ~specialty, type = "box",
                       showlegend = FALSE)
-htmlwidgets::saveWidget(as_widget(bx_plotly2), here::here(sub_output_folder, "cohort1_distribution_of_visits_top10_specialties_plotly.html"))
+htmlwidgets::saveWidget(as_widget(bx_plotly2), here::here(plotFolder, "cohort1_distribution_of_visits_top10_specialties_plotly.html"))
 
 
 # cohort1_matched_from ----
@@ -284,7 +289,156 @@ cohort1_matched_from_temp5 <- cohort1_matched_from_temp4 %>%
 # let's combine the two bar graphs
 (plot_combo2 <- plot2 + plot2.1)
 
-ggsave(here::here(sub_output_folder, "cohort1-matched_from_cohort1_distribution_of_visits.PNG"),
+ggsave(here::here(plotFolder, "cohort1-matched_from_cohort1_distribution_of_visits.PNG"),
        plot_combo2, width = 8, height = 6)
 
+
 # Cohort2 ----
+cohort2_temp <- analyse_visits(cohort2_matched, visit_data = cdm[["visit_data"]])
+cohort2_temp2 <- cohort2_temp$visits_count_wide
+
+# replace NAs with 0
+cohort2_temp3 <- cohort2_temp2 %>% 
+  mutate(across(everything(), .fns = ~replace_na(.,0)))
+
+# columns to sum row-wise
+# please, help me confirm the number of cols, then make the changes if needed
+columns_to_sum_cohort2 <- colnames(cohort2_temp3)[(colnames(cohort2_temp3)%in% specialty_names)]
+
+# adding a new column with row-wise sum of selected columns
+cohort2_temp3 <- cohort2_temp3 %>% 
+  dplyr::select(-subject_id, -exposed_yrs) %>% 
+  dplyr::mutate_if(is.numeric,as.integer)
+
+cohort2_temp4 <- cohort2_temp3 %>%
+  mutate(total_visits_per_w  = rowSums(select(., all_of(columns_to_sum_cohort2))),
+         cohort = "cohort2_matched")
+
+# calculate the percentage of subjects for each total visit count
+cohort2_temp5 <- cohort2_temp4 %>%
+  group_by(total_visits_per_w) %>%
+  summarize(Subject_Count = n(), .groups = 'drop') %>%
+  mutate(Percent_Subjects = Subject_Count / sum(Subject_Count) * 100)
+
+# plotting
+(plot3 <- cohort2_temp5 %>% 
+    ggplot(aes(x = total_visits_per_w, y = Percent_Subjects)) +
+    geom_bar(stat = "identity", fill="hotpink3", alpha=0.9) +
+    labs(x = "Total Number of Visits", y = "% of Subjects (entries)",
+         title = "Cohort2 matched to Cohot1 - visits") +
+    hrbrthemes::theme_ipsum() +
+    theme(
+      plot.title = element_text(face = "bold", hjust = 0.5, size = 12),
+      axis.title = element_text(hjust = 0.5, size = 10),
+      panel.spacing = unit(0.1, "lines")
+    ))
+
+# save the plot
+ggsave(here::here(plotFolder, "cohort2_distribution_of_visits.PNG"),
+       plot3, width = 6, height = 4)
+
+
+# cohort1_matched_from ----
+cohort1_matched_from_temp <- analyse_visits(cohort1_matched_from, visit_data = cdm[["visit_data"]])
+cohort1_matched_from_temp2 <- cohort1_matched_to_temp$visits_count_wide
+
+# replace NAs with 0
+cohort1_matched_from_temp3 <- cohort1_matched_from_temp2 %>% 
+  mutate(across(everything(), .fns = ~replace_na(.,0)))
+
+# columns to sum row-wise
+columns_to_sum_cohort1_matched_from1 <- colnames(cohort1_matched_from_temp3)[(colnames(cohort1_matched_from_temp3)%in% specialty_names)]
+
+# adding a new column with row-wise sum of selected columns
+cohort1_matched_from_temp3 <- cohort1_matched_from_temp3 %>% 
+  dplyr::select(-subject_id, -exposed_yrs) %>% 
+  dplyr::mutate_if(is.numeric,as.integer)
+
+cohort1_matched_from_temp4 <- cohort1_matched_from_temp3 %>%
+  dplyr::mutate(total_visits_per_w  = rowSums(select(., all_of(columns_to_sum_cohort1_matched_from1))),
+         cohort = "cohort1_matched_from")
+
+# calculate the percentage of subjects for each total visit count
+cohort1_matched_from_temp5 <- cohort1_matched_from_temp4 %>%
+  dplyr::group_by(total_visits_per_w) %>%
+  dplyr::summarize(Subject_Count = n(), .groups = 'drop') %>%
+  dplyr::mutate(Percent_Subjects = Subject_Count / sum(Subject_Count) * 100)
+
+# plotting - target matched ----
+(plot3.1 <- cohort1_matched_from_temp5 %>% 
+   ggplot(aes(x = total_visits_per_w, y = Percent_Subjects)) +
+   geom_bar(stat = "identity", fill="#8B4C39", alpha=0.9) +
+   labs(x = "Total Number of Visits", y = "% of Subjects (entries)",
+        title = "Cohort1 matched from cohort2 - visits") +
+   hrbrthemes::theme_ipsum() +
+   theme(
+     plot.title = element_text(face = "bold", hjust = 0.5, size = 12),
+     axis.title = element_text(hjust = 0.5, size = 11),
+     panel.spacing = unit(0.1, "lines")
+   ))
+
+# let's combine the two bar graphs
+(plot_combo3 <- plot3 + plot3.1)
+
+ggsave(here::here(plotFolder, "cohort2-matched_from_cohort1_distribution_of_visits.PNG"),
+       plot_combo3, width = 8, height = 6)
+
+suppressWarnings(
+  rm(all_summary,
+     cohort_combined,
+     cohort1_comp1_non_service_users,
+     cohort1_comp1_results_all,
+     cohort1_comp1_results_all_cost,
+     cohort1_comp1_results,
+     cohort1_comp2_results_all,
+     cohort1_comp2_non_service_users,
+     cohort1_comp1_summary,
+     cohort1_comp1_results_user,
+     cohort1_comp1_results_user_cost,
+     cohort1_matched_from,
+     cohort1_matched_to,
+     cohort1_comp1_results_cost,
+     cohort1_comp2_results,
+     cohort1_comp2_results_cost,
+     cohort1_comp2_results_all_cost,
+     cohort1_comp2_results_user,
+     cohort1_comp2_results_user_cost,
+     cohort1_comp2_summary,
+     cohort2_matched,
+     cohort2_non_service_users,
+     cohort2_results_all,
+     cohort2_results_all_cost,
+     cohort2_results_user,
+     cohort2_results_user_cost,
+     cohort2_summary,
+     cohort2_results,
+     cohort2_results_cost,
+     non_service_users,
+     summary_cohort_comp1,
+     summary_cohort_comp2,
+     target_non_service_users,
+     target_matched,
+     target_results_all,
+     target_results_all_cost,
+     target_results_user,
+     target_results_user_cost,
+     target_summary,
+     target_results,
+     target_results_cost,
+     targetCohort,
+     user_only_summary,
+     bx_plot1,
+     bx_plot2,
+     bx_plotly1,
+     bx_plotly2,
+     plot_combo1,
+     plot_combo2,
+     plot_combo3,
+     plot1,
+     plot1.1,
+     plot2,
+     plot2.1,
+     plot3,
+     plot3.1
+     )
+)
