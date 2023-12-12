@@ -1,3 +1,4 @@
+#v1
 cdm[["condition_occurrence_aurum"]] <- cdm[["condition_occurrence"]] %>%
   dplyr::filter(condition_type_concept_id == 32827) %>%
   CDMConnector::computeQuery()
