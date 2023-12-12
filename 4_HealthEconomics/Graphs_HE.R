@@ -144,7 +144,7 @@ ggsave(here::here(sub_output_folder, "target-matched_cohort1_distribution_of_vis
 
 # ---- Cohort1 ----
 
-cohort1_temp <- analyse_visits(cohort1_matched_from, visit_data = visit_data)
+cohort1_temp <- analyse_visits(cohort1_matched_from, visit_data = cdm[["visit_data"]])
 cohort1_temp2 <- cohort1_temp$visits_count_wide
 
 # replace NAs with 0
@@ -152,9 +152,13 @@ cohort1_temp3 <- cohort1_temp2 %>%
   mutate(across(everything(), .fns = ~replace_na(.,0)))
 
 # columns to sum row-wise
-columns_to_sum_cohort1 <- colnames(cohort1_temp3)[8:84]  
+columns_to_sum_cohort1 <- colnames(cohort1_temp3)[(colnames(cohort1_temp3)%in% specialty_names)]
 
 # adding a new column with row-wise sum of selected columns
+cohort1_temp3 <- cohort1_temp3 %>% 
+  dplyr::select(-subject_id, -exposed_yrs) %>% 
+  dplyr::mutate_if(is.numeric,as.integer)
+
 cohort1_temp4 <- cohort1_temp3 %>%
   mutate(total_visits_per_w  = rowSums(select(., all_of(columns_to_sum_cohort1))),
          cohort = "cohort1")
@@ -179,21 +183,21 @@ cohort1_temp5 <- cohort1_temp4 %>%
     ))
 
 # save the plot
-ggsave(here::here("4_Healtheconomics", "Results", "cohort1_distribution_of_visits.PNG"),
+ggsave(here::here(sub_output_folder, "cohort1_distribution_of_visits.PNG"),
        plot2, width = 6, height = 4)
 
 # box plot of count of visits by specialty
 # convert to long format
+not_in <- colnames(cohort1_temp4)[(colnames(cohort1_temp4)%in% specialty_names)]
 cohort1_temp6 <- cohort1_temp4 %>%
-  gather(specialty, visits, 8:84) %>%
-  complete(subject_id, specialty, fill = list(visits = 0))
+  pivot_longer(all_of(not_in), names_to = "specialty", values_to = "visits")
 
 # grouping by specialty to see which specialties had the majority of visits
 cohort1_specialty_visits_top10 <- cohort1_temp6 %>% 
-  group_by(specialty) %>% 
-  summarise(Subject_Count_visits = sum(visits), .groups = 'drop') %>%
-  arrange(desc(Subject_Count_visits)) %>% 
-  slice(1:10)
+  dplyr::group_by(specialty) %>% 
+  dplyr::summarise(Subject_Count_visits = sum(visits), .groups = 'drop') %>%
+  dplyr::arrange(desc(Subject_Count_visits)) %>% 
+  dplyr::slice(1:10)
 
 # filter the data with the top10 visited specialties
 levels(as.factor(cohort1_specialty_visits_top10$specialty))
@@ -229,17 +233,17 @@ cohort1_temp6_top10 <- cohort1_temp6 %>%
 )
 
 # save the object
-ggsave(here::here("4_Healtheconomics", "Results", "cohort1_distribution_of_visits_top10_specialties.PNG"),
+ggsave(here::here(sub_output_folder, "cohort1_distribution_of_visits_top10_specialties.PNG"),
        bx_plot2, width = 8, height = 6)
 
 # creating a plotly object
 bx_plotly2 <- plot_ly(cohort1_temp6_top10, y = ~specialty, x = ~visits,boxpoints = "all", color = ~specialty, type = "box",
                       showlegend = FALSE)
-htmlwidgets::saveWidget(as_widget(bx_plotly2), here::here("4_Healtheconomics", "Results", "cohort1_distribution_of_visits_top10_specialties_plotly.html"))
+htmlwidgets::saveWidget(as_widget(bx_plotly2), here::here(sub_output_folder, "cohort1_distribution_of_visits_top10_specialties_plotly.html"))
 
 
 # cohort1_matched_from ----
-cohort1_matched_from_temp <- analyse_visits(cohort1_matched_from, visit_data = visit_data)
+cohort1_matched_from_temp <- analyse_visits(cohort1_matched_from, visit_data = cdm[["visit_data"]])
 cohort1_matched_from_temp2 <- cohort1_matched_to_temp$visits_count_wide
 
 # replace NAs with 0
@@ -247,18 +251,22 @@ cohort1_matched_from_temp3 <- cohort1_matched_from_temp2 %>%
   mutate(across(everything(), .fns = ~replace_na(.,0)))
 
 # columns to sum row-wise
-columns_to_sum_cohort1_matched_from1 <- colnames(cohort1_matched_from_temp3)[8:73]  
+columns_to_sum_cohort1_matched_from1 <- colnames(cohort1_matched_from_temp3)[(colnames(cohort1_matched_from_temp3)%in% specialty_names)]
 
 # adding a new column with row-wise sum of selected columns
+cohort1_matched_from_temp3 <- cohort1_matched_from_temp3 %>% 
+  dplyr::select(-subject_id, -exposed_yrs) %>% 
+  dplyr::mutate_if(is.numeric,as.integer)
+
 cohort1_matched_from_temp4 <- cohort1_matched_from_temp3 %>%
-  mutate(total_visits_per_w  = rowSums(select(., all_of(columns_to_sum_cohort1_matched_from1))),
+  dplyr::mutate(total_visits_per_w  = rowSums(select(., all_of(columns_to_sum_cohort1_matched_from1))),
          cohort = "target_matched")
 
 # calculate the percentage of subjects for each total visit count
 cohort1_matched_from_temp5 <- cohort1_matched_from_temp4 %>%
-  group_by(total_visits_per_w) %>%
-  summarize(Subject_Count = n(), .groups = 'drop') %>%
-  mutate(Percent_Subjects = Subject_Count / sum(Subject_Count) * 100)
+  dplyr::group_by(total_visits_per_w) %>%
+  dplyr::summarize(Subject_Count = n(), .groups = 'drop') %>%
+  dplyr::mutate(Percent_Subjects = Subject_Count / sum(Subject_Count) * 100)
 
 # plotting - target matched ----
 (plot2.1 <- cohort1_matched_from_temp5 %>% 
@@ -276,8 +284,7 @@ cohort1_matched_from_temp5 <- cohort1_matched_from_temp4 %>%
 # let's combine the two bar graphs
 (plot_combo2 <- plot2 + plot2.1)
 
-ggsave(here::here("4_Healtheconomics", "Results", "cohort1-matched_from_cohort1_distribution_of_visits.PNG"),
+ggsave(here::here(sub_output_folder, "cohort1-matched_from_cohort1_distribution_of_visits.PNG"),
        plot_combo2, width = 8, height = 6)
-
 
 # Cohort2 ----
