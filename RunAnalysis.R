@@ -56,6 +56,11 @@ for (k in (1:length(washout_period))){
     )
   info(logger, "CARRYING OUT ANALYSES FOR RESEARCH QUESTION 3 - HEALTH ECO IS DONE")
   
+  # carrying out analyses for Research Question 3 - Plotting
+  info(logger, "CARRYING OUT ANALYSES FOR RESEARCH QUESTION 3 - PLOTTING")
+  source(here("4_HealthEconomics", "Graphs_HE.R"))
+  info(logger, "CARRYING OUT ANALYSES FOR RESEARCH QUESTION 3 - MATCHING IS DONE")
+  
 }
 
 # delete temp files - be careful
