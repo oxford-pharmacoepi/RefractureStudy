@@ -559,7 +559,7 @@ analyse_visits <- function(cohort_combined, visit_data) {
   }
   
   
-  return(list(user_only_summary = user_only_summary, all_summary = all_summary, non_service_users=non_service_users))
+  return(list(user_only_summary = user_only_summary, all_summary = all_summary, non_service_users=non_service_users, visits_count_wide=visits_count_wide))
 }
 
 # Estimate costs primary care visits 

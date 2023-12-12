@@ -132,8 +132,10 @@ save(subfeatures, file = here(sub_output_folder, "tempData", "subfeatures.RData"
 rm(features)
 rm(subfeatures)
 rm(features_count, features_count_threshold)
+info(logger, "EXTRACTING FEATURES IS DONE")
 
 ### Using Patient Profiles and pre-defined functions
+info(logger, "COMPUTING OTHER DEMOGRAPHICS")
 cdm[["all_subjects"]] <- cdm[["denominator"]] %>%
   dplyr::mutate(cohort_start_date = as.Date(as.character(cohort_start_date)),
          cohort_end_date = as.Date(as.character(cohort_end_date))) %>%
@@ -161,9 +163,11 @@ allSubjectsCohort <- allSubjectsCohort %>%
 
 save(allSubjectsCohort, file = here(sub_output_folder, "tempData", "allSubjectsCohort.RData"))
 rm(allSubjectsCohort)
+info(logger, "COMPUTING OTHER DEMOGRAPHICS IS DONE")
 
 ################################################################
 #lasso regression, ps and matching between target and comp cohort 1
+info(logger, "START MATCHING BETWEEN TARGET AND COMPARATOR COHORT 1")
 lasso_reg_01 <- list()
 selectedLassoFeatures01 <- list()
 match_results_01 <- list()
@@ -244,8 +248,10 @@ save(summary01, file = here(sub_output_folder, "summary01.RData"))
 rm(summary01)
 rm(coef.lasso_reg)
 gc()
+info(logger, "MATCHING BETWEEN TARGET AND COMPARATOR COHORT 1 IS DONE")
 
 #lasso regression, ps and matching between comp cohort 1 and 2
+info(logger, "START MATCHING BETWEEN COMPARATOR COHORT 1 AND COMPARATOR COHORT 2")
 lasso_reg_12 <- list()
 selectedLassoFeatures12 <- list()
 match_results_12 <- list()
@@ -323,3 +329,4 @@ save(summary12, file = here(sub_output_folder, "summary12.RData"))
 rm(summary12)
 rm(compCohort1, compCohort2, targetCohort, coef.lasso_reg)
 gc()
+info(logger, "MATCHING BETWEEN COMPARATOR COHORT 1 AND COMPARATOR COHORT 2 IS DONE")

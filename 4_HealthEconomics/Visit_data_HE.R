@@ -2,7 +2,7 @@
 ## UK -----------
 
 if (country_setting == "UK") {
-  
+  info(logger, "PRODUCING VISIT DATA FOR UK")
   # Join visit_detail and provider tables
   joined_visit_provider_tables <- cdm$visit_detail %>% 
     dplyr::inner_join(cdm$provider) 
@@ -23,13 +23,13 @@ if (country_setting == "UK") {
       schema = attr(cdm, "write_schema"), 
       overwrite = TRUE
     )
-  
+  info(logger, "PRODUCING VISIT DATA FOR UK IS DONE")
 }
 
 ## France ---------
 
 if (country_setting == "France") {
-  
+  info(logger, "PRODUCING VISIT DATA FOR FRANCE")
   ## Join visit_occurrence and provider tables - visit_detail is empty for IQVIA
   joined_visit_provider_tables <- cdm$visit_occurrence %>% 
     dplyr::inner_join(cdm$provider)
@@ -69,13 +69,13 @@ if (country_setting == "France") {
   # visit_data_home <- visit_data %>% filter(visit_concept_id == 581476)
   # visit_data_tele <- visit_data %>% filter(visit_concept_id == 5083)
   # visit_data_office <- visit_data %>% filter(visit_concept_id == 581477)
-  
+  info(logger, "PRODUCING VISIT DATA FOR FRANCE IS DONE")
 
 }
 
 ## Germany -----------------
 if (country_setting == "Germany") {
-  
+  info(logger, "PRODUCING VISIT DATA FOR GERMANY")
   ## Join visit_occurrence and provider tables - visit_detail is empty for IQVIA
   joined_visit_provider_tables <- cdm$visit_occurrence %>% 
     dplyr::inner_join(cdm$provider)
@@ -103,12 +103,12 @@ if (country_setting == "Germany") {
     )
   
   # In Germany we don't have the detail for concept_id, all visits are "office".
-   
+  info(logger, "PRODUCING VISIT DATA FOR GERMANY IS DONE")
 }
 
 ## Italy -------
 if (country_setting == "Italy") {
-  
+  info(logger, "PRODUCING VISIT DATA FOR ITALY")
   ## Join visit_occurrence and provider tables - visit_detail is empty for IQVIA
   joined_visit_provider_tables <- cdm$visit_occurrence %>% 
     dplyr::inner_join(cdm$provider)
@@ -136,13 +136,13 @@ if (country_setting == "Italy") {
     )  
   
   # In Italy we don't have the detail for concept_id, all visits are "office".
-  
+  info(logger, "PRODUCING VISIT DATA FOR ITALY IS DONE")
 }
 
 ## Spain ----
 
 if (country_setting == "Spain") {
-  
+  info(logger, "PRODUCING VISIT DATA FOR SPAIN")
   ## Join visit_occurrence and provider tables - visit_detail is not empty but we cannot interpret source values 
   joined_visit_provider_tables <- cdm$visit_occurrence %>% 
     dplyr::inner_join(cdm$provider)
@@ -184,12 +184,12 @@ if (country_setting == "Spain") {
   # visit_data_outp <- visit_data %>% filter(visit_concept_id == 9202) ## is this primary care?
   # visit_data_inp  <- visit_data %>% filter(visit_concept_id == 9201) ## this is not primary care
   # visit_data_intcare <- visit_data %>% filter(visit_concept_id == 32037) ## this is not primary care
-
+  info(logger, "PRODUCING VISIT DATA FOR SPAIN IS DONE")
 }
 
 ## Netherlands -----
 if (country_setting == "Netherlands") {
-  
+  info(logger, "PRODUCING VISIT DATA FOR NETHERLANDS")
   joined_visit_provider_tables <- cdm$visit_occurrence # we cannot link visits with provider in the Netherlands, visit_detail is also empty
   
   ## I keep the name "joined" even if it is not
@@ -219,6 +219,5 @@ if (country_setting == "Netherlands") {
       schema = attr(cdm, "write_schema"), 
       overwrite = TRUE
     )  
-  
-
+  info(logger, "PRODUCING VISIT DATA FOR NETHERLANDS IS DONE")
 }
