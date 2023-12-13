@@ -99,7 +99,7 @@ ggsave(here::here(plotFolder, "target_distribution_of_visits_top10_specialties.P
 
 
 # create a plotly object
-bx_plotly1 <- plot_ly(target_temp6_top10, y = ~specialty, x = ~visits,boxpoints = "all", color = ~specialty, type = "box",
+bx_plotly1 <- plot_ly(target_temp6_top10, y = ~specialty, x = ~visits, boxpoints = "all", color = ~specialty, type = "box",
                       showlegend = FALSE)
 
 # save theplot
@@ -135,7 +135,10 @@ cohort1_matched_to_temp5 <- cohort1_matched_to_temp4 %>%
    ggplot(aes(x = total_visits_per_w, y = Percent_Subjects)) +
    geom_bar(stat = "identity", fill="#B3EE3A", alpha=0.9) +
    labs(x = "Total Number of Visits", y = "% of Subjects (entries)",
-        title = "Cohort1 matched to target - visits") +
+        title = "Matched-Cohort 1 - visits") +
+   scale_y_continuous(limits = c(0, 9) , 
+                      breaks = seq(0, 9, by = 1))+
+   coord_cartesian(xlim = c(0, 400)) +
    hrbrthemes::theme_ipsum() +
    theme(
      plot.title = element_text(face = "bold", hjust = 0.5, size = 12),
@@ -150,7 +153,6 @@ ggsave(here::here(plotFolder, "target-matched_cohort1_distribution_of_visits.PNG
        plot_combo1, width = 8, height = 6)
 
 # ---- Cohort1 ----
-
 cohort1_temp <- analyse_visits(cohort1_matched_from, visit_data = cdm[["visit_data"]])
 cohort1_temp2 <- cohort1_temp$visits_count_wide
 
@@ -182,6 +184,9 @@ cohort1_temp5 <- cohort1_temp4 %>%
     geom_bar(stat = "identity", fill="#69b3a2", alpha=0.9) +
     labs(x = "Total Number of Visits", y = "% of Subjects (entries)",
          title = "Cohort1 - visits") +
+    scale_y_continuous(limits = c(0, 10) , 
+                       breaks = seq(0, 10, by = 2))+
+    coord_cartesian(xlim = c(0, 400)) +
     hrbrthemes::theme_ipsum() +
     theme(
       plot.title = element_text(face = "bold", hjust = 0.5, size = 12),
@@ -224,14 +229,11 @@ cohort1_temp6_top10 <- cohort1_temp6 %>%
    coord_flip() +
    scale_y_continuous(limits = c(1, 50)) +
    stat_summary(fun = "mean", geom = "point", shape = 2, size = 1.2, color = "red") +
-   scale_fill_brewer(palette="Spectral") +
+   viridis::scale_fill_viridis(discrete = T, alpha = 0.7, option = "D") +
    labs(title = "Top10 specialties visited by Cohort1", 
         subtitle = "Only service users & absence of outliers",
         x = "Specialties", y = "Number of visits") +
-   ggtitle("Top10 specialties visited \n by Cohort1") +
-   xlab("Specialties") +
-   ylab("Number of visits")+
-   theme_ipsum() +
+   theme_minimal() +
    theme(
      legend.position="none",
      plot.title = element_text(size=16, hjust = 0.5),
@@ -244,7 +246,7 @@ ggsave(here::here(plotFolder, "cohort1_distribution_of_visits_top10_specialties.
        bx_plot2, width = 8, height = 6)
 
 # creating a plotly object
-bx_plotly2 <- plot_ly(cohort1_temp6_top10, y = ~specialty, x = ~visits,boxpoints = "all", color = ~specialty, type = "box",
+bx_plotly2 <- plot_ly(cohort1_temp6_top10, y = ~specialty, x = ~visits, boxpoints = "all", color = ~specialty, type = "box",
                       showlegend = FALSE)
 htmlwidgets::saveWidget(as_widget(bx_plotly2), here::here(plotFolder, "cohort1_distribution_of_visits_top10_specialties_plotly.html"))
 
@@ -281,6 +283,9 @@ cohort1_matched_from_temp5 <- cohort1_matched_from_temp4 %>%
    geom_bar(stat = "identity", fill="#8B4C39", alpha=0.9) +
    labs(x = "Total Number of Visits", y = "% of Subjects (entries)",
         title = "Cohort1 matched to target - visits") +
+   scale_y_continuous(limits = c(0, 10) , 
+                      breaks = seq(0, 10, by = 2))+
+   coord_cartesian(xlim = c(0, 400)) +
    hrbrthemes::theme_ipsum() +
    theme(
      plot.title = element_text(face = "bold", hjust = 0.5, size = 12),
@@ -327,7 +332,10 @@ cohort2_temp5 <- cohort2_temp4 %>%
     ggplot(aes(x = total_visits_per_w, y = Percent_Subjects)) +
     geom_bar(stat = "identity", fill="hotpink3", alpha=0.9) +
     labs(x = "Total Number of Visits", y = "% of Subjects (entries)",
-         title = "Cohort2 matched to Cohot1 - visits") +
+         title = "Matched-Cohort2 - visits") +
+    scale_y_continuous(limits = c(0, 6) , 
+                       breaks = seq(0, 6, by = 2))+
+    coord_cartesian(xlim = c(0, 400)) +
     hrbrthemes::theme_ipsum() +
     theme(
       plot.title = element_text(face = "bold", hjust = 0.5, size = 12),
@@ -371,7 +379,10 @@ cohort1_matched_from_temp5 <- cohort1_matched_from_temp4 %>%
    ggplot(aes(x = total_visits_per_w, y = Percent_Subjects)) +
    geom_bar(stat = "identity", fill="#8B4C39", alpha=0.9) +
    labs(x = "Total Number of Visits", y = "% of Subjects (entries)",
-        title = "Cohort1 matched from cohort2 - visits") +
+        title = "Cohort 1 - visits") +
+   scale_y_continuous(limits = c(0, 6) , 
+                      breaks = seq(0, 6, by = 2))+
+   coord_cartesian(xlim = c(0, 400)) +
    hrbrthemes::theme_ipsum() +
    theme(
      plot.title = element_text(face = "bold", hjust = 0.5, size = 12),
