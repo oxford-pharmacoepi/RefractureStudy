@@ -39,10 +39,12 @@ target_temp5 <- target_temp4 %>%
 # plotting - target matched ----
 (plot1 <- target_temp5 %>% 
    ggplot(aes(x = total_visits_per_w, y = Percent_Subjects)) +
-   # geom_bar(stat = "identity", fill="#A52A2A", alpha=0.9) +
-   geom_col(fill="#A52A2A", alpha=0.9)+
+   geom_bar(stat = "identity", fill="#A52A2A", alpha=0.9) +
    labs(x = "Total Number of Visits", y = "% of Subjects (entries)",
         title = "Target - visits") +
+   scale_y_continuous(limits = c(0, 9) , 
+                      breaks = seq(0, 9, by = 1))+
+   coord_cartesian(xlim = c(0, 400)) +
    hrbrthemes::theme_ipsum() +
    theme(
      plot.title = element_text(face = "bold", hjust = 0.5, size = 12),
@@ -79,11 +81,11 @@ target_temp6_top10 <- target_temp6 %>%
    coord_flip() +
    scale_y_continuous(limits = c(1, 50)) +
    stat_summary(fun = "mean", geom = "point", shape = 2, size = 1.2, color = "red") +
-   scale_fill_brewer(palette = "PRGn") +
+   viridis::scale_fill_viridis(discrete = T, alpha = 0.7, option = "D") +
    labs(title = "Top10 specialties visited by Target Cohort", 
         subtitle = "Only service users & absence of outliers",
         x = "Specialties", y = "Number of visits") +
-   theme_ipsum() +
+   theme_minimal() +
    theme(
      legend.position="none",
      plot.title = element_text(size=14, hjust = 0.5),
