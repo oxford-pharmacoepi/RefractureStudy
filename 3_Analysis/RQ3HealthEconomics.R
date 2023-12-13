@@ -115,18 +115,126 @@ info(logger, "COHORT SUMMARY FOR HEALTH ECONOMICS IS DONE")
 
 # Write the list of data frames to an Excel file, each list should appear on a separate sheet
 info(logger, "STARTING HEALTH ECONOMICS OUTPUT")
+info(logger, "START MASKING THE DATA")
+target_results_output <- list()
+for (i in (1:3)){
+  target_results_output[[i]]<-target_results[[i]]
+}
+
+target_results_output[[1]] <-target_results_output[[1]] %>% 
+  dplyr::mutate(tot_visits = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.integer(.data$tot_visits)),
+                tot_exposed_yrs = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.integer(.data$tot_exposed_yrs)),
+                mean_visits_per_year = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.integer(.data$mean_visits_per_year)),
+                sd_visits_per_year = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.integer(.data$sd_visits_per_year)),
+                min_visits_per_year  = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.integer(.data$min_visits_per_year )),
+                max_visits_per_year = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.integer(.data$max_visits_per_year)),
+                num_subjects_visited = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.integer(.data$num_subjects_visited)))
+
+if(target_results_output[[3]]$nonservice<5 & target_results_output[[3]]$nonservice>0){
+  target_results_output[[3]]$nonservice <- paste0("<", minimum_counts)
+}
+
+cohort1_comp1_results_output <- list()
+for (i in (1:3)){
+  cohort1_comp1_results_output[[i]]<-cohort1_comp1_results[[i]]
+}
+
+cohort1_comp1_results_output[[1]] <-cohort1_comp1_results_output[[1]] %>% 
+  dplyr::mutate(tot_visits = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.integer(.data$tot_visits)),
+                tot_exposed_yrs = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.integer(.data$tot_exposed_yrs)),
+                mean_visits_per_year = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.integer(.data$mean_visits_per_year)),
+                sd_visits_per_year = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.integer(.data$sd_visits_per_year)),
+                min_visits_per_year  = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.integer(.data$min_visits_per_year )),
+                max_visits_per_year = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.integer(.data$max_visits_per_year)),
+                num_subjects_visited = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.integer(.data$num_subjects_visited)))
+
+if(cohort1_comp1_results_output[[3]]$nonservice<5 & cohort1_comp1_results_output[[3]]$nonservice>0){
+  cohort1_comp1_results_output[[3]]$nonservice <- paste0("<", minimum_counts)
+}
+
+cohort1_comp2_results_output <- list()
+for (i in (1:3)){
+  cohort1_comp2_results_output[[i]]<-cohort1_comp2_results[[i]]
+}
+
+cohort1_comp2_results_output[[1]] <-cohort1_comp2_results_output[[1]] %>% 
+  dplyr::mutate(tot_visits = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.integer(.data$tot_visits)),
+                tot_exposed_yrs = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.integer(.data$tot_exposed_yrs)),
+                mean_visits_per_year = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.integer(.data$mean_visits_per_year)),
+                sd_visits_per_year = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.integer(.data$sd_visits_per_year)),
+                min_visits_per_year  = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.integer(.data$min_visits_per_year )),
+                max_visits_per_year = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.integer(.data$max_visits_per_year)),
+                num_subjects_visited = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.integer(.data$num_subjects_visited)))
+
+if(cohort1_comp2_results_output[[3]]$nonservice<5 & cohort1_comp2_results_output[[3]]$nonservice>0){
+  cohort1_comp2_results_output[[3]]$nonservice <- paste0("<", minimum_counts)
+}
+
+cohort2_results_output <- list()
+for (i in (1:3)){
+  cohort2_results_output[[i]]<-cohort2_results[[i]]
+}
+
+cohort2_results_output[[1]] <-cohort2_results_output[[1]] %>% 
+  dplyr::mutate(tot_visits = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.integer(.data$tot_visits)),
+                tot_exposed_yrs = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.integer(.data$tot_exposed_yrs)),
+                mean_visits_per_year = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.integer(.data$mean_visits_per_year)),
+                sd_visits_per_year = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.integer(.data$sd_visits_per_year)),
+                min_visits_per_year  = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.integer(.data$min_visits_per_year )),
+                max_visits_per_year = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.integer(.data$max_visits_per_year)),
+                num_subjects_visited = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.integer(.data$num_subjects_visited)))
+
+if(cohort2_results_output[[3]]$nonservice<5 & cohort2_results_output[[3]]$nonservice>0){
+  cohort2_results_output[[3]]$nonservice <- paste0("<", minimum_counts)
+}
+
 #HCRU
-write.xlsx(target_results, file = here(sub_output_folder, "target_results.xlsx"))
-write.xlsx(cohort1_comp1_results, file = here(sub_output_folder, "cohort1_comp1_results.xlsx"))
-write.xlsx(cohort1_comp2_results, file = here(sub_output_folder, "cohort1_comp2_results.xlsx"))
-write.xlsx(cohort2_results, file = here(sub_output_folder, "cohort2_results.xlsx"))
+write.xlsx(target_results_output, file = here(sub_output_folder, "target_results.xlsx"))
+write.xlsx(cohort1_comp1_results_output, file = here(sub_output_folder, "cohort1_comp1_results.xlsx"))
+write.xlsx(cohort1_comp2_results_output, file = here(sub_output_folder, "cohort1_comp2_results.xlsx"))
+write.xlsx(cohort2_results_output, file = here(sub_output_folder, "cohort2_results.xlsx"))
 
 if (country_setting != "Netherlands") {
   
 #Cost
+target_results_cost[[1]] <- target_results_cost[[1]] %>% 
+  dplyr::mutate(tot_visits_costs = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.integer(.data$tot_visits_costs)),
+                tot_exposed_yrs = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.integer(.data$tot_exposed_yrs)),
+                mean_cost_visits_per_year = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.integer(.data$mean_cost_visits_per_year)),
+                sd_cost_visits_per_year = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.integer(.data$sd_cost_visits_per_year)),
+                min_cost_visits_per_year  = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.integer(.data$min_cost_visits_per_year )),
+                max_cost_visits_per_year = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.integer(.data$max_cost_visits_per_year)),
+                num_subjects_visited = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.integer(.data$num_subjects_visited)))
 write.xlsx(target_results_cost, file = here(sub_output_folder, "target_results_cost.xlsx"))
+
+cohort1_comp1_results_cost[[1]] <- cohort1_comp1_results_cost[[1]] %>% 
+  dplyr::mutate(tot_visits_costs = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.integer(.data$tot_visits_costs)),
+                tot_exposed_yrs = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.integer(.data$tot_exposed_yrs)),
+                mean_cost_visits_per_year = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.integer(.data$mean_cost_visits_per_year)),
+                sd_cost_visits_per_year = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.integer(.data$sd_cost_visits_per_year)),
+                min_cost_visits_per_year  = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.integer(.data$min_cost_visits_per_year )),
+                max_cost_visits_per_year = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.integer(.data$max_cost_visits_per_year)),
+                num_subjects_visited = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.integer(.data$num_subjects_visited)))
 write.xlsx(cohort1_comp1_results_cost, file = here(sub_output_folder, "cohort1_comp1_results_cost.xlsx"))
+
+cohort1_comp2_results_cost[[1]] <- cohort1_comp2_results_cost[[1]] %>% 
+  dplyr::mutate(tot_visits_costs = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.integer(.data$tot_visits_costs)),
+                tot_exposed_yrs = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.integer(.data$tot_exposed_yrs)),
+                mean_cost_visits_per_year = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.integer(.data$mean_cost_visits_per_year)),
+                sd_cost_visits_per_year = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.integer(.data$sd_cost_visits_per_year)),
+                min_cost_visits_per_year  = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.integer(.data$min_cost_visits_per_year )),
+                max_cost_visits_per_year = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.integer(.data$max_cost_visits_per_year)),
+                num_subjects_visited = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.integer(.data$num_subjects_visited)))
 write.xlsx(cohort1_comp2_results_cost, file = here(sub_output_folder, "cohort1_comp2_results_cost.xlsx"))
+
+cohort2_results_cost[[1]] <- cohort2_results_cost[[1]] %>% 
+  dplyr::mutate(tot_visits_costs = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.integer(.data$tot_visits_costs)),
+                tot_exposed_yrs = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.integer(.data$tot_exposed_yrs)),
+                mean_cost_visits_per_year = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.integer(.data$mean_cost_visits_per_year)),
+                sd_cost_visits_per_year = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.integer(.data$sd_cost_visits_per_year)),
+                min_cost_visits_per_year  = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.integer(.data$min_cost_visits_per_year )),
+                max_cost_visits_per_year = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.integer(.data$max_cost_visits_per_year)),
+                num_subjects_visited = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.integer(.data$num_subjects_visited)))
 write.xlsx(cohort2_results_cost, file = here(sub_output_folder, "cohort2_results_cost.xlsx"))
 
 }
