@@ -225,11 +225,11 @@ cohort1_temp6_top10 <- cohort1_temp6 %>%
 # boxplot cohort1 ----
 (bx_plot2 <- ggplot(data = cohort1_temp6_top10,
                     aes(x=reorder(specialty, visits), y=visits, fill=specialty)) +
-   geom_boxplot() +
+   geom_boxplot(outlier.shape = NA) +
    coord_flip() +
    scale_y_continuous(limits = c(1, 50)) +
    stat_summary(fun = "mean", geom = "point", shape = 2, size = 1.2, color = "red") +
-   viridis::scale_fill_viridis(discrete = T, alpha = 0.7, option = "D") +
+   viridis::scale_fill_viridis(discrete = T, alpha = 0.7, option = "C") +
    labs(title = "Top10 specialties visited by Cohort1", 
         subtitle = "Only service users & absence of outliers",
         x = "Specialties", y = "Number of visits") +
