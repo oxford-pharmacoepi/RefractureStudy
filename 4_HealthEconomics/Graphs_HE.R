@@ -95,7 +95,7 @@ target_temp6_top10 <- target_temp6 %>%
 
 # save the plot
 ggsave(here::here(plotFolder, "target_distribution_of_visits_top10_specialties.PNG"),
-       bx_plot1, width = 8, height = 6)
+       bx_plot1, width = 8, height = 6, bg = "white")
 
 
 # create a plotly object
@@ -243,7 +243,7 @@ cohort1_temp6_top10 <- cohort1_temp6 %>%
 
 # save the object
 ggsave(here::here(plotFolder, "cohort1_distribution_of_visits_top10_specialties.PNG"),
-       bx_plot2, width = 8, height = 6)
+       bx_plot2, width = 8, height = 6, bg = "white")
 
 # creating a plotly object
 bx_plotly2 <- plot_ly(cohort1_temp6_top10, y = ~specialty, x = ~visits, boxpoints = "all", color = ~specialty, type = "box",
@@ -293,11 +293,11 @@ cohort1_matched_from_temp5 <- cohort1_matched_from_temp4 %>%
      panel.spacing = unit(0.1, "lines")
    ))
 
-# let's combine the two bar graphs
-(plot_combo2 <- plot2 + plot2.1)
-
-ggsave(here::here(plotFolder, "cohort1-matched_from_cohort1_distribution_of_visits.PNG"),
-       plot_combo2, width = 8, height = 6)
+# # let's combine the two bar graphs
+# (plot_combo2 <- plot2 + plot2.1)
+# 
+# ggsave(here::here(plotFolder, "cohort1-matched_from_cohort1_distribution_of_visits.PNG"),
+#        plot_combo2, width = 8, height = 6)
 
 
 # Cohort2 ----
@@ -391,7 +391,7 @@ cohort1_matched_from_temp5 <- cohort1_matched_from_temp4 %>%
    ))
 
 # let's combine the two bar graphs
-(plot_combo3 <- plot3 + plot3.1)
+(plot_combo3 <- plot3.1 + plot3)
 
 ggsave(here::here(plotFolder, "cohort2-matched_from_cohort1_distribution_of_visits.PNG"),
        plot_combo3, width = 8, height = 6)
