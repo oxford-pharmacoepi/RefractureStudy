@@ -69,6 +69,8 @@ for(i in (1:length(summary01))){
 
 summary_output_sum.all01 <- summary_output_sum.all01 %>% 
   dplyr::rename(information_col = 'rownames(summary01_back_up[[i]])')
+summary_output_sum.all01 <- summary_output_sum.all01 %>% 
+  dplyr::filter(information_col!="subject_id")
 write.xlsx(summary_output_sum.all01, file = here::here(sub_output_folder, "summary_output_sum.all01.xlsx"))
 rm(summary_output_sum.all01, summary01_back_up)
 
@@ -89,6 +91,8 @@ for(i in (1:length(summary12))){
 
 summary_output_sum.all12 <- summary_output_sum.all12 %>% 
   dplyr::rename(information_col = 'rownames(summary12_back_up[[i]])')
+summary_output_sum.all12 <- summary_output_sum.all12 %>% 
+  dplyr::filter(information_col!="subject_id")
 write.xlsx(summary_output_sum.all12, file = here::here(sub_output_folder, "summary_output_sum.all12.xlsx"))
 
 ##################### sum.matched
@@ -108,6 +112,8 @@ for(i in (1:length(summary01))){
 
 summary_output_sum.matched01 <- summary_output_sum.matched01 %>% 
   dplyr::rename(information_col = 'rownames(summary01_back_up[[i]])')
+summary_output_sum.matched01 <- summary_output_sum.matched01 %>% 
+  dplyr::filter(information_col!="subject_id")
 write.xlsx(summary_output_sum.matched01, file = here::here(sub_output_folder, "summary_output_sum.matched01.xlsx"))
 rm(summary_output_sum.matched01, summary01_back_up)
 
@@ -128,4 +134,6 @@ for(i in (1:length(summary12))){
 
 summary_output_sum.matched12 <- summary_output_sum.matched12 %>% 
   dplyr::rename(information_col = 'rownames(summary12_back_up[[i]])')
+summary_output_sum.matched12 <- summary_output_sum.matched12 %>% 
+  dplyr::filter(information_col!="subject_id")
 write.xlsx(summary_output_sum.matched12, file = here::here(sub_output_folder, "summary_output_sum.matched12.xlsx"))
