@@ -635,8 +635,9 @@ analyse_visits_cost <- function(cohort_combined, visit_data) {
     pivot_longer(all_of(not_in), names_to = "specialty", values_to = "visits_costs") %>% 
     dplyr::mutate(visits_costs_per_year = visits_costs / exposed_yrs) %>%
     dplyr::group_by(specialty) %>%
+    dplyr::mutate(visits_costs = round(visits_costs, digits = 2)) %>% 
     dplyr::summarise(
-      tot_visits_costs = sum(visits_costs),
+      tot_visits_costs = sum(visits_costs, na.rm = T),
       tot_exposed_yrs = sum(exposed_yrs),
       mean_cost_visits_per_year = round(tot_visits_costs / tot_exposed_yrs, 2), # Manual calculation of mean
       sd_cost_visits_per_year = round(sd(visits_costs_per_year, na.rm = TRUE), 2),

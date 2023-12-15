@@ -248,6 +248,18 @@ write.xlsx(cohort2_results_output, file = here(sub_output_folder, "cohort2_resul
 if (country_setting != "Netherlands") {
   
 #Cost
+  target_results_cost[["user_only_mean_costs_per_year"]] <- tibble(mean_cost_visit=(sum(as.integer(target_results_cost[[1]]$tot_visits_costs))/sum(as.numeric(target_results_cost[[1]]$tot_exposed_yrs))))
+  target_results_cost[["all_mean_costs_per_year"]] <- tibble(mean_visit=(sum(as.integer(target_results_cost[[2]]$tot_visits_costs))/(as.numeric(target_results_cost[[2]][1,3]))))
+  
+  cohort1_comp1_results_cost[["user_only_mean_costs_per_year"]] <- tibble(mean_cost_visit=(sum(as.integer(cohort1_comp1_results_cost[[1]]$tot_visits_costs))/sum(as.numeric(cohort1_comp1_results_cost[[1]]$tot_exposed_yrs))))
+  cohort1_comp1_results_cost[["all_mean_costs_per_year"]] <- tibble(mean_visit=(sum(as.integer(cohort1_comp1_results_cost[[2]]$tot_visits_costs))/(as.numeric(cohort1_comp1_results_cost[[2]][1,3]))))
+  
+  cohort1_comp2_results_cost[["user_only_mean_costs_per_year"]] <- tibble(mean_cost_visit=(sum(as.integer(cohort1_comp2_results_cost[[1]]$tot_visits_costs))/sum(as.numeric(cohort1_comp2_results_cost[[1]]$tot_exposed_yrs))))
+  cohort1_comp2_results_cost[["all_mean_costs_per_year"]] <- tibble(mean_visit=(sum(as.integer(cohort1_comp2_results_cost[[2]]$tot_visits_costs))/(as.numeric(cohort1_comp2_results_cost[[2]][1,3]))))
+  
+  cohort2_results_cost[["user_only_mean_costs_per_year"]] <- tibble(mean_cost_visit=(sum(as.integer(cohort2_results_cost[[1]]$tot_visits_costs))/sum(as.numeric(cohort2_results_cost[[1]]$tot_exposed_yrs))))
+  cohort2_results_cost[["all_mean_costs_per_year"]] <- tibble(mean_visit=(sum(as.integer(cohort2_results_cost[[2]]$tot_visits_costs))/(as.numeric(cohort2_results_cost[[2]][1,3]))))
+  
 target_results_cost[[1]] <- target_results_cost[[1]] %>% 
   dplyr::mutate(tot_visits_costs = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.integer(.data$tot_visits_costs)),
                 tot_exposed_yrs = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.integer(.data$tot_exposed_yrs)),

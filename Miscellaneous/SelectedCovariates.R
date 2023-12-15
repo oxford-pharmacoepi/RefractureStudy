@@ -1,60 +1,61 @@
-load("~/RefractureStudy/Results_AURUM/30/tempData/selectedLassoFeatures01.RData")
-selected30 <- selectedLassoFeatures01
-load("~/RefractureStudy/Results_AURUM_LINKED/90/tempData/selectedLassoFeatures01.RData")
-selected90 <- selectedLassoFeatures01
+load(here(sub_output_folder, "tempData","selectedLassoFeatures01.RData"))
 
-selectedCovs30 <- list()
-selectedCovs90 <- list()
-
-for (i in (1:length(selected30))){
-  selectedCovs30[[i]] <- as.data.frame(selected30[[i]]) %>%
+selectedCovs01 <- list()
+for (i in (1:length(selectedLassoFeatures01))){
+  selectedCovs01[[i]] <- as.data.frame(selectedLassoFeatures01[[i]]) %>%
     dplyr::mutate(period = i) %>%
-    dplyr::rename(selected_covariates = 'selected30[[i]]') %>%
-    dplyr::filter(!(selected_covariates %in%(c("age", "number_visits_m180_to_m1", "number_visits_m730_to_m181", "number_visits_minf_to_m731"))))
+    dplyr::rename(selected_covariates = 'selectedLassoFeatures01[[i]]') %>%
+    dplyr::filter(!(selected_covariates %in%(c("age", "number_visits_m180_to_m1", "number_visits_m730_to_m181", "number_visits_minf_to_m731", "prior_observation"))))
 }
-selected30 <- Reduce(union_all, selectedCovs30)
-selected30[["selected_covariates"]] <- substr(selected30$selected_covariates, 2, nchar(selected30$selected_covariates)-2)
-write.xlsx(selected30, file = here::here(output_folder, "01selected30.xlsx"))
+selected01 <- Reduce(union_all, selectedCovs01)
+selected01[["selected_covariates"]] <- substr(selected01$selected_covariates, 2, nchar(selected01$selected_covariates)-2)
 
-for (i in (1:length(selected90))){
-  selectedCovs90[[i]] <- as.data.frame(selected90[[i]]) %>%
+other_covs01 <- list()
+for (i in (1:length(selectedLassoFeatures01))){
+  other_covs01[[i]] <- as.data.frame(selectedLassoFeatures01[[i]]) %>%
     dplyr::mutate(period = i) %>%
-    dplyr::rename(selected_covariates = 'selected90[[i]]') %>%
-    dplyr::filter(!(selected_covariates %in%(c("age", "number_visits_m180_to_m1", "number_visits_m730_to_m181", "number_visits_minf_to_m731"))))
+    dplyr::rename(selected_covariates = 'selectedLassoFeatures01[[i]]') %>%
+    dplyr::filter(selected_covariates %in%(c("age", "number_visits_m180_to_m1", "number_visits_m730_to_m181", "number_visits_minf_to_m731", "prior_observation")))
 }
-selected90 <- Reduce(union_all, selectedCovs90)
-selected90[["selected_covariates"]] <- substr(selected90$selected_covariates, 2, nchar(selected90$selected_covariates)-2)
-write.xlsx(selected90, file = here::here(output_folder, "01selected90.xlsx"))
 
-load("~/RefractureStudy/Results_AURUM/30/tempData/selectedLassoFeatures12.RData")
-selected30 <- selectedLassoFeatures12
-load("~/RefractureStudy/Results_AURUM/90/tempData/selectedLassoFeatures12.RData")
-selected90 <- selectedLassoFeatures12
+for (i in (1:length(selectedLassoFeatures01))){
+  selected01 <- rbind(selected01, other_covs01[[i]])
+}
 
-selectedCovs30 <- list()
-selectedCovs90 <- list()
+selected01 <- selected01 %>% dplyr::arrange(period)
+write.xlsx(selected01, file = here::here(sub_output_folder, "01selected.xlsx"))
+###
+load(here(sub_output_folder, "tempData", "selectedLassoFeatures12.RData"))
+selectedCovs12 <- list()
 
-for (i in (1:length(selected30))){
-  selectedCovs30[[i]] <- as.data.frame(selected30[[i]]) %>%
+for (i in (1:length(selectedLassoFeatures12))){
+  selectedCovs12[[i]] <- as.data.frame(selectedLassoFeatures12[[i]]) %>%
     dplyr::mutate(period = i) %>%
-    dplyr::rename(selected_covariates = 'selected30[[i]]') %>%
-    dplyr::filter(!(selected_covariates %in%(c("age", "number_visits_m180_to_m1", "number_visits_m730_to_m181", "number_visits_minf_to_m731"))))
+    dplyr::rename(selected_covariates = 'selectedLassoFeatures12[[i]]') %>%
+    dplyr::filter(!(selected_covariates %in%(c("age", "number_visits_m180_to_m1", "number_visits_m730_to_m181", "number_visits_minf_to_m731", "prior_observation"))))
 }
-selected30 <- Reduce(union_all, selectedCovs30)
-selected30[["selected_covariates"]] <- substr(selected30$selected_covariates, 2, nchar(selected30$selected_covariates)-2)
-write.xlsx(selected30, file = here::here(output_folder, "12selected30.xlsx"))
 
-for (i in (1:length(selected90))){
-  selectedCovs90[[i]] <- as.data.frame(selected90[[i]]) %>%
+selected12 <- Reduce(union_all, selectedCovs12)
+selected12[["selected_covariates"]] <- substr(selected12$selected_covariates, 2, nchar(selected12$selected_covariates)-2)
+
+other_covs12 <- list()
+for (i in (1:length(selectedLassoFeatures12))){
+  other_covs12[[i]] <- as.data.frame(selectedLassoFeatures12[[i]]) %>%
     dplyr::mutate(period = i) %>%
-    dplyr::rename(selected_covariates = 'selected90[[i]]') %>%
-    dplyr::filter(!(selected_covariates %in%(c("age", "number_visits_m180_to_m1", "number_visits_m730_to_m181", "number_visits_minf_to_m731"))))
+    dplyr::rename(selected_covariates = 'selectedLassoFeatures12[[i]]') %>%
+    dplyr::filter(selected_covariates %in%(c("age", "number_visits_m180_to_m1", "number_visits_m730_to_m181", "number_visits_minf_to_m731", "prior_observation")))
 }
-selected90 <- Reduce(union_all, selectedCovs90)
-selected90[["selected_covariates"]] <- substr(selected90$selected_covariates, 2, nchar(selected90$selected_covariates)-2)
-write.xlsx(selected90, file = here::here(output_folder, "12selected90.xlsx"))
+
+for (i in (1:length(selectedLassoFeatures12))){
+  selected12 <- rbind(selected12, other_covs12[[i]])
+}
+
+selected12 <- selected12 %>% dplyr::arrange(period)
+write.xlsx(selected12, file = here::here(sub_output_folder, "12selected.xlsx"))
 
 ###coeff
+load(here(sub_output_folder, "tempData", "match_results_12.RData"))
+load(here(sub_output_folder, "tempData", "match_results_01.RData"))
 coefficients_ps_12 <- list()
 for (i in (1:length(match_results_12))){
   coefficients_ps_12[[i]] <- match_results_12[[i]]$model$coefficients %>% 
@@ -75,5 +76,5 @@ for (i in (1:length(match_results_01))){
   coefficients_ps_01[[i]] <- coefficients_ps_01[[i]] %>% select(cov, coef, period)
 }
 
-write.xlsx(coefficients_ps_01, file = here::here(output_folder, "coefficients_ps_01_90.xlsx"))
-write.xlsx(coefficients_ps_12, file = here::here(output_folder, "coefficients_ps_12_90.xlsx"))
+write.xlsx(coefficients_ps_01, file = here::here(sub_output_folder, "coefficients_ps_01.xlsx"))
+write.xlsx(coefficients_ps_12, file = here::here(sub_output_folder, "coefficients_ps_12.xlsx"))

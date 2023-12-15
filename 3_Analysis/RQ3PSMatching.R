@@ -127,6 +127,11 @@ features_count_threshold <- features_count %>%
 
 subfeatures <- features %>% dplyr::anti_join(features_count_threshold, by = "feature")
 
+counts <- subfeatures %>% dplyr::select(feature) %>% dplyr::distinct(feature) %>% tally()
+counts <- counts %>% dplyr::rename(subfeatures_count = n)
+write.xlsx(counts, file = here(sub_output_folder, "counts_subfeatures.xlsx"))
+rm(counts)
+
 # save(features, file = here(sub_output_folder, "tempData", "features.RData"))
 save(subfeatures, file = here(sub_output_folder, "tempData", "subfeatures.RData"))
 rm(features)
@@ -237,7 +242,6 @@ save(lasso_reg_01, file = here(sub_output_folder, "tempData", "lasso_reg_01.RDat
 save(lasso_reg_01, file = here(sub_output_folder, "lasso_reg_01.RData"))
 rm(lasso_reg_01)
 save(selectedLassoFeatures01, file = here(sub_output_folder, "tempData", "selectedLassoFeatures01.RData"))
-save(selectedLassoFeatures01, file = here(sub_output_folder, "selectedLassoFeatures01.RData"))
 rm(selectedLassoFeatures01)
 save(match_results_01, file = here(sub_output_folder, "tempData", "match_results_01.RData"))
 rm(match_results_01)
@@ -318,7 +322,6 @@ save(lasso_reg_12, file = here(sub_output_folder, "tempData", "lasso_reg_12.RDat
 save(lasso_reg_12, file = here(sub_output_folder, "lasso_reg_12.RData"))
 rm(lasso_reg_12)
 save(selectedLassoFeatures12, file = here(sub_output_folder, "tempData", "selectedLassoFeatures12.RData"))
-save(selectedLassoFeatures12, file = here(sub_output_folder, "selectedLassoFeatures12.RData"))
 rm(selectedLassoFeatures12)
 save(match_results_12, file = here(sub_output_folder, "tempData", "match_results_12.RData"))
 rm(match_results_12)
@@ -329,4 +332,8 @@ save(summary12, file = here(sub_output_folder, "summary12.RData"))
 rm(summary12)
 rm(compCohort1, compCohort2, targetCohort, coef.lasso_reg)
 gc()
+
+####
+info(logger, "EXTRACTING OUTPUTS")
+source(here("Miscellaneous", "SelectedCovariates.R"))
 info(logger, "MATCHING BETWEEN COMPARATOR COHORT 1 AND COMPARATOR COHORT 2 IS DONE")
