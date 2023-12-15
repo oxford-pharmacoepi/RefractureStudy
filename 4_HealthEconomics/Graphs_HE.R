@@ -519,3 +519,26 @@ suppressWarnings(
      cohort2_temp
      )
 )
+
+suppressWarnings(
+  rm(summary_output_nn12,
+     summary_output_sum.all12,
+     summary_output_sum.matched12,
+     summary01,
+     summary12,
+     summary12_back_up,
+     coefficients_ps_01,
+     coefficients_ps_12,
+     cohort1_comp1_results_output,
+     cohort1_comp2_results_output,
+     match_results_01,
+     match_results_12,
+     other_covs01,
+     other_covs12,
+     selected01,
+     selected12,
+     selectedLassoFeatures01,
+     selectedLassoFeatures12,
+     selectedCovs01,
+     selectedCovs12)
+)
