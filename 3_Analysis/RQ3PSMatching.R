@@ -239,7 +239,6 @@ for (l in (1:length(targetCohort))){
 }
 
 save(lasso_reg_01, file = here(sub_output_folder, "tempData", "lasso_reg_01.RData"))
-save(lasso_reg_01, file = here(sub_output_folder, "lasso_reg_01.RData"))
 rm(lasso_reg_01)
 save(selectedLassoFeatures01, file = here(sub_output_folder, "tempData", "selectedLassoFeatures01.RData"))
 rm(selectedLassoFeatures01)
@@ -248,7 +247,6 @@ rm(match_results_01)
 save(subclasses01, file = here(sub_output_folder, "tempData", "subclasses01.RData"))
 rm(subclasses01)
 save(summary01, file = here(sub_output_folder, "tempData", "summary01.RData"))
-save(summary01, file = here(sub_output_folder, "summary01.RData"))
 rm(summary01)
 rm(coef.lasso_reg)
 gc()
@@ -319,7 +317,6 @@ for (l in (1:length(compCohort1))){
 }
 
 save(lasso_reg_12, file = here(sub_output_folder, "tempData", "lasso_reg_12.RData"))
-save(lasso_reg_12, file = here(sub_output_folder, "lasso_reg_12.RData"))
 rm(lasso_reg_12)
 save(selectedLassoFeatures12, file = here(sub_output_folder, "tempData", "selectedLassoFeatures12.RData"))
 rm(selectedLassoFeatures12)
@@ -328,7 +325,6 @@ rm(match_results_12)
 save(subclasses12, file = here(sub_output_folder, "tempData", "subclasses12.RData"))
 rm(subclasses12)
 save(summary12, file = here(sub_output_folder, "tempData", "summary12.RData"))
-save(summary12, file = here(sub_output_folder, "summary12.RData"))
 rm(summary12)
 rm(compCohort1, compCohort2, targetCohort, coef.lasso_reg)
 gc()
@@ -336,4 +332,5 @@ gc()
 ####
 info(logger, "EXTRACTING OUTPUTS")
 source(here("Miscellaneous", "SelectedCovariates.R"))
+source(here("Miscellaneous", "OtherOutputRQ3_Epi.R"))
 info(logger, "MATCHING BETWEEN COMPARATOR COHORT 1 AND COMPARATOR COHORT 2 IS DONE")
