@@ -684,7 +684,7 @@ cohort_summary <- function(data, cohort_name, non_service_users) {
   return(summary)
 }
 
-### Xihang's greatest function written 
+### Xihang's greatest functions written 
 reformat_table_one_rq3<- function(table_one, period, name1, name2, j, k){
   group_level_selected <- c(paste0(as.character(period), " ", "target"),
                             paste0(as.character(period), " ", "cohort1"),
@@ -700,6 +700,180 @@ reformat_table_one_rq3<- function(table_one, period, name1, name2, j, k){
   }
   table_one_1 <- sub_table_one_list[[j]]
   table_one_2 <- sub_table_one_list[[k]]
+  reformatted_table1 <- data.frame(x = NA, y= NA, z = NA, mean1 = NA, sd1 = NA, mean2 = NA, sd2 = NA)
+  n1 <- table_one_1 %>% dplyr::filter(variable == "Number subjects") %>% dplyr::pull(estimate)
+  n2 <- table_one_2 %>% dplyr::filter(variable == "Number subjects") %>% dplyr::pull(estimate)
+  
+  # variables assembled by mean
+  cont_var <- table_one_1 %>% dplyr::filter(estimate_type == "mean") %>% dplyr::select(variable) %>% dplyr::distinct() %>% dplyr::pull(variable)
+  
+  for (i in (1:length(cont_var))){
+    reformatted_table1 <- rbind(reformatted_table1, 
+                                data.frame(x = paste0(cont_var[[i]], ", mean (SD)"), 
+                                           y = paste0(round(as.numeric(table_one_1 %>% dplyr::filter(variable == cont_var[[i]]) %>% dplyr::filter(estimate_type == "mean") %>% dplyr::pull(estimate)), digits = 1),
+                                                      " (",
+                                                      round(as.numeric(table_one_1 %>% dplyr::filter(variable == cont_var[[i]]) %>% dplyr::filter(estimate_type == "sd") %>% dplyr::pull(estimate)), digits = 1),
+                                                      ")"),
+                                           z = paste0(round(as.numeric(table_one_2 %>% dplyr::filter(variable == cont_var[[i]]) %>% dplyr::filter(estimate_type == "mean") %>% dplyr::pull(estimate)), digits = 1),
+                                                      " (",
+                                                      round(as.numeric(table_one_2 %>% dplyr::filter(variable == cont_var[[i]]) %>% dplyr::filter(estimate_type == "sd") %>% dplyr::pull(estimate)), digits = 1),
+                                                      ")"),
+                                           mean1 = table_one_1 %>% dplyr::filter(variable == cont_var[[i]]) %>% dplyr::filter(estimate_type == "mean") %>% dplyr::pull(estimate),
+                                           sd1 = table_one_1 %>% dplyr::filter(variable == cont_var[[i]]) %>% dplyr::filter(estimate_type == "sd") %>% dplyr::pull(estimate),
+                                           mean2 = table_one_2 %>% dplyr::filter(variable == cont_var[[i]]) %>% dplyr::filter(estimate_type == "mean") %>% dplyr::pull(estimate),
+                                           sd2 = table_one_2 %>% dplyr::filter(variable == cont_var[[i]]) %>% dplyr::filter(estimate_type == "sd") %>% dplyr::pull(estimate)
+                                )
+    )
+  }
+  reformatted_table1 <- reformatted_table1 %>% 
+    dplyr::mutate(smd = (as.numeric(mean1)-as.numeric(mean2))/(sqrt(1/2*(as.numeric(sd1)^2+as.numeric(sd2)^2)))) %>% 
+    dplyr::select(x,y,z,smd)
+  
+  reformatted_table1 <- reformatted_table1[-1, ]
+  
+  #variables assembled by percentage
+  cont_var <- table_one_1 %>% 
+    dplyr::filter(estimate_type == "percentage") %>% 
+    filter(!variable == "Sex") %>% 
+    dplyr::select(variable_level) %>% 
+    dplyr::distinct() %>% 
+    dplyr::pull(variable_level)  
+  
+  reformatted_table1_2<-data.frame(x = NA, y= NA, z= NA, percentage1 = NA, percentage2 = NA)
+  for (i in (1:length(cont_var))){
+    reformatted_table1_2 <- rbind(reformatted_table1_2, data.frame(x = paste0(cont_var[[i]], ", n(%)"),
+                                                                   y = paste0(table_one_1 %>% dplyr::filter(variable_level == cont_var[[i]]) %>% dplyr::filter(estimate_type == "count") %>% dplyr::pull(estimate),
+                                                                              " (",
+                                                                              round(as.numeric(table_one_1 %>% dplyr::filter(variable_level == cont_var[[i]]) %>% dplyr::filter(estimate_type == "percentage") %>% dplyr::pull(estimate)), digits = 1),
+                                                                              ")"),
+                                                                   z = paste0(table_one_2 %>% dplyr::filter(variable_level == cont_var[[i]]) %>% dplyr::filter(estimate_type == "count") %>% dplyr::pull(estimate),
+                                                                              " (",
+                                                                              round(as.numeric(table_one_2 %>% dplyr::filter(variable_level == cont_var[[i]]) %>% dplyr::filter(estimate_type == "percentage") %>% dplyr::pull(estimate)), digits = 1),
+                                                                              ")"),
+                                                                   percentage1 = (1/100)*as.numeric(table_one_1 %>% dplyr::filter(variable_level == cont_var[[i]]) %>% dplyr::filter(estimate_type == "percentage") %>% dplyr::pull(estimate)),
+                                                                   percentage2 = (1/100)*as.numeric(table_one_2 %>% dplyr::filter(variable_level == cont_var[[i]]) %>% dplyr::filter(estimate_type == "percentage") %>% dplyr::pull(estimate))))
+  }
+  
+  reformatted_table1_2 <- reformatted_table1_2 %>% 
+    dplyr::mutate(smd = (percentage1-percentage2)/(sqrt((1/2)*(percentage1*(1-percentage1)+percentage2*(1-percentage2))))) %>% 
+    dplyr::select(x,y,z, smd)
+  
+  reformatted_table1_2 <- reformatted_table1_2[-1, ]
+  
+  reformatted_table1 <- rbind(reformatted_table1, reformatted_table1_2)
+  reformatted_table1 <- reformatted_table1 %>% 
+    dplyr::mutate(smd = round(abs(smd), digits = 3))
+  ###rename columns
+  colnames(reformatted_table1) <- c(
+    "Characteristic",
+    paste0(name1, " (n = ", n1, ")"),
+    paste0(name2, " (n = ", n2, ")"),
+    "SMD"
+  )
+  return(reformatted_table1)
+}
+
+reformat_table_one_rq3_01<- function(table_one, period, name1, name2){
+  group_level_selected <- c(paste0(as.character(period), " target"),
+                            paste0(as.character(period+tot_periods_target), " comparator 1"))
+  
+  sub_table_one <- table_one %>% 
+    dplyr::filter(group_level %in% group_level_selected)
+  
+  sub_table_one_list <- list()
+  for (i in (1:2)){
+    sub_table_one_list[[i]]<-sub_table_one %>% 
+      dplyr::filter(group_level == group_level_selected[[i]])
+  }
+  table_one_1 <- sub_table_one_list[[1]]
+  table_one_2 <- sub_table_one_list[[2]]
+  reformatted_table1 <- data.frame(x = NA, y= NA, z = NA, mean1 = NA, sd1 = NA, mean2 = NA, sd2 = NA)
+  n1 <- table_one_1 %>% dplyr::filter(variable == "Number subjects") %>% dplyr::pull(estimate)
+  n2 <- table_one_2 %>% dplyr::filter(variable == "Number subjects") %>% dplyr::pull(estimate)
+  
+  # variables assembled by mean
+  cont_var <- table_one_1 %>% dplyr::filter(estimate_type == "mean") %>% dplyr::select(variable) %>% dplyr::distinct() %>% dplyr::pull(variable)
+  
+  for (i in (1:length(cont_var))){
+    reformatted_table1 <- rbind(reformatted_table1, 
+                                data.frame(x = paste0(cont_var[[i]], ", mean (SD)"), 
+                                           y = paste0(round(as.numeric(table_one_1 %>% dplyr::filter(variable == cont_var[[i]]) %>% dplyr::filter(estimate_type == "mean") %>% dplyr::pull(estimate)), digits = 1),
+                                                      " (",
+                                                      round(as.numeric(table_one_1 %>% dplyr::filter(variable == cont_var[[i]]) %>% dplyr::filter(estimate_type == "sd") %>% dplyr::pull(estimate)), digits = 1),
+                                                      ")"),
+                                           z = paste0(round(as.numeric(table_one_2 %>% dplyr::filter(variable == cont_var[[i]]) %>% dplyr::filter(estimate_type == "mean") %>% dplyr::pull(estimate)), digits = 1),
+                                                      " (",
+                                                      round(as.numeric(table_one_2 %>% dplyr::filter(variable == cont_var[[i]]) %>% dplyr::filter(estimate_type == "sd") %>% dplyr::pull(estimate)), digits = 1),
+                                                      ")"),
+                                           mean1 = table_one_1 %>% dplyr::filter(variable == cont_var[[i]]) %>% dplyr::filter(estimate_type == "mean") %>% dplyr::pull(estimate),
+                                           sd1 = table_one_1 %>% dplyr::filter(variable == cont_var[[i]]) %>% dplyr::filter(estimate_type == "sd") %>% dplyr::pull(estimate),
+                                           mean2 = table_one_2 %>% dplyr::filter(variable == cont_var[[i]]) %>% dplyr::filter(estimate_type == "mean") %>% dplyr::pull(estimate),
+                                           sd2 = table_one_2 %>% dplyr::filter(variable == cont_var[[i]]) %>% dplyr::filter(estimate_type == "sd") %>% dplyr::pull(estimate)
+                                )
+    )
+  }
+  reformatted_table1 <- reformatted_table1 %>% 
+    dplyr::mutate(smd = (as.numeric(mean1)-as.numeric(mean2))/(sqrt(1/2*(as.numeric(sd1)^2+as.numeric(sd2)^2)))) %>% 
+    dplyr::select(x,y,z,smd)
+  
+  reformatted_table1 <- reformatted_table1[-1, ]
+  
+  #variables assembled by percentage
+  cont_var <- table_one_1 %>% 
+    dplyr::filter(estimate_type == "percentage") %>% 
+    filter(!variable == "Sex") %>% 
+    dplyr::select(variable_level) %>% 
+    dplyr::distinct() %>% 
+    dplyr::pull(variable_level)  
+  
+  reformatted_table1_2<-data.frame(x = NA, y= NA, z= NA, percentage1 = NA, percentage2 = NA)
+  for (i in (1:length(cont_var))){
+    reformatted_table1_2 <- rbind(reformatted_table1_2, data.frame(x = paste0(cont_var[[i]], ", n(%)"),
+                                                                   y = paste0(table_one_1 %>% dplyr::filter(variable_level == cont_var[[i]]) %>% dplyr::filter(estimate_type == "count") %>% dplyr::pull(estimate),
+                                                                              " (",
+                                                                              round(as.numeric(table_one_1 %>% dplyr::filter(variable_level == cont_var[[i]]) %>% dplyr::filter(estimate_type == "percentage") %>% dplyr::pull(estimate)), digits = 1),
+                                                                              ")"),
+                                                                   z = paste0(table_one_2 %>% dplyr::filter(variable_level == cont_var[[i]]) %>% dplyr::filter(estimate_type == "count") %>% dplyr::pull(estimate),
+                                                                              " (",
+                                                                              round(as.numeric(table_one_2 %>% dplyr::filter(variable_level == cont_var[[i]]) %>% dplyr::filter(estimate_type == "percentage") %>% dplyr::pull(estimate)), digits = 1),
+                                                                              ")"),
+                                                                   percentage1 = (1/100)*as.numeric(table_one_1 %>% dplyr::filter(variable_level == cont_var[[i]]) %>% dplyr::filter(estimate_type == "percentage") %>% dplyr::pull(estimate)),
+                                                                   percentage2 = (1/100)*as.numeric(table_one_2 %>% dplyr::filter(variable_level == cont_var[[i]]) %>% dplyr::filter(estimate_type == "percentage") %>% dplyr::pull(estimate))))
+  }
+  
+  reformatted_table1_2 <- reformatted_table1_2 %>% 
+    dplyr::mutate(smd = (percentage1-percentage2)/(sqrt((1/2)*(percentage1*(1-percentage1)+percentage2*(1-percentage2))))) %>% 
+    dplyr::select(x,y,z, smd)
+  
+  reformatted_table1_2 <- reformatted_table1_2[-1, ]
+  
+  reformatted_table1 <- rbind(reformatted_table1, reformatted_table1_2)
+  reformatted_table1 <- reformatted_table1 %>% 
+    dplyr::mutate(smd = round(abs(smd), digits = 3))
+  ###rename columns
+  colnames(reformatted_table1) <- c(
+    "Characteristic",
+    paste0(name1, " (n = ", n1, ")"),
+    paste0(name2, " (n = ", n2, ")"),
+    "SMD"
+  )
+  return(reformatted_table1)
+}
+
+reformat_table_one_rq3_12<- function(table_one, period, name1, name2){
+  group_level_selected <- c(paste0(as.character(period), " comparator 1"),
+                            paste0(as.character(period+tot_periods_c1), " comparator 2"))
+  
+  sub_table_one <- table_one %>% 
+    dplyr::filter(group_level %in% group_level_selected)
+  
+  sub_table_one_list <- list()
+  for (i in (1:2)){
+    sub_table_one_list[[i]]<-sub_table_one %>% 
+      dplyr::filter(group_level == group_level_selected[[i]])
+  }
+  table_one_1 <- sub_table_one_list[[1]]
+  table_one_2 <- sub_table_one_list[[2]]
   reformatted_table1 <- data.frame(x = NA, y= NA, z = NA, mean1 = NA, sd1 = NA, mean2 = NA, sd2 = NA)
   n1 <- table_one_1 %>% dplyr::filter(variable == "Number subjects") %>% dplyr::pull(estimate)
   n2 <- table_one_2 %>% dplyr::filter(variable == "Number subjects") %>% dplyr::pull(estimate)
