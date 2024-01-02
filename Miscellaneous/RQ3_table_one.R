@@ -143,7 +143,7 @@ for (i in (1:tot_periods_c1)){
 
 ################################ after matching #################################
 ##01
-info(logger, "START TO CREATE THE SUMMARY - AFTER MATCHING")
+info(logger, "START TO CREATE THE SUMMARY - AFTER MATCHING 01")
 subclasses01_table1 <- subclasses01
 for (i in (1:length(subclasses01))){
   subclasses01_table1[[i]] <- subclasses01[[i]] %>%
@@ -268,14 +268,137 @@ result_after_matching01 <- cdm_char2[["after_matching_01_cohort"]] %>%
 write_csv(result_after_matching01, here(t1_sub_output_folder, "result_after_matching01.csv"))
 
 for (i in (1:tot_periods_target)){
-  output<-reformat_table_one_rq3(result_after_matching01, period = i, name1 = "target", name2 = "comparator 1", j = 1, k = 2)
+  output<-reformat_table_one_rq3_01(result_after_matching01, period = i, name1 = "target", name2 = "comparator 1")
   write_csv(output, here(t1_sub_output_folder, paste0("target_c1_", i, "_after_matching.csv")))
 }
 
 ########################## after matching 12 ####################
+##12
+info(logger, "START TO CREATE THE SUMMARY - AFTER MATCHING 12")
 subclasses12_table1 <- subclasses12
 for (i in (1:length(subclasses12))){
   subclasses12_table1[[i]] <- subclasses12[[i]] %>%
     dplyr::select(subject_id, group, index_date) %>% 
     dplyr::mutate(period = i)
+}
+
+cdm[["after_matching_c1c2"]] <- 
+  Reduce(dplyr::union_all, subclasses12_table1) %>%
+  dplyr::select(subject_id, index_date, group, period) %>% 
+  dplyr::rename(cohort_start_date = index_date) %>% 
+  dplyr::mutate(cohort_end_date = cohort_start_date) %>% 
+  dplyr::filter(group == "comparator 1") %>% 
+  dplyr::distinct() %>% 
+  dplyr::mutate(cohort_definition_id = period) %>%
+  dplyr::mutate(cohort_name = paste0(cohort_definition_id, "_", group)) %>% 
+  dplyr::select(-group, -period) %>% 
+  dplyr::select(subject_id, cohort_start_date, cohort_end_date, cohort_name, cohort_definition_id) %>% 
+  dplyr::union_all(Reduce(dplyr::union_all, subclasses12_table1) %>%
+                     dplyr::select(subject_id, index_date, group, period) %>% 
+                     dplyr::rename(cohort_start_date = index_date) %>% 
+                     dplyr::mutate(cohort_end_date = cohort_start_date) %>% 
+                     dplyr::filter(group == "comparator 2") %>% 
+                     dplyr::distinct() %>% 
+                     dplyr::mutate(cohort_definition_id = tot_periods_target+period) %>%
+                     dplyr::mutate(cohort_name = paste0(cohort_definition_id, "_", group)) %>% 
+                     dplyr::select(-group, -period) %>% 
+                     dplyr::select(subject_id, cohort_start_date, cohort_end_date, cohort_name, cohort_definition_id)) %>% 
+  computeQuery(
+    name = "after_matching_c1c2", 
+    temporary = FALSE, 
+    schema = attr(cdm, "write_schema"), 
+    overwrite = TRUE
+  )
+
+fullName <- inSchema(attr(cdm, "write_schema"), "after_matching_c1c2")
+dbWriteTable(attr(cdm, "dbcon"), fullName, cdm[["after_matching_c1c2"]] |> as_tibble(), overwrite = T)
+cdm[["after_matching_c1c2"]] <- dplyr::tbl(attr(cdm , "dbcon"), fullName)
+
+cdm[["after_matching_12_cohort"]] <- cdm[["after_matching_c1c2"]] %>% 
+  dplyr::select(-cohort_name) %>% 
+  dplyr::select(cohort_definition_id, subject_id, cohort_start_date, cohort_end_date) %>% 
+  computeQuery(
+    name = "after_matching_12_cohort", 
+    temporary = FALSE, 
+    schema = attr(cdm, "write_schema"), 
+    overwrite = TRUE
+  )
+
+after_matching_12_cohort_set <- cdm[["after_matching_c1c2"]] %>% 
+  dplyr::select("cohort_definition_id", "cohort_name") %>% 
+  dplyr::distinct() %>% 
+  computeQuery(
+    name = "after_matching_12_cohort_set", 
+    temporary = FALSE, 
+    schema = attr(cdm, "write_schema"), 
+    overwrite = TRUE
+  )
+
+#cohort count
+after_matching_12_cohort_count <- cdm[["after_matching_c1c2"]] %>%
+  dplyr::group_by(cohort_definition_id) %>%
+  dplyr::tally() %>%
+  dplyr::compute() %>%
+  dplyr::rename(number_records = n) %>%
+  dplyr::mutate(number_subjects = number_records) %>%
+  computeQuery(
+    name = "after_matching_12_cohort_count", 
+    temporary = FALSE, 
+    schema = attr(cdm, "write_schema"), 
+    overwrite = TRUE
+  )
+
+stem_table <- "rq3"
+conditions <- paste0(stem_table, "_conditions")
+medications <- paste0(stem_table, "_medications")
+cdm_char2 <-CDMConnector::cdm_from_con(
+  con = db,
+  cdm_schema = cdm_database_schema,
+  write_schema = results_database_schema
+)
+
+cdm_char2[["after_matching_12_cohort"]] <- newGeneratedCohortSet(cohortRef = cdm[["after_matching_12_cohort"]],
+                                                                 cohortSetRef = after_matching_12_cohort_set,
+                                                                 cohortCountRef = after_matching_12_cohort_count,
+                                                                 overwrite = T)
+
+cdm_char2 <- CDMConnector::cdmSubsetCohort(cdm_char2, "after_matching_12_cohort", verbose = T)
+
+# instantiate medications
+info(logger, "INSTANTIATE MEDICATIONS - BEFORE MATCHING")
+codelistMedications <- codesFromConceptSet(here("1_InstantiateCohorts", "Medications"), cdm_char)
+cdm_char2 <- generateDrugUtilisationCohortSet(cdm = cdm_char2, name = medications, conceptSet = codelistMedications)
+
+# instantiate conditions
+info(logger, "INSTANTIATE CONDITIONS - BEFORE MATCHING")
+codelistConditions <- codesFromConceptSet(here("1_InstantiateCohorts", "Conditions"), cdm_char)
+cdm_char2 <- generateConceptCohortSet(cdm = cdm_char2, name = conditions, conceptSet = codelistConditions, overwrite = T)
+
+# create table summary
+info(logger, "CREATE SUMMARY - BEFORE MATCHING")
+result_after_matching12 <- cdm_char2[["after_matching_12_cohort"]] %>%
+  summariseCharacteristics(
+    ageGroup = list(c(50, 59), c(60, 69), c(70, 79), c(80, 89), c(90, 99), c(100,150)),
+    tableIntersect = list(
+      "Visits" = list(
+        tableName = "visit_occurrence", value = "count", window = c(-365, 0)
+      ),
+      "Medications" = list(
+        tableName = "drug_era", value = "count", window = c(-365, 0)
+      )
+    ), 
+    cohortIntersect = list(
+      "Medications" = list(
+        targetCohortTable = medications, value = "flag", window = c(-365, 0)
+      ),
+      "Conditions" = list(
+        targetCohortTable = conditions, value = "flag", window = c(-Inf, 0)
+      )
+    )
+  )
+write_csv(result_after_matching12, here(t1_sub_output_folder, "result_after_matching12.csv"))
+
+for (i in (1:tot_periods_target)){
+  output<-reformat_table_one_rq3_12(result_after_matching12, period = i, name1 = "target", name2 = "comparator 1")
+  write_csv(output, here(t1_sub_output_folder, paste0("target_c1_", i, "_after_matching.csv")))
 }
