@@ -399,6 +399,6 @@ result_after_matching12 <- cdm_char2[["after_matching_12_cohort"]] %>%
 write_csv(result_after_matching12, here(t1_sub_output_folder, "result_after_matching12.csv"))
 
 for (i in (1:tot_periods_target)){
-  output<-reformat_table_one_rq3_12(result_after_matching12, period = i, name1 = "target", name2 = "comparator 1")
-  write_csv(output, here(t1_sub_output_folder, paste0("target_c1_", i, "_after_matching.csv")))
+  output<-reformat_table_one_rq3_12(result_after_matching12, period = i, name1 = "comparator 1", name2 = "comparator 2")
+  write_csv(output, here(t1_sub_output_folder, paste0("c1_c2_", i, "_after_matching.csv")))
 }
