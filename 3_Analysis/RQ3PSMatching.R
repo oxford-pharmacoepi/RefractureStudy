@@ -125,7 +125,9 @@ features_count <- features %>%
 features_count_threshold <- features_count %>%
   dplyr::filter(n<as.integer(denom_count)/200)
 
-subfeatures <- features %>% dplyr::anti_join(features_count_threshold, by = "feature")
+subfeatures <- features %>% 
+  dplyr::filter(!subject_id == 0) %>% 
+  dplyr::anti_join(features_count_threshold, by = "feature")
 
 counts <- subfeatures %>% dplyr::select(feature) %>% dplyr::distinct(feature) %>% tally()
 counts <- counts %>% dplyr::rename(subfeatures_count = n)
