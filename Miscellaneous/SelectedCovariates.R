@@ -78,3 +78,12 @@ for (i in (1:length(match_results_01))){
 
 write.xlsx(coefficients_ps_01, file = here::here(sub_output_folder, "coefficients_ps_01.xlsx"))
 write.xlsx(coefficients_ps_12, file = here::here(sub_output_folder, "coefficients_ps_12.xlsx"))
+
+#################################
+selected01_names <- selected01 %>% 
+  dplyr::left_join(selected_covs %>% dplyr::mutate(Id = as.character(Id)), by = c("selected_covariates" = "Id"))
+write.xlsx(selected01_names, file = here::here(sub_output_folder, "selected01_names.xlsx"))
+
+selected12_names <- selected12 %>% 
+  dplyr::left_join(selected_covs %>% dplyr::mutate(Id = as.character(Id)), by = c("selected_covariates" = "Id"))
+write.xlsx(selected12_names, file = here::here(sub_output_folder, "selected12_names.xlsx"))
