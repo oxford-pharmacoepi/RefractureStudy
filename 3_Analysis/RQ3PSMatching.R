@@ -188,8 +188,8 @@ for (l in (1:length(targetCohort))){
   set.seed(12345)
   load(here(sub_output_folder, "tempData", "subfeatures.RData"))
   subfeatures_01 <- subfeatures %>% 
-    dplyr::inner_join(rbind(targetCohort[[l]] %>% dplyr::select(subject_id, index_date), 
-                     compCohort1[[l]] %>% dplyr::select(subject_id, index_date)),
+    dplyr::inner_join(rbind(targetCohort[[l]] %>% dplyr::select(subject_id, index_date, group), 
+                     compCohort1[[l]] %>% dplyr::select(subject_id, index_date, group)),
                by = c("subject_id", "index_date"))
   rm(subfeatures)
   
@@ -203,15 +203,17 @@ for (l in (1:length(targetCohort))){
   rm(subfeatures_01)
   load(here(sub_output_folder, "tempData", "allSubjectsCohort.RData"))
   
-  features_lasso01 <- allSubjectsCohort %>% dplyr::select(-c("cohort_definition_id", "cohort_end_date", "cohort_start_date")) %>%
+  features_lasso01 <- allSubjectsCohort %>% 
     dplyr::filter(period == l) %>%
     dplyr::select(-"period") %>%
     dplyr::filter(group %in% c("comparator 1", "target")) %>%
-    dplyr::inner_join(features_lasso01, by = "subject_id", relationship = "many-to-many")
+    dplyr::inner_join(features_lasso01, by = c("subject_id", "group", "cohort_start_date"="index_date"), relationship = "many-to-many")
   
   features_lasso01$prior_observation <- as.double(features_lasso01$prior_observation)
   features_lasso01 <- features_lasso01 %>% 
-    dplyr::mutate(group = factor(group, c("comparator 1", "target")))
+    dplyr::mutate(group = factor(group, c("comparator 1", "target"))) %>% 
+    dplyr::rename(index_date = cohort_start_date) %>% 
+    dplyr::select(-cohort_end_date, -cohort_definition_id)
   
   x <- data.matrix(features_lasso01 %>% dplyr::select(-c("group", "subject_id", "index_date", "follow_up_end")))
   y <- features_lasso01$group
@@ -266,8 +268,8 @@ for (l in (1:length(compCohort1))){
   set.seed(12345)
   load(here(sub_output_folder, "tempData", "subfeatures.RData"))
   subfeatures_12 <- subfeatures %>% 
-    dplyr::inner_join(rbind(compCohort1[[l]] %>% dplyr::select(subject_id, index_date), 
-                     compCohort2[[l]] %>% dplyr::select(subject_id, index_date)),
+    dplyr::inner_join(rbind(compCohort1[[l]] %>% dplyr::select(subject_id, index_date, group), 
+                     compCohort2[[l]] %>% dplyr::select(subject_id, index_date, group)),
                by = c("subject_id", "index_date"))
   rm(subfeatures)
   
@@ -281,15 +283,17 @@ for (l in (1:length(compCohort1))){
   rm(subfeatures_12)
   load(here(sub_output_folder, "tempData", "allSubjectsCohort.RData"))
   
-  features_lasso12 <- allSubjectsCohort %>% dplyr::select(-c("cohort_definition_id", "cohort_end_date", "cohort_start_date")) %>%
+  features_lasso12 <- allSubjectsCohort %>% 
     dplyr::filter(period == l) %>%
     dplyr::select(-"period") %>%
     dplyr::filter(group %in% c("comparator 2", "comparator 1")) %>%
-    dplyr::inner_join(features_lasso12, by = "subject_id", relationship = "many-to-many")
+    dplyr::inner_join(features_lasso12, by = c("subject_id", "group", "cohort_start_date"="index_date"), relationship = "many-to-many")
   
   features_lasso12$prior_observation <- as.double(features_lasso12$prior_observation)
   features_lasso12 <- features_lasso12 %>% 
-    dplyr::mutate(group = factor(group, c("comparator 2", "comparator 1")))
+    dplyr::mutate(group = factor(group, c("comparator 2", "comparator 1"))) %>% 
+    dplyr::rename(index_date = cohort_start_date) %>% 
+    dplyr::select(-cohort_end_date, -cohort_definition_id)
   
   x <- data.matrix(features_lasso12 %>% dplyr::select(-c("group", "subject_id", "index_date", "follow_up_end")))
   y <- features_lasso12$group
