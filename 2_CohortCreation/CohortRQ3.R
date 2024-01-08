@@ -609,3 +609,14 @@ suppressWarnings(
      index_fracture,
      index_ids) 
 )
+
+#######subsetting c2
+set.seed(12345)
+compCohort2_15 <- list()
+compCohort2_20 <- list()
+for (i in (1:length(compCohort2))){
+  compCohort2_15[[i]] <- compCohort2[[i]] %>% 
+    dplyr::sample_n(nrow(compCohort1[[i]])*15)
+  compCohort2_20[[i]] <- compCohort2[[i]] %>% 
+    dplyr::sample_n(nrow(compCohort1[[i]])*20)
+}
