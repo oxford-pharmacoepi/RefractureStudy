@@ -1,4 +1,5 @@
 ### Creating periods
+print(paste0("Generating period-based denominators at ", Sys.time()))
 info(logger, "CREATING 6-MONTH PERIODS")
 periodStart <- c()
 periodEnd <- c()
@@ -36,6 +37,7 @@ compCohort1<-list()
 targetCohort <- list()
 
 info(logger, "CREATING COMPARATOR COHORT 1")
+print(paste0("Creating C1 at ", Sys.time()))
 for (i in (1:(numberPeriods+1))){
   compCohort1[[i]] <- denom_by_periods[[i]] %>% 
     dplyr::inner_join(fracture_table_rq2_index %>%
@@ -48,6 +50,8 @@ AttritionReportRQ3C1 <- AttritionReport
 fracture_table_rq3_index <- fracture_table_rq2_index 
 
 info(logger, "CREATING TARGET COHORT")
+print(paste0("Creating T-Cohort at ", Sys.time()))
+
 fracture_table_rq3_imminent <- fracture_table %>% 
   dplyr::group_by(subject_id) %>%
   dplyr::mutate(gap = condition_start_date - lag(condition_start_date)) %>%
@@ -186,6 +190,8 @@ for (i in (1:(numberPeriods+1))){
 } 
 
 info(logger, "CREATING COMPARATOR COHORT 2")
+print(paste0("Creating C2 at ", Sys.time()))
+
 for (i in (1:(numberPeriods+1))){
   set.seed(12345)
   compCohort2[[i]] <- denom_by_periods[[i]] %>% 

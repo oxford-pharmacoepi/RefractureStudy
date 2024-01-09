@@ -13,6 +13,8 @@ tot_periods_target <- length(targetCohort)
 tot_periods_c1 <- length(compCohort1)
 
 info(logger, "START TO CREATE THE SUMMARY - BEFORE MATCHING")
+print(paste0("Creating before matching cohorts at ", Sys.time()))
+
 cdm[["before_matching"]] <- 
   Reduce(dplyr::union_all, targetCohort) %>%
   dplyr::select(subject_id, index_date, period) %>% 
@@ -81,6 +83,7 @@ table_one_cohort_count <- cdm[["before_matching"]] %>%
     overwrite = TRUE
   )
 
+print(paste0("Creating table1 for before matching cohorts at ", Sys.time()))
 stem_table <- "rq3"
 conditions <- paste0(stem_table, "_conditions")
 medications <- paste0(stem_table, "_medications")
@@ -146,6 +149,7 @@ for (i in (1:tot_periods_c1)){
 ################################ after matching #################################
 ##01
 info(logger, "START TO CREATE THE SUMMARY - AFTER MATCHING 01")
+print(paste0("Creating after matching cohorts T-C1 at ", Sys.time()))
 subclasses01_table1 <- subclasses01
 for (i in (1:length(subclasses01))){
   subclasses01_table1[[i]] <- subclasses01[[i]] %>%
@@ -219,6 +223,7 @@ after_matching_01_cohort_count <- cdm[["after_matching_tc"]] %>%
     overwrite = TRUE
   )
 
+print(paste0("Creating table1 for after matching cohorts T-C1 at ", Sys.time()))
 stem_table <- "rq3"
 conditions <- paste0(stem_table, "_conditions")
 medications <- paste0(stem_table, "_medications")
@@ -278,6 +283,7 @@ for (i in (1:tot_periods_target)){
 ########################## after matching 12 ####################
 ##12
 info(logger, "START TO CREATE THE SUMMARY - AFTER MATCHING 12")
+print(paste0("Creating after matching cohorts C1-C2 at ", Sys.time()))
 subclasses12_table1 <- subclasses12
 for (i in (1:length(subclasses12))){
   subclasses12_table1[[i]] <- subclasses12[[i]] %>%
@@ -351,6 +357,7 @@ after_matching_12_cohort_count <- cdm[["after_matching_c1c2"]] %>%
     overwrite = TRUE
   )
 
+print(paste0("Creating table1 for after matching cohorts C1-C2 at ", Sys.time()))
 stem_table <- "rq3"
 conditions <- paste0(stem_table, "_conditions")
 medications <- paste0(stem_table, "_medications")

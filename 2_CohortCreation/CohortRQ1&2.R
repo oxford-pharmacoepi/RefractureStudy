@@ -3,6 +3,7 @@ fracture_table_rq2_index <- fracture_table
 ### Exclusion criteria
 # no fractures 730 prior
 info(logger, "EXCLUDING FRACTURE RECORDS THAT HAS ANOTHER FRACTURE WHICH HAPPENED WITHIN 2 YEARS BEFORE THE INDEX DATE")
+print(paste0("Exclusion based on 2 yrs at ", Sys.time()))
 fracture_table_rq2_index <- fracture_table_rq2_index %>%
   dplyr::group_by(subject_id) %>%
   dplyr::arrange(condition_start_date, .by_group = T) %>%
@@ -22,6 +23,7 @@ AttritionReportRQ2<- AttritionReportFrac[,1:4] %>%
   ) 
 
 # at least 50
+print(paste0("Exclusion based on 50 year-old at ", Sys.time()))
 fracture_table_rq2_index <- fracture_table_rq2_index %>% 
   dplyr::left_join(cdm[["person"]], by = c("subject_id" = "person_id"), copy = T) %>%
   dplyr::mutate(age_fracture = lubridate::year(condition_start_date) - year_of_birth) %>%
@@ -40,6 +42,7 @@ AttritionReportRQ2<- AttritionReportRQ2 %>%
 
 # At least 730 days prior obs
 info(logger, "EXCLUDING INDIVIDUALS WHO DO NOT HAVE SUFFICIENT PRIOR OBSERVATION AND/OR OUTSIDE OF OBSERVATION PERIOD")
+print(paste0("Exclusion based on 730 prior observation at ", Sys.time()))
 fracture_table_rq2_index <-fracture_table_rq2_index %>% 
   dplyr::left_join(cdm[["observation_period"]], by = c("subject_id" = "person_id"), copy = T) %>% 
   dplyr::select(subject_id:fracture_site, observation_period_start_date, observation_period_end_date) %>%
@@ -59,7 +62,7 @@ AttritionReportRQ2<- AttritionReportRQ2 %>%
 
 # No records of death on the index date
 info(logger, "EXCLUDING RECORDS OF FRACTURE THAT HAPPENED ON THE SAME DAY AS DEATH")
-
+print(paste0("Exclusion based on death at ", Sys.time()))
 fracture_table_rq2_index <- fracture_table_rq2_index %>% 
   dplyr::anti_join(cdm[["death"]], by = c("subject_id" = "person_id", "condition_start_date" = "death_date"), copy = T)
 
@@ -75,7 +78,7 @@ AttritionReportRQ2<- AttritionReportRQ2 %>%
 
 # No records of cancer before or on the index date
 info(logger, "EXCLUDING INDIVIDUALS WHO HAS A RECORD OF CANCER OF INTEREST BEFORE THE INDEX DATE")
-
+print(paste0("Exclusion based on cancer at ", Sys.time()))
 fracture_table_rq2_index <- 
   fracture_table_rq2_index %>% anti_join(fracture_table_rq2_index %>% 
                                      dplyr::inner_join(cdm[["cancer"]] %>% dplyr::select(subject_id, cancer_date), by = "subject_id", copy = T, relationship = "many-to-many") %>%
@@ -95,7 +98,7 @@ AttritionReportRQ2<- AttritionReportRQ2 %>%
 
 # No records of metabolic bone disease
 info(logger, "EXCLUDING INDIVIDUALS WHO HAS A RECORD OF METABOLIC BONE DISEASE OF INTEREST BEFORE THE INDEX DATE")
-
+print(paste0("Exclusion based on mbd at ", Sys.time()))
 fracture_table_rq2_index <- 
   fracture_table_rq2_index %>% anti_join(fracture_table_rq2_index %>% 
                                      dplyr::inner_join(cdm[["mbd"]] %>% dplyr::select(subject_id, mbd_date), by = "subject_id", copy = T, relationship = "many-to-many") %>%
@@ -115,7 +118,7 @@ AttritionReportRQ2<- AttritionReportRQ2 %>%
 
 # Excluding individuals who has index date same as obs period end date
 info(logger, "EXCLUDING INDIVIDUALS WHO HAS INDEX DATE ON THE SAME DATE AS THE OBSERVATION PERIOD END DATE")
-
+print(paste0("Exclusion based on index_date = obs_end_date at ", Sys.time()))
 fracture_table_rq2_index <- fracture_table_rq2_index %>%
   dplyr::anti_join(cdm[["observation_period"]], by = c("subject_id" = "person_id", "condition_start_date" = "observation_period_end_date"), copy = T)
 
@@ -131,7 +134,7 @@ AttritionReportRQ2<- AttritionReportRQ2 %>%
 
 # restrict the fractures to the study period
 info(logger, "EXCLUDING RECORDS THAT HAPPENED OUTSIDE OF STUDY PERIOD")
-
+print(paste0("Exclusion based on study period at ", Sys.time()))
 fracture_table_rq2_index <- fracture_table_rq2_index %>% 
   dplyr::filter(condition_start_date<=cohort_end_date, condition_start_date>=cohort_start_date) %>%
   dplyr::mutate(class = "index")
@@ -150,6 +153,7 @@ AttritionReportRQ2<- AttritionReportRQ2 %>%
 info(logger, "PULLING OUT POSSIBLE INDEX DATES IS COMPLETED")
 
 ### Finalise attrition
+print(paste0("Output attrition reports at ", Sys.time()))
 AttritionReportRQ2 <- AttritionReportRQ2 %>% 
   dplyr::mutate(subjects_excluded = -(number_subjects-lag(number_subjects)), records_excluded = -(number_records - lag(number_records)))
 
@@ -175,6 +179,7 @@ fracture_table_rq2 <- fracture_table_rq2 %>%
 fracture_table_rq2 <- addIndex(fracture_table_rq2)
 
 info(logger, "CREATING FOLLOWUPEND AND ENTRIES")
+print(paste0("Create follow up time at ", Sys.time()))
 
 # 730 days after the index date
 fracture_table_rq2 <- addInTwoYearsAfter(fracture_table_rq2)
@@ -226,7 +231,6 @@ entryTable <- list()
 for (i in (1:length(reverseEntryTable))){
   entryTable[[i]]<-reverseEntryTable[[length(reverseEntryTable)+1-i]]
 }
-info(logger, "CREATING FOLLOWUPEND AND ENTRIES IS COMPLETED")
 
 stratifiedCohort <- list()
 for (i in (1:(length(entryTable)-1))){
@@ -237,6 +241,7 @@ stratifiedCohort[[length(entryTable)]] <- entryTable[[length(entryTable)]]
 info(logger, "CREATING FOLLOW UP TIME IS DONE")
 
 ### imminent fracture cohort
+print(paste0("Creating imminent fracture cohort at ", Sys.time()))
 imminentFractureCohort <- list()
 for (i in (1:length(stratifiedCohort))){
   imminentFractureCohort[[i]] <- stratifiedCohort[[i]] %>% 
@@ -249,6 +254,7 @@ for (i in 1:length(imminentFractureCohort)){
   imminentFractureCohortTotal<-rbind(imminentFractureCohortTotal, imminentFractureCohort[[i]])
 }
 
+print(paste0("Creating no-imminent fracture cohort at ", Sys.time()))
 withoutImminentFractureCohortTotal <- entryTable[[1]] %>%
   dplyr::anti_join(imminentFractureCohortTotal, by = "subject_id") %>%
   dplyr::select(subject_id) %>%

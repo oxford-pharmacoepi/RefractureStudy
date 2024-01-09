@@ -22,6 +22,7 @@ if (!dir.exists(psFolder)) {
 
 ### Extracting features
 info(logger, "EXTRACTING FEATURES")
+print(paste0("Start extracting features at ", Sys.time()))
 allSubjects <- tibble()
 
 for (i in (1:length(targetCohort))){
@@ -117,6 +118,7 @@ features <- cdm$condition_occurrence_2 %>%
       dplyr::distinct()
   ) %>%
   dplyr::collect()
+print(paste0("Finish extracting features at ", Sys.time()))
 
 features_count <- features %>% 
   dplyr::group_by(feature) %>%
@@ -125,6 +127,7 @@ features_count <- features %>%
 features_count_threshold <- features_count %>%
   dplyr::filter(n<as.integer(denom_count)/200)
 
+print(paste0("Creating subfeatures at ", Sys.time()))
 subfeatures <- features %>% 
   dplyr::filter(!subject_id == 0) %>% 
   dplyr::anti_join(features_count_threshold, by = "feature")
@@ -139,7 +142,8 @@ save(subfeatures, file = here(sub_output_folder, "tempData", "subfeatures.RData"
 rm(features)
 rm(subfeatures)
 rm(features_count, features_count_threshold)
-info(logger, "EXTRACTING FEATURES IS DONE")
+print(paste0("Finishing subfeatures at ", Sys.time()))
+info(logger, "FEATURE EXTRACTION IS DONE")
 
 ### Using Patient Profiles and pre-defined functions
 info(logger, "COMPUTING OTHER DEMOGRAPHICS")
@@ -154,11 +158,13 @@ cdm[["all_subjects"]] <- cdm[["denominator"]] %>%
 
 rm(allSubjects)
 
+print(paste0("Extracting age and prior obs at ", Sys.time()))
 allSubjectsCohort <- 
   cdm[["all_subjects"]] %>% 
   addAge() %>% 
   addPriorObservation()
 
+print(paste0("Extracting the number of visits at ", Sys.time()))
 allSubjectsCohort <- allSubjectsCohort %>%
   addIntersect(
     tableName = "visit_occurrence",
@@ -175,6 +181,7 @@ info(logger, "COMPUTING OTHER DEMOGRAPHICS IS DONE")
 ################################################################
 #lasso regression, ps and matching between target and comp cohort 1
 info(logger, "START MATCHING BETWEEN TARGET AND COMPARATOR COHORT 1")
+print(paste0("Starting matching C1-T at ", Sys.time()))
 lasso_reg_01 <- list()
 selectedLassoFeatures01 <- list()
 match_results_01 <- list()
@@ -185,7 +192,9 @@ load(here(sub_output_folder, "tempData", "compCohort1.RData"))
 load(here(sub_output_folder, "tempData", "compCohort2.RData"))
 
 for (l in (1:length(targetCohort))){
+  print(paste0("Starting matching C1-T for period ", l, " at ", Sys.time()))
   set.seed(12345)
+  print(paste0("Pulling the relevant subfeatures at ", Sys.time()))
   load(here(sub_output_folder, "tempData", "subfeatures.RData"))
   subfeatures_01 <- subfeatures %>% 
     dplyr::inner_join(rbind(targetCohort[[l]] %>% dplyr::select(subject_id, index_date, group), 
@@ -215,6 +224,7 @@ for (l in (1:length(targetCohort))){
     dplyr::rename(index_date = cohort_start_date) %>% 
     dplyr::select(-cohort_end_date, -cohort_definition_id)
   
+  print(paste0("Producing lasso_reg at ", Sys.time()))
   x <- data.matrix(features_lasso01 %>% dplyr::select(-c("group", "subject_id", "index_date", "follow_up_end")))
   y <- features_lasso01$group
   y<-as.integer(y)
@@ -222,6 +232,7 @@ for (l in (1:length(targetCohort))){
   lasso_reg_01[[l]] <- cv.glmnet(x, y, lambda = lambdas, standardize = TRUE, nfolds = 5, family = "binomial", alpha = 1)
   rm(x,y)
   
+  print(paste0("Producing selectedLassoFeatures at ", Sys.time()))
   coef.lasso_reg <- coef(lasso_reg_01[[l]], s = lasso_reg_01[[l]]$lambda.1se)
   selectedLassoFeatures01[[l]] <- names(coef.lasso_reg[(coef.lasso_reg[,1]!=0),1])
   selectedLassoFeatures01[[l]] <- selectedLassoFeatures01[[l]][selectedLassoFeatures01[[l]] != "(Intercept)"]
@@ -230,6 +241,7 @@ for (l in (1:length(targetCohort))){
   features_lasso01 <- features_lasso01 %>%
     dplyr::select(all_of(c("subject_id", "group", "follow_up_end", "index_date", selectedLassoFeatures01[[l]])))
   
+  print(paste0("Producing matched_results at ", Sys.time()))
   match_results_01[[l]] <- matchit(group ~ . -subject_id -follow_up_end -index_date, 
                                    data=features_lasso01,
                                    antiexact = ~subject_id,
@@ -237,7 +249,10 @@ for (l in (1:length(targetCohort))){
                                    caliper= c(0.20, age = 5), 
                                    std.caliper = c(TRUE, FALSE),
                                    ratio=5)
+  
+  print(paste0("Producing subclasses at ", Sys.time()))
   subclasses01[[l]] <- match.data(match_results_01[[l]])
+  print(paste0("Producing summary at ", Sys.time()))
   summary01[[l]] <- summary(match_results_01[[l]])
   rm(allSubjectsCohort, features_lasso01)
 }
@@ -258,6 +273,7 @@ info(logger, "MATCHING BETWEEN TARGET AND COMPARATOR COHORT 1 IS DONE")
 
 #lasso regression, ps and matching between comp cohort 1 and 2
 info(logger, "START MATCHING BETWEEN COMPARATOR COHORT 1 AND COMPARATOR COHORT 2")
+print(paste0("Starting matching between C2-C1 at ", Sys.time()))
 lasso_reg_12 <- list()
 selectedLassoFeatures12 <- list()
 match_results_12 <- list()
@@ -265,7 +281,9 @@ subclasses12 <- list()
 summary12 <- list()
 
 for (l in (1:length(compCohort1))){
+  print(paste0("Starting matching C2-C1 for period ", l, " at ", Sys.time()))
   set.seed(12345)
+  print(paste0("Pulling relevant subfeatures at ", Sys.time()))
   load(here(sub_output_folder, "tempData", "subfeatures.RData"))
   subfeatures_12 <- subfeatures %>% 
     dplyr::inner_join(rbind(compCohort1[[l]] %>% dplyr::select(subject_id, index_date, group), 
@@ -295,6 +313,7 @@ for (l in (1:length(compCohort1))){
     dplyr::rename(index_date = cohort_start_date) %>% 
     dplyr::select(-cohort_end_date, -cohort_definition_id)
   
+  print(paste0("Producing lasso_reg at ", Sys.time()))
   x <- data.matrix(features_lasso12 %>% dplyr::select(-c("group", "subject_id", "index_date", "follow_up_end")))
   y <- features_lasso12$group
   y<-as.integer(y)
@@ -302,6 +321,7 @@ for (l in (1:length(compCohort1))){
   lasso_reg_12[[l]] <- cv.glmnet(x, y, lambda = lambdas, standardize = TRUE, nfolds = 5, family = "binomial", alpha = 1)
   rm(x,y)
   
+  print(paste0("Producing selectedLassoFeatures at ", Sys.time()))
   coef.lasso_reg <- coef(lasso_reg_12[[l]], s = lasso_reg_12[[l]]$lambda.1se)
   selectedLassoFeatures12[[l]] <- names(coef.lasso_reg[(coef.lasso_reg[,1]!=0),1])
   selectedLassoFeatures12[[l]] <- selectedLassoFeatures12[[l]][selectedLassoFeatures12[[l]] != "(Intercept)"]
@@ -310,6 +330,7 @@ for (l in (1:length(compCohort1))){
   features_lasso12 <- features_lasso12 %>%
     dplyr::select(all_of(c("subject_id", "group", "index_date", "follow_up_end", selectedLassoFeatures12[[l]])))
   
+  print(paste0("Producing match_results at ", Sys.time()))
   match_results_12[[l]] <- matchit(group ~ .-subject_id -index_date -follow_up_end, 
                                    data=features_lasso12,
                                    antiexact = ~subject_id,
@@ -317,7 +338,10 @@ for (l in (1:length(compCohort1))){
                                    caliper= c(0.20, age = 5), 
                                    std.caliper = c(TRUE, FALSE),
                                    ratio=5)
+  
+  print(paste0("Producing subclasses at ", Sys.time()))
   subclasses12[[l]] <- match.data(match_results_12[[l]])
+  print(paste0("Producing summary at ", Sys.time()))
   summary12[[l]] <- summary(match_results_12[[l]])
   rm(allSubjectsCohort, features_lasso12)
 }
@@ -337,7 +361,16 @@ gc()
 
 ####
 info(logger, "EXTRACTING OUTPUTS")
+
+print(paste0("Extracting covarites summary at ", Sys.time()))
 source(here("Miscellaneous", "SelectedCovariates.R"))
+print(paste0("Extracting covarites summary is done at ", Sys.time()))
+
+print(paste0("Extracting other output summary at ", Sys.time()))
 source(here("Miscellaneous", "OtherOutputRQ3_Epi.R"))
+print(paste0("Extracting other output summary is done at ", Sys.time()))
+
+print(paste0("Extracting table ones at ", Sys.time()))
 source(here("Miscellaneous", "RQ3_table_one.R"))
+print(paste0("Extracting table ones is done at ", Sys.time()))
 info(logger, "MATCHING BETWEEN COMPARATOR COHORT 1 AND COMPARATOR COHORT 2 IS DONE")

@@ -1,5 +1,6 @@
 ### Create a cohort of women only, age above 50 between 2010/04/01 and 2018/03/31
 info(logger, "CREATING DENOMINATOR - WOMEN WHO ARE ABOVE 50 WITHIN THE STUDY PERIOD")
+print(paste0("Creating denominators at ", Sys.time()))
 cdm <- generateDenominatorCohortSet(
   cdm,
   name = "denominator",
@@ -13,6 +14,7 @@ AttritionReportDenom<-cohortAttrition(cdm$denominator)
 
 ### Loading fracture codes
 info(logger, "LOADING FRACTURE CODES")
+print(paste0("Loading fracture codes at ", Sys.time()))
 conditions_sheet1 <- read_excel(paste0(here(), "/1_InstantiateCohorts/fracture_sites_conditions_codes.xlsx"), sheet = 1) 
 trauma <- read_excel(paste0(here(), "/1_InstantiateCohorts/trauma_codes.xlsx")) 
 trauma_condition <- trauma %>% dplyr::filter(Domain == "Condition") %>% dplyr::select(Id) %>% dplyr::pull()
@@ -33,6 +35,7 @@ any_fracture_id <- conditions_sheet1 %>% dplyr::filter(!Site == "Exclude") %>% d
 
 ### cohort with all records of fracture 
 info(logger, "COLLECTING ALL RECORDS OF FRACTURES FROM DENOMINATORS")
+print(paste0("Collecting all records of fractures from the denominators at ", Sys.time()))
 cdm[["fracture"]] <- cdm[["denominator"]] %>% 
   dplyr::left_join(cdm[["condition_occurrence"]], by = c("subject_id" = "person_id")) %>%
   dplyr::filter(condition_concept_id %in% any_fracture_id) %>%
@@ -82,6 +85,7 @@ AttritionReportFrac<-tibble(
 
 ### Loading exclusion criteria tables
 info(logger, "LOADING EXCLUSION CRITERIA TABLES")
+print(paste0("Creating cancer and mbd patients at ", Sys.time()))
 cancer <- read_excel(paste0(here(), "/1_InstantiateCohorts/cancer_codes.xlsx"))
 mbd <- read_excel(paste0(here(), "/1_InstantiateCohorts/mbd_codes.xlsx"))
 cancer_codes <- cancer %>% dplyr::select(Id) %>% dplyr::pull()
@@ -123,6 +127,7 @@ cdm[["mbd"]] <- cdm[["mbd"]] %>%
 
 ### Removing fractures before the birth year
 info(logger, "REMOVING FRACTURES BEFORE THE BIRTH YEAR")
+print(paste0("Removing fractures before the birth year at ", Sys.time()))
 fracture_table <- fracture_table %>%
   dplyr::left_join(cdm[["person"]], by = c("subject_id" = "person_id"), copy = T) %>%
   dplyr::mutate(fracture_year = as.numeric(format(condition_start_date, "%Y"))) %>%
@@ -141,6 +146,7 @@ AttritionReportFrac<- AttritionReportFrac %>%
 
 ### Removing the fractures that happen on the same day as a trauma 
 info(logger, "REMOVING FRACTURES THAT HAPPEN ON THE SAME DAY AS A TRAUMA")
+print(paste0("Removing fractures based on trauma codes at ", Sys.time()))
 fracture_table <- fracture_table %>%
   anti_join(cdm[["condition_occurrence"]] %>% dplyr::filter(condition_concept_id %in% trauma_condition), by = c("subject_id" = "person_id", "condition_start_date"), copy = T)
 
@@ -169,6 +175,7 @@ AttritionReportFrac<- AttritionReportFrac %>%
 
 ### Washout 
 info(logger, "APPLYING WASHOUT PERIOD")
+print(paste0("Applying a washout period of ", washout_period[[k]], " at ", Sys.time()))
 sites <- c("Hip", "Femur", "Pelvic", "Vertebra", "Humerus", "Forearm", "Tibia and Fibula", "Rib", "Foot", "Nonspecific")
 
 fracture_table_back_up <- fracture_table
@@ -227,7 +234,7 @@ rm(index_fractures)
 
 # Applying Hierarchy to multiple records on the same day
 info(logger, "APPLYING HIERARCHY TO PREVENT MORE THAN ONE RECORD ON THE SAME DAY FOR THE SAME PERSON")
-
+print(paste0("Applying hierarchy at ", Sys.time()))
 fracture_table$fracture_site<-factor(fracture_table$fracture_site, levels = sites)
 
 fracture_table <- fracture_table %>%
