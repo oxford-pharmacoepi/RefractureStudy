@@ -626,3 +626,7 @@ for (i in (1:length(compCohort2))){
   compCohort2_20[[i]] <- compCohort2[[i]] %>% 
     dplyr::sample_n(nrow(compCohort1[[i]])*20)
 }
+
+if(country_setting == "Germany"){
+  compCohort2 <- compCohort2_20
+}
