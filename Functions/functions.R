@@ -501,6 +501,22 @@ analyse_visits <- function(cohort_combined, visit_data) {
   
   ### summary for user only (subjects/visit= NA, not counted)
   not_in <- colnames(visits_count_wide)[(colnames(visits_count_wide)%in% specialty_names)]
+  tot_exposed_yrs_all <- visits_count_wide %>%
+    dplyr::mutate(exposed_yrs = as.numeric(follow_up_end - index_date)/ 365.25) %>% 
+    dplyr::summarise(tot_exposed_yrs = sum(exposed_yrs)) %>% 
+    dplyr::pull(tot_exposed_yrs)
+  
+  tot_exposed_yrs_user <- visits_count_wide %>%
+    dplyr::mutate(exposed_yrs = as.numeric(follow_up_end - index_date)/ 365.25) %>% 
+    pivot_longer(all_of(not_in), names_to = "specialty", values_to = "visits") %>% 
+    dplyr::mutate(visits_per_year = visits / exposed_yrs) %>%
+    dplyr::filter(visits > 0) %>% 
+    dplyr::group_by(subject_id, index_date) %>% 
+    dplyr::filter(row_number()==1) %>% 
+    dplyr::ungroup() %>% 
+    dplyr::summarise(tot_exposed_yrs = sum(exposed_yrs)) %>% 
+    dplyr::pull(tot_exposed_yrs)
+    
   user_only_summary <- visits_count_wide %>%
     dplyr::mutate(exposed_yrs = as.numeric(follow_up_end - index_date)/ 365.25) %>% 
     pivot_longer(all_of(not_in), names_to = "specialty", values_to = "visits") %>% 
@@ -509,8 +525,7 @@ analyse_visits <- function(cohort_combined, visit_data) {
     dplyr::group_by(specialty) %>%
     dplyr::summarise(
       tot_visits = sum(visits),
-      tot_exposed_yrs = sum(exposed_yrs),
-      mean_visits_per_year = round(tot_visits / tot_exposed_yrs, 2), # Manual calculation of mean
+      mean_visits_per_year = round(tot_visits / tot_exposed_yrs_user, 2), # Manual calculation of mean
       sd_visits_per_year = round(sd(visits_per_year, na.rm = TRUE), 2),
       min_visits_per_year = round(min(visits_per_year, na.rm = TRUE), 2),
       max_visits_per_year = round(max(visits_per_year, na.rm = TRUE), 2),
@@ -518,7 +533,7 @@ analyse_visits <- function(cohort_combined, visit_data) {
       .groups = "drop"
     ) %>% 
     dplyr::ungroup() %>% 
-    CDMConnector::computeQuery()
+    CDMConnector::computeQuery() 
   
   ### summary for all subjects (subjects/visits = NA, treated as zero)
   all_summary <- visits_count_wide %>%
@@ -529,15 +544,15 @@ analyse_visits <- function(cohort_combined, visit_data) {
     dplyr::group_by(specialty) %>%
     dplyr::summarise(
       tot_visits = sum(visits),
-      tot_exposed_yrs = sum(exposed_yrs),
-      mean_visits_per_year = round(tot_visits / tot_exposed_yrs, 2), # Manual calculation of mean
+      mean_visits_per_year = round(tot_visits / tot_exposed_yrs_all, 2), # Manual calculation of mean
       sd_visits_per_year = round(sd(visits_per_year, na.rm = TRUE), 2),
       min_visits_per_year = round(min(visits_per_year, na.rm = TRUE), 2),
       max_visits_per_year = round(max(visits_per_year, na.rm = TRUE), 2),
-      num_subjects_visited = n_distinct(subject_id)
+      num_subjects_visited = n_distinct(subject_id),
+      .groups = "drop"
     ) %>% 
     dplyr::ungroup() %>% 
-    CDMConnector::computeQuery()
+    CDMConnector::computeQuery() 
   
   # Calculating non-service users
   visits_count_wide_test <- visits_count_wide[(colnames(visits_count_wide)%in% specialty_names)]
@@ -558,8 +573,7 @@ analyse_visits <- function(cohort_combined, visit_data) {
         rename (type = specialty)
   }
   
-  
-  return(list(user_only_summary = user_only_summary, all_summary = all_summary, non_service_users=non_service_users, visits_count_wide=visits_count_wide))
+  return(list(user_only_summary = user_only_summary, all_summary = all_summary, non_service_users=non_service_users, visits_count_wide=visits_count_wide, tot_exposed_yrs_all=tot_exposed_yrs_all, tot_exposed_yrs_user = tot_exposed_yrs_user))
 }
 
 # Estimate costs primary care visits 
@@ -609,6 +623,22 @@ analyse_visits_cost <- function(cohort_combined, visit_data) {
   
   ### summary for user only (subjects/visit= NA, not counted)
   not_in <- colnames(visits_cost_wide)[(colnames(visits_cost_wide)%in% specialty_names)]
+  tot_exposed_yrs_all <- visits_cost_wide %>%
+    dplyr::mutate(exposed_yrs = as.numeric(follow_up_end - index_date)/ 365.25) %>% 
+    dplyr::summarise(tot_exposed_yrs = sum(exposed_yrs)) %>% 
+    dplyr::pull(tot_exposed_yrs)
+  
+  tot_exposed_yrs_user <- visits_cost_wide %>%
+    dplyr::mutate(exposed_yrs = as.numeric(follow_up_end - index_date)/ 365.25) %>% 
+    pivot_longer(all_of(not_in), names_to = "specialty", values_to = "visits") %>% 
+    dplyr::mutate(visits_per_year = visits / exposed_yrs) %>%
+    dplyr::filter(visits > 0) %>% 
+    dplyr::group_by(subject_id, index_date) %>% 
+    dplyr::filter(row_number()==1) %>% 
+    dplyr::ungroup() %>% 
+    dplyr::summarise(tot_exposed_yrs = sum(exposed_yrs)) %>% 
+    dplyr::pull(tot_exposed_yrs)
+  
   user_only_cost_summary <- visits_cost_wide %>%
     dplyr::mutate(exposed_yrs = as.numeric(follow_up_end - index_date)/ 365.25) %>% 
     pivot_longer(all_of(not_in), names_to = "specialty", values_to = "visits_costs") %>% 
@@ -617,8 +647,7 @@ analyse_visits_cost <- function(cohort_combined, visit_data) {
     dplyr::group_by(specialty) %>%
     dplyr::summarise(
       tot_visits_costs = sum(visits_costs),
-      tot_exposed_yrs = sum(exposed_yrs),
-      mean_cost_visits_per_year = round(tot_visits_costs / tot_exposed_yrs, 2), # Manual calculation of mean
+      mean_cost_visits_per_year = round(tot_visits_costs / tot_exposed_yrs_user, 2), # Manual calculation of mean
       sd_cost_visits_per_year = round(sd(visits_costs_per_year, na.rm = TRUE), 2),
       min_cost_visits_per_year = round(min(visits_costs_per_year, na.rm = TRUE), 2),
       max_cost_visits_per_year = round(max(visits_costs_per_year, na.rm = TRUE), 2),
@@ -627,7 +656,6 @@ analyse_visits_cost <- function(cohort_combined, visit_data) {
     ) %>% 
     dplyr::ungroup() %>% 
     CDMConnector::computeQuery()
-  
   
   ### summary for all subjects (subjects/visits = NA, treated as zero)
   all_cost_summary <-  visits_cost_wide %>%
@@ -638,8 +666,7 @@ analyse_visits_cost <- function(cohort_combined, visit_data) {
     dplyr::mutate(visits_costs = round(visits_costs, digits = 2)) %>% 
     dplyr::summarise(
       tot_visits_costs = sum(visits_costs, na.rm = T),
-      tot_exposed_yrs = sum(exposed_yrs),
-      mean_cost_visits_per_year = round(tot_visits_costs / tot_exposed_yrs, 2), # Manual calculation of mean
+      mean_cost_visits_per_year = round(tot_visits_costs / tot_exposed_yrs_all, 2), # Manual calculation of mean
       sd_cost_visits_per_year = round(sd(visits_costs_per_year, na.rm = TRUE), 2),
       min_cost_visits_per_year = round(min(visits_costs_per_year, na.rm = TRUE), 2),
       max_cost_visits_per_year = round(max(visits_costs_per_year, na.rm = TRUE), 2),
@@ -649,9 +676,8 @@ analyse_visits_cost <- function(cohort_combined, visit_data) {
     dplyr::ungroup() %>% 
     CDMConnector::computeQuery()
   
-  return(list(user_only_cost_summary = user_only_cost_summary, all_cost_summary = all_cost_summary))
+  return(list(user_only_cost_summary = user_only_cost_summary, all_cost_summary = all_cost_summary, tot_exposed_yrs_all=tot_exposed_yrs_all, tot_exposed_yrs_user=tot_exposed_yrs_user))
 }
-
 
 # Cohort summary
 

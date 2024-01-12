@@ -117,16 +117,15 @@ info(logger, "COHORT SUMMARY FOR HEALTH ECONOMICS IS DONE")
 info(logger, "STARTING HEALTH ECONOMICS OUTPUT")
 info(logger, "START MASKING THE DATA")
 target_results_output <- list()
-for (name in (names(target_results)[1:3])){
+for (name in (names(target_results)[1:length(target_results)])){
   target_results_output[[name]]<-target_results[[name]]
 }
 
-target_results_output[["user_only_mean_visit_per_year"]] <- tibble(mean_visit=(sum(as.integer(target_results_output[[1]]$tot_visits))/sum(as.numeric(target_results_output[[1]]$tot_exposed_yrs))))
-target_results_output[["all_mean_visit_per_year"]] <- tibble(mean_visit=(sum(as.integer(target_results_output[[2]]$tot_visits))/(as.numeric(target_results_output[[2]][1,3]))))
+target_results_output[["user_only_mean_visit_per_year"]] <- tibble(mean_visit=(sum(as.integer(target_results_output[[1]]$tot_visits))/target_results_output[["tot_exposed_yrs_user"]]))
+target_results_output[["all_mean_visit_per_year"]] <- tibble(mean_visit=(sum(as.integer(target_results_output[[2]]$tot_visits))/target_results_output[["tot_exposed_yrs_all"]]))
 
 target_results_output[[names(target_results)[1]]] <-target_results_output[[names(target_results)[1]]] %>% 
   dplyr::mutate(tot_visits = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.integer(.data$tot_visits)),
-                tot_exposed_yrs = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.integer(.data$tot_exposed_yrs)),
                 mean_visits_per_year = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.integer(.data$mean_visits_per_year)),
                 sd_visits_per_year = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.integer(.data$sd_visits_per_year)),
                 min_visits_per_year  = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.integer(.data$min_visits_per_year )),
@@ -135,7 +134,6 @@ target_results_output[[names(target_results)[1]]] <-target_results_output[[names
 
 target_results_output[[names(target_results)[2]]] <-target_results_output[[names(target_results)[2]]] %>% 
   dplyr::mutate(tot_visits = ifelse((tot_visits<minimum_counts & tot_visits>0), paste0("<", minimum_counts), as.integer(.data$tot_visits)),
-                tot_exposed_yrs = ifelse((tot_visits<minimum_counts & tot_visits>0), paste0("<", minimum_counts), as.integer(.data$tot_exposed_yrs)),
                 mean_visits_per_year = ifelse((tot_visits<minimum_counts & tot_visits>0), paste0("<", minimum_counts), as.integer(.data$mean_visits_per_year)),
                 sd_visits_per_year = ifelse((tot_visits<minimum_counts & tot_visits>0), paste0("<", minimum_counts), as.integer(.data$sd_visits_per_year)),
                 min_visits_per_year  = ifelse((tot_visits<minimum_counts & tot_visits>0), paste0("<", minimum_counts), as.integer(.data$min_visits_per_year )),
@@ -148,16 +146,15 @@ if(target_results_output[[names(target_results)[3]]]$nonservice<5 & target_resul
 
 #####
 cohort1_comp1_results_output <- list()
-for (name in (names(cohort1_comp1_results)[1:3])){
+for (name in (names(cohort1_comp1_results)[1:length(cohort1_comp1_results)])){
   cohort1_comp1_results_output[[name]]<-cohort1_comp1_results[[name]]
 }
 
-cohort1_comp1_results_output[["user_only_mean_visit_per_year"]] <- tibble(mean_visit=(sum(as.integer(cohort1_comp1_results_output[[1]]$tot_visits))/sum(as.numeric(cohort1_comp1_results_output[[1]]$tot_exposed_yrs))))
-cohort1_comp1_results_output[["all_mean_visit_per_year"]] <- tibble(mean_visit=(sum(as.integer(cohort1_comp1_results_output[[2]]$tot_visits))/(as.numeric(cohort1_comp1_results_output[[2]][1,3]))))
+cohort1_comp1_results_output[["user_only_mean_visit_per_year"]] <- tibble(mean_visit=(sum(as.integer(cohort1_comp1_results_output[[1]]$tot_visits))/cohort1_comp1_results_output[["tot_exposed_yrs_user"]]))
+cohort1_comp1_results_output[["all_mean_visit_per_year"]] <- tibble(mean_visit=(sum(as.integer(cohort1_comp1_results_output[[2]]$tot_visits))/cohort1_comp1_results_output[["tot_exposed_yrs_all"]]))
 
 cohort1_comp1_results_output[[names(cohort1_comp1_results)[1]]] <-cohort1_comp1_results_output[[names(cohort1_comp1_results)[1]]] %>% 
   dplyr::mutate(tot_visits = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.integer(.data$tot_visits)),
-                tot_exposed_yrs = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.integer(.data$tot_exposed_yrs)),
                 mean_visits_per_year = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.integer(.data$mean_visits_per_year)),
                 sd_visits_per_year = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.integer(.data$sd_visits_per_year)),
                 min_visits_per_year  = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.integer(.data$min_visits_per_year )),
@@ -166,7 +163,6 @@ cohort1_comp1_results_output[[names(cohort1_comp1_results)[1]]] <-cohort1_comp1_
 
 cohort1_comp1_results_output[[names(cohort1_comp1_results)[2]]] <-cohort1_comp1_results_output[[names(cohort1_comp1_results)[2]]] %>% 
   dplyr::mutate(tot_visits = ifelse((tot_visits<minimum_counts & tot_visits>0), paste0("<", minimum_counts), as.integer(.data$tot_visits)),
-                tot_exposed_yrs = ifelse((tot_visits<minimum_counts & tot_visits>0), paste0("<", minimum_counts), as.integer(.data$tot_exposed_yrs)),
                 mean_visits_per_year = ifelse((tot_visits<minimum_counts & tot_visits>0), paste0("<", minimum_counts), as.integer(.data$mean_visits_per_year)),
                 sd_visits_per_year = ifelse((tot_visits<minimum_counts & tot_visits>0), paste0("<", minimum_counts), as.integer(.data$sd_visits_per_year)),
                 min_visits_per_year  = ifelse((tot_visits<minimum_counts & tot_visits>0), paste0("<", minimum_counts), as.integer(.data$min_visits_per_year )),
@@ -179,16 +175,15 @@ if(cohort1_comp1_results_output[[names(cohort1_comp1_results)[3]]]$nonservice<5 
 
 #####
 cohort1_comp2_results_output <- list()
-for (name in (names(cohort1_comp2_results)[1:3])){
+for (name in (names(cohort1_comp2_results)[1:length(cohort1_comp2_results)])){
   cohort1_comp2_results_output[[name]]<-cohort1_comp2_results[[name]]
 }
 
-cohort1_comp2_results_output[["user_only_mean_visit_per_year"]] <- tibble(mean_visit=(sum(as.integer(cohort1_comp2_results_output[[1]]$tot_visits))/sum(as.numeric(cohort1_comp2_results_output[[1]]$tot_exposed_yrs))))
-cohort1_comp2_results_output[["all_mean_visit_per_year"]] <- tibble(mean_visit=(sum(as.integer(cohort1_comp2_results_output[[2]]$tot_visits))/(as.numeric(cohort1_comp2_results_output[[2]][1,3]))))
+cohort1_comp2_results_output[["user_only_mean_visit_per_year"]] <- tibble(mean_visit=(sum(as.integer(cohort1_comp2_results_output[[1]]$tot_visits))/cohort1_comp2_results_output[["tot_exposed_yrs_user"]]))
+cohort1_comp2_results_output[["all_mean_visit_per_year"]] <- tibble(mean_visit=(sum(as.integer(cohort1_comp2_results_output[[2]]$tot_visits))/cohort1_comp2_results_output[["tot_exposed_yrs_all"]]))
 
 cohort1_comp2_results_output[[names(cohort1_comp2_results)[1]]] <-cohort1_comp2_results_output[[names(cohort1_comp2_results)[1]]] %>% 
   dplyr::mutate(tot_visits = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.integer(.data$tot_visits)),
-                tot_exposed_yrs = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.integer(.data$tot_exposed_yrs)),
                 mean_visits_per_year = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.integer(.data$mean_visits_per_year)),
                 sd_visits_per_year = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.integer(.data$sd_visits_per_year)),
                 min_visits_per_year  = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.integer(.data$min_visits_per_year )),
@@ -197,7 +192,6 @@ cohort1_comp2_results_output[[names(cohort1_comp2_results)[1]]] <-cohort1_comp2_
 
 cohort1_comp2_results_output[[names(cohort1_comp2_results)[2]]] <-cohort1_comp2_results_output[[names(cohort1_comp2_results)[2]]] %>% 
   dplyr::mutate(tot_visits = ifelse((tot_visits<minimum_counts & tot_visits>0), paste0("<", minimum_counts), as.integer(.data$tot_visits)),
-                tot_exposed_yrs = ifelse((tot_visits<minimum_counts & tot_visits>0), paste0("<", minimum_counts), as.integer(.data$tot_exposed_yrs)),
                 mean_visits_per_year = ifelse((tot_visits<minimum_counts & tot_visits>0), paste0("<", minimum_counts), as.integer(.data$mean_visits_per_year)),
                 sd_visits_per_year = ifelse((tot_visits<minimum_counts & tot_visits>0), paste0("<", minimum_counts), as.integer(.data$sd_visits_per_year)),
                 min_visits_per_year  = ifelse((tot_visits<minimum_counts & tot_visits>0), paste0("<", minimum_counts), as.integer(.data$min_visits_per_year )),
@@ -210,16 +204,15 @@ if(cohort1_comp2_results_output[[names(cohort1_comp2_results)[3]]]$nonservice<5 
 
 ####
 cohort2_results_output <- list()
-for (name in (names(cohort2_results)[1:3])){
+for (name in (names(cohort2_results)[1:length(cohort2_results)])){
   cohort2_results_output[[name]]<-cohort2_results[[name]]
 }
 
-cohort2_results_output[["user_only_mean_visit_per_year"]] <- tibble(mean_visit=(sum(as.integer(cohort2_results_output[[1]]$tot_visits))/sum(as.numeric(cohort2_results_output[[1]]$tot_exposed_yrs))))
-cohort2_results_output[["all_mean_visit_per_year"]] <- tibble(mean_visit=(sum(as.integer(cohort2_results_output[[2]]$tot_visits))/(as.numeric(cohort2_results_output[[2]][1,3]))))
+cohort2_results_output[["user_only_mean_visit_per_year"]] <- tibble(mean_visit=(sum(as.integer(cohort2_results_output[[1]]$tot_visits))/cohort2_results_output[["tot_exposed_yrs_user"]]))
+cohort2_results_output[["all_mean_visit_per_year"]] <- tibble(mean_visit=(sum(as.integer(cohort2_results_output[[2]]$tot_visits))/cohort2_results_output[["tot_exposed_yrs_all"]]))
 
 cohort2_results_output[[names(cohort2_results)[1]]] <-cohort2_results_output[[names(cohort2_results)[1]]] %>% 
   dplyr::mutate(tot_visits = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.integer(.data$tot_visits)),
-                tot_exposed_yrs = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.integer(.data$tot_exposed_yrs)),
                 mean_visits_per_year = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.integer(.data$mean_visits_per_year)),
                 sd_visits_per_year = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.integer(.data$sd_visits_per_year)),
                 min_visits_per_year  = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.integer(.data$min_visits_per_year )),
@@ -228,7 +221,6 @@ cohort2_results_output[[names(cohort2_results)[1]]] <-cohort2_results_output[[na
 
 cohort2_results_output[[names(cohort2_results)[2]]] <-cohort2_results_output[[names(cohort2_results)[2]]] %>% 
   dplyr::mutate(tot_visits = ifelse((tot_visits<minimum_counts & tot_visits>0), paste0("<", minimum_counts), as.integer(.data$tot_visits)),
-                tot_exposed_yrs = ifelse((tot_visits<minimum_counts & tot_visits>0), paste0("<", minimum_counts), as.integer(.data$tot_exposed_yrs)),
                 mean_visits_per_year = ifelse((tot_visits<minimum_counts & tot_visits>0), paste0("<", minimum_counts), as.integer(.data$mean_visits_per_year)),
                 sd_visits_per_year = ifelse((tot_visits<minimum_counts & tot_visits>0), paste0("<", minimum_counts), as.integer(.data$sd_visits_per_year)),
                 min_visits_per_year  = ifelse((tot_visits<minimum_counts & tot_visits>0), paste0("<", minimum_counts), as.integer(.data$min_visits_per_year )),
@@ -248,21 +240,20 @@ write.xlsx(cohort2_results_output, file = here(sub_output_folder, "cohort2_resul
 if (country_setting != "Netherlands") {
   
 #Cost
-  target_results_cost[["user_only_mean_costs_per_year"]] <- tibble(mean_cost_visit=(sum(as.integer(target_results_cost[[1]]$tot_visits_costs))/sum(as.numeric(target_results_cost[[1]]$tot_exposed_yrs))))
-  target_results_cost[["all_mean_costs_per_year"]] <- tibble(mean_visit=(sum(as.integer(target_results_cost[[2]]$tot_visits_costs))/(as.numeric(target_results_cost[[2]][1,3]))))
+  target_results_cost[["user_only_mean_costs_per_year"]] <- tibble(mean_cost_visit=(sum(as.integer(target_results_cost[[1]]$tot_visits_costs))/target_results_output[["tot_exposed_yrs_user"]]))
+  target_results_cost[["all_mean_costs_per_year"]] <- tibble(mean_visit=(sum(as.integer(target_results_cost[[2]]$tot_visits_costs))/target_results_output[["tot_exposed_yrs_all"]]))
   
-  cohort1_comp1_results_cost[["user_only_mean_costs_per_year"]] <- tibble(mean_cost_visit=(sum(as.integer(cohort1_comp1_results_cost[[1]]$tot_visits_costs))/sum(as.numeric(cohort1_comp1_results_cost[[1]]$tot_exposed_yrs))))
-  cohort1_comp1_results_cost[["all_mean_costs_per_year"]] <- tibble(mean_visit=(sum(as.integer(cohort1_comp1_results_cost[[2]]$tot_visits_costs))/(as.numeric(cohort1_comp1_results_cost[[2]][1,3]))))
+  cohort1_comp1_results_cost[["user_only_mean_costs_per_year"]] <- tibble(mean_cost_visit=(sum(as.integer(cohort1_comp1_results_cost[[1]]$tot_visits_costs))/cohort1_comp1_results_cost[["tot_exposed_yrs_user"]]))
+  cohort1_comp1_results_cost[["all_mean_costs_per_year"]] <- tibble(mean_visit=(sum(as.integer(cohort1_comp1_results_cost[[2]]$tot_visits_costs))/cohort1_comp1_results_cost[["tot_exposed_yrs_all"]]))
   
-  cohort1_comp2_results_cost[["user_only_mean_costs_per_year"]] <- tibble(mean_cost_visit=(sum(as.integer(cohort1_comp2_results_cost[[1]]$tot_visits_costs))/sum(as.numeric(cohort1_comp2_results_cost[[1]]$tot_exposed_yrs))))
-  cohort1_comp2_results_cost[["all_mean_costs_per_year"]] <- tibble(mean_visit=(sum(as.integer(cohort1_comp2_results_cost[[2]]$tot_visits_costs))/(as.numeric(cohort1_comp2_results_cost[[2]][1,3]))))
+  cohort1_comp2_results_cost[["user_only_mean_costs_per_year"]] <- tibble(mean_cost_visit=(sum(as.integer(cohort1_comp2_results_cost[[1]]$tot_visits_costs))/cohort1_comp2_results_cost[["tot_exposed_yrs_user"]]))
+  cohort1_comp2_results_cost[["all_mean_costs_per_year"]] <- tibble(mean_visit=(sum(as.integer(cohort1_comp2_results_cost[[2]]$tot_visits_costs))/cohort1_comp2_results_cost[["tot_exposed_yrs_all"]]))
   
-  cohort2_results_cost[["user_only_mean_costs_per_year"]] <- tibble(mean_cost_visit=(sum(as.integer(cohort2_results_cost[[1]]$tot_visits_costs))/sum(as.numeric(cohort2_results_cost[[1]]$tot_exposed_yrs))))
-  cohort2_results_cost[["all_mean_costs_per_year"]] <- tibble(mean_visit=(sum(as.integer(cohort2_results_cost[[2]]$tot_visits_costs))/(as.numeric(cohort2_results_cost[[2]][1,3]))))
+  cohort2_results_cost[["user_only_mean_costs_per_year"]] <- tibble(mean_cost_visit=(sum(as.integer(cohort2_results_cost[[1]]$tot_visits_costs))/cohort2_results_cost[["tot_exposed_yrs_user"]]))
+  cohort2_results_cost[["all_mean_costs_per_year"]] <- tibble(mean_visit=(sum(as.integer(cohort2_results_cost[[2]]$tot_visits_costs))/cohort2_results_cost[["tot_exposed_yrs_all"]]))
   
 target_results_cost[[1]] <- target_results_cost[[1]] %>% 
   dplyr::mutate(tot_visits_costs = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.integer(.data$tot_visits_costs)),
-                tot_exposed_yrs = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.integer(.data$tot_exposed_yrs)),
                 mean_cost_visits_per_year = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.integer(.data$mean_cost_visits_per_year)),
                 sd_cost_visits_per_year = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.integer(.data$sd_cost_visits_per_year)),
                 min_cost_visits_per_year  = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.integer(.data$min_cost_visits_per_year )),
@@ -272,7 +263,6 @@ write.xlsx(target_results_cost, file = here(sub_output_folder, "target_results_c
 
 cohort1_comp1_results_cost[[1]] <- cohort1_comp1_results_cost[[1]] %>% 
   dplyr::mutate(tot_visits_costs = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.integer(.data$tot_visits_costs)),
-                tot_exposed_yrs = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.integer(.data$tot_exposed_yrs)),
                 mean_cost_visits_per_year = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.integer(.data$mean_cost_visits_per_year)),
                 sd_cost_visits_per_year = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.integer(.data$sd_cost_visits_per_year)),
                 min_cost_visits_per_year  = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.integer(.data$min_cost_visits_per_year )),
@@ -282,7 +272,6 @@ write.xlsx(cohort1_comp1_results_cost, file = here(sub_output_folder, "cohort1_c
 
 cohort1_comp2_results_cost[[1]] <- cohort1_comp2_results_cost[[1]] %>% 
   dplyr::mutate(tot_visits_costs = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.integer(.data$tot_visits_costs)),
-                tot_exposed_yrs = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.integer(.data$tot_exposed_yrs)),
                 mean_cost_visits_per_year = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.integer(.data$mean_cost_visits_per_year)),
                 sd_cost_visits_per_year = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.integer(.data$sd_cost_visits_per_year)),
                 min_cost_visits_per_year  = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.integer(.data$min_cost_visits_per_year )),
@@ -292,7 +281,6 @@ write.xlsx(cohort1_comp2_results_cost, file = here(sub_output_folder, "cohort1_c
 
 cohort2_results_cost[[1]] <- cohort2_results_cost[[1]] %>% 
   dplyr::mutate(tot_visits_costs = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.integer(.data$tot_visits_costs)),
-                tot_exposed_yrs = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.integer(.data$tot_exposed_yrs)),
                 mean_cost_visits_per_year = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.integer(.data$mean_cost_visits_per_year)),
                 sd_cost_visits_per_year = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.integer(.data$sd_cost_visits_per_year)),
                 min_cost_visits_per_year  = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.integer(.data$min_cost_visits_per_year )),
