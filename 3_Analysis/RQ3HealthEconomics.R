@@ -121,8 +121,28 @@ for (name in (names(target_results)[1:length(target_results)])){
   target_results_output[[name]]<-target_results[[name]]
 }
 
-target_results_output[["user_only_mean_visit_per_year"]] <- tibble(mean_visit=(sum(as.integer(target_results_output[[1]]$tot_visits))/target_results_output[["tot_exposed_yrs_user"]]))
-target_results_output[["all_mean_visit_per_year"]] <- tibble(mean_visit=(sum(as.integer(target_results_output[[2]]$tot_visits))/target_results_output[["tot_exposed_yrs_all"]]))
+data_all <- target_results_output[["visits_count_wide"]] %>% 
+  dplyr::select(-exposed_yrs, -cohort) %>% 
+  pivot_longer(cols = -c(subject_id, index_date, follow_up_end)) %>% 
+  dplyr::group_by(subject_id, index_date, follow_up_end) %>% 
+  dplyr::summarise(tot_visits = sum(value, na.rm = T)) %>% 
+  dplyr::ungroup() %>% 
+  dplyr::mutate(cohort = "target",
+                tot_exposed_yrs = as.numeric((follow_up_end - index_date)/365.25),
+                tot_visits_per_yr = tot_visits/tot_exposed_yrs)
+
+data_user <- data_all %>% 
+  dplyr::filter(tot_visits > 0)
+
+target_results_output[["user_only_summary_statistics"]] <- tibble(mean_visit_per_year=(sum(data_user$tot_visits)/sum(data_user$tot_exposed_yrs)),
+                                                                  min_visit_per_year = min(data_user$tot_visits_per_yr),
+                                                                  max_visit_per_year = max(data_user$tot_visits_per_yr),
+                                                                  sd_visit_per_year = sd(data_user$tot_visits_per_yr))
+
+target_results_output[["all_summary_statistics"]] <- tibble(mean_visit_per_year=(sum(data_all$tot_visits)/sum(data_all$tot_exposed_yrs)),
+                                                            min_visit_per_year = min(data_all$tot_visits_per_yr),
+                                                            max_visit_per_year = max(data_all$tot_visits_per_yr),
+                                                            sd_visit_per_year = sd(data_all$tot_visits_per_yr))
 
 target_results_output[[names(target_results)[1]]] <-target_results_output[[names(target_results)[1]]] %>% 
   dplyr::mutate(tot_visits = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.integer(.data$tot_visits)),
@@ -150,8 +170,28 @@ for (name in (names(cohort1_comp1_results)[1:length(cohort1_comp1_results)])){
   cohort1_comp1_results_output[[name]]<-cohort1_comp1_results[[name]]
 }
 
-cohort1_comp1_results_output[["user_only_mean_visit_per_year"]] <- tibble(mean_visit=(sum(as.integer(cohort1_comp1_results_output[[1]]$tot_visits))/cohort1_comp1_results_output[["tot_exposed_yrs_user"]]))
-cohort1_comp1_results_output[["all_mean_visit_per_year"]] <- tibble(mean_visit=(sum(as.integer(cohort1_comp1_results_output[[2]]$tot_visits))/cohort1_comp1_results_output[["tot_exposed_yrs_all"]]))
+data_all <- cohort1_comp1_results_output[["visits_count_wide"]] %>% 
+  dplyr::select(-exposed_yrs, -cohort) %>% 
+  pivot_longer(cols = -c(subject_id, index_date, follow_up_end)) %>% 
+  dplyr::group_by(subject_id, index_date, follow_up_end) %>% 
+  dplyr::summarise(tot_visits = sum(value, na.rm = T)) %>% 
+  dplyr::ungroup() %>% 
+  dplyr::mutate(cohort = "cohort1_comp1",
+                tot_exposed_yrs = as.numeric((follow_up_end - index_date)/365.25),
+                tot_visits_per_yr = tot_visits/tot_exposed_yrs)
+
+data_user <- data_all %>% 
+  dplyr::filter(tot_visits > 0)
+
+cohort1_comp1_results_output[["user_only_summary_statistics"]] <- tibble(mean_visit_per_year=(sum(data_user$tot_visits)/sum(data_user$tot_exposed_yrs)),
+                                                                  min_visit_per_year = min(data_user$tot_visits_per_yr),
+                                                                  max_visit_per_year = max(data_user$tot_visits_per_yr),
+                                                                  sd_visit_per_year = sd(data_user$tot_visits_per_yr))
+
+cohort1_comp1_results_output[["all_summary_statistics"]] <- tibble(mean_visit_per_year=(sum(data_all$tot_visits)/sum(data_all$tot_exposed_yrs)),
+                                                            min_visit_per_year = min(data_all$tot_visits_per_yr),
+                                                            max_visit_per_year = max(data_all$tot_visits_per_yr),
+                                                            sd_visit_per_year = sd(data_all$tot_visits_per_yr))
 
 cohort1_comp1_results_output[[names(cohort1_comp1_results)[1]]] <-cohort1_comp1_results_output[[names(cohort1_comp1_results)[1]]] %>% 
   dplyr::mutate(tot_visits = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.integer(.data$tot_visits)),
@@ -179,8 +219,28 @@ for (name in (names(cohort1_comp2_results)[1:length(cohort1_comp2_results)])){
   cohort1_comp2_results_output[[name]]<-cohort1_comp2_results[[name]]
 }
 
-cohort1_comp2_results_output[["user_only_mean_visit_per_year"]] <- tibble(mean_visit=(sum(as.integer(cohort1_comp2_results_output[[1]]$tot_visits))/cohort1_comp2_results_output[["tot_exposed_yrs_user"]]))
-cohort1_comp2_results_output[["all_mean_visit_per_year"]] <- tibble(mean_visit=(sum(as.integer(cohort1_comp2_results_output[[2]]$tot_visits))/cohort1_comp2_results_output[["tot_exposed_yrs_all"]]))
+data_all <- cohort1_comp2_results_output[["visits_count_wide"]] %>% 
+  dplyr::select(-exposed_yrs, -cohort) %>% 
+  pivot_longer(cols = -c(subject_id, index_date, follow_up_end)) %>% 
+  dplyr::group_by(subject_id, index_date, follow_up_end) %>% 
+  dplyr::summarise(tot_visits = sum(value, na.rm = T)) %>% 
+  dplyr::ungroup() %>% 
+  dplyr::mutate(cohort = "cohort1_comp1",
+                tot_exposed_yrs = as.numeric((follow_up_end - index_date)/365.25),
+                tot_visits_per_yr = tot_visits/tot_exposed_yrs)
+
+data_user <- data_all %>% 
+  dplyr::filter(tot_visits > 0)
+
+cohort1_comp2_results_output[["user_only_summary_statistics"]] <- tibble(mean_visit_per_year=(sum(data_user$tot_visits)/sum(data_user$tot_exposed_yrs)),
+                                                                         min_visit_per_year = min(data_user$tot_visits_per_yr),
+                                                                         max_visit_per_year = max(data_user$tot_visits_per_yr),
+                                                                         sd_visit_per_year = sd(data_user$tot_visits_per_yr))
+
+cohort1_comp2_results_output[["all_summary_statistics"]] <- tibble(mean_visit_per_year=(sum(data_all$tot_visits)/sum(data_all$tot_exposed_yrs)),
+                                                                   min_visit_per_year = min(data_all$tot_visits_per_yr),
+                                                                   max_visit_per_year = max(data_all$tot_visits_per_yr),
+                                                                   sd_visit_per_year = sd(data_all$tot_visits_per_yr))
 
 cohort1_comp2_results_output[[names(cohort1_comp2_results)[1]]] <-cohort1_comp2_results_output[[names(cohort1_comp2_results)[1]]] %>% 
   dplyr::mutate(tot_visits = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.integer(.data$tot_visits)),
@@ -208,8 +268,28 @@ for (name in (names(cohort2_results)[1:length(cohort2_results)])){
   cohort2_results_output[[name]]<-cohort2_results[[name]]
 }
 
-cohort2_results_output[["user_only_mean_visit_per_year"]] <- tibble(mean_visit=(sum(as.integer(cohort2_results_output[[1]]$tot_visits))/cohort2_results_output[["tot_exposed_yrs_user"]]))
-cohort2_results_output[["all_mean_visit_per_year"]] <- tibble(mean_visit=(sum(as.integer(cohort2_results_output[[2]]$tot_visits))/cohort2_results_output[["tot_exposed_yrs_all"]]))
+data_all <- cohort2_results_output[["visits_count_wide"]] %>% 
+  dplyr::select(-exposed_yrs, -cohort) %>% 
+  pivot_longer(cols = -c(subject_id, index_date, follow_up_end)) %>% 
+  dplyr::group_by(subject_id, index_date, follow_up_end) %>% 
+  dplyr::summarise(tot_visits = sum(value, na.rm = T)) %>% 
+  dplyr::ungroup() %>% 
+  dplyr::mutate(cohort = "cohort2",
+                tot_exposed_yrs = as.numeric((follow_up_end - index_date)/365.25),
+                tot_visits_per_yr = tot_visits/tot_exposed_yrs)
+
+data_user <- data_all %>% 
+  dplyr::filter(tot_visits > 0)
+
+cohort2_results_output[["user_only_summary_statistics"]] <- tibble(mean_visit_per_year=(sum(data_user$tot_visits)/sum(data_user$tot_exposed_yrs)),
+                                                                  min_visit_per_year = min(data_user$tot_visits_per_yr),
+                                                                  max_visit_per_year = max(data_user$tot_visits_per_yr),
+                                                                  sd_visit_per_year = sd(data_user$tot_visits_per_yr))
+
+cohort2_results_output[["all_summary_statistics"]] <- tibble(mean_visit_per_year=(sum(data_all$tot_visits)/sum(data_all$tot_exposed_yrs)),
+                                                            min_visit_per_year = min(data_all$tot_visits_per_yr),
+                                                            max_visit_per_year = max(data_all$tot_visits_per_yr),
+                                                            sd_visit_per_year = sd(data_all$tot_visits_per_yr))
 
 cohort2_results_output[[names(cohort2_results)[1]]] <-cohort2_results_output[[names(cohort2_results)[1]]] %>% 
   dplyr::mutate(tot_visits = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.integer(.data$tot_visits)),
