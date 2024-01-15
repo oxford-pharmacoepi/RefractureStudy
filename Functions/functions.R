@@ -525,10 +525,10 @@ analyse_visits <- function(cohort_combined, visit_data) {
     dplyr::group_by(specialty) %>%
     dplyr::summarise(
       tot_visits = sum(visits),
-      mean_visits_per_year = round(tot_visits / tot_exposed_yrs_user, 2), # Manual calculation of mean
-      sd_visits_per_year = round(sd(visits_per_year, na.rm = TRUE), 2),
-      min_visits_per_year = round(min(visits_per_year, na.rm = TRUE), 2),
-      max_visits_per_year = round(max(visits_per_year, na.rm = TRUE), 2),
+      mean_visits_per_year = signif(tot_visits / tot_exposed_yrs_user, 4), # Manual calculation of mean
+      sd_visits_per_year = signif(sd(visits_per_year, na.rm = TRUE), 4),
+      min_visits_per_year = signif(min(visits_per_year, na.rm = TRUE), 4),
+      max_visits_per_year = signif(max(visits_per_year, na.rm = TRUE), 4),
       num_subjects_visited = n_distinct(subject_id),
       .groups = "drop"
     ) %>% 
@@ -544,10 +544,10 @@ analyse_visits <- function(cohort_combined, visit_data) {
     dplyr::group_by(specialty) %>%
     dplyr::summarise(
       tot_visits = sum(visits),
-      mean_visits_per_year = round(tot_visits / tot_exposed_yrs_all, 2), # Manual calculation of mean
-      sd_visits_per_year = round(sd(visits_per_year, na.rm = TRUE), 2),
-      min_visits_per_year = round(min(visits_per_year, na.rm = TRUE), 2),
-      max_visits_per_year = round(max(visits_per_year, na.rm = TRUE), 2),
+      mean_visits_per_year = signif(tot_visits / tot_exposed_yrs_all, 4), # Manual calculation of mean
+      sd_visits_per_year = signif(sd(visits_per_year, na.rm = TRUE), 4),
+      min_visits_per_year = signif(min(visits_per_year, na.rm = TRUE), 4),
+      max_visits_per_year = signif(max(visits_per_year, na.rm = TRUE), 4),
       num_subjects_visited = n_distinct(subject_id),
       .groups = "drop"
     ) %>% 
@@ -613,7 +613,7 @@ analyse_visits_cost <- function(cohort_combined, visit_data) {
   
   ### Pivot the data
   visits_cost_wide <- filtered_visits %>%
-    pivot_wider(names_from = specialty, values_from = visit_cost, values_fill = NA) %>% 
+    pivot_wider(names_from = specialty, values_from = visit_cost, values_fill = 0) %>% 
     CDMConnector::computeQuery()
   
   ### Join the wide dataframe back to cohort_combined and count tot num visits
@@ -647,10 +647,10 @@ analyse_visits_cost <- function(cohort_combined, visit_data) {
     dplyr::group_by(specialty) %>%
     dplyr::summarise(
       tot_visits_costs = sum(visits_costs),
-      mean_cost_visits_per_year = round(tot_visits_costs / tot_exposed_yrs_user, 2), # Manual calculation of mean
-      sd_cost_visits_per_year = round(sd(visits_costs_per_year, na.rm = TRUE), 2),
-      min_cost_visits_per_year = round(min(visits_costs_per_year, na.rm = TRUE), 2),
-      max_cost_visits_per_year = round(max(visits_costs_per_year, na.rm = TRUE), 2),
+      mean_cost_visits_per_year = signif(tot_visits_costs / tot_exposed_yrs_user, 4), # Manual calculation of mean
+      sd_cost_visits_per_year = signif(sd(visits_costs_per_year, na.rm = TRUE), 4),
+      min_cost_visits_per_year = signif(min(visits_costs_per_year, na.rm = TRUE), 4),
+      max_cost_visits_per_year = signif(max(visits_costs_per_year, na.rm = TRUE), 4),
       num_subjects_visited = n_distinct(subject_id),
       .groups = "drop"
     ) %>% 
@@ -663,20 +663,20 @@ analyse_visits_cost <- function(cohort_combined, visit_data) {
     pivot_longer(all_of(not_in), names_to = "specialty", values_to = "visits_costs") %>% 
     dplyr::mutate(visits_costs_per_year = visits_costs / exposed_yrs) %>%
     dplyr::group_by(specialty) %>%
-    dplyr::mutate(visits_costs = round(visits_costs, digits = 2)) %>% 
+    dplyr::mutate(visits_costs = signif(visits_costs, digits = 2)) %>% 
     dplyr::summarise(
       tot_visits_costs = sum(visits_costs, na.rm = T),
-      mean_cost_visits_per_year = round(tot_visits_costs / tot_exposed_yrs_all, 2), # Manual calculation of mean
-      sd_cost_visits_per_year = round(sd(visits_costs_per_year, na.rm = TRUE), 2),
-      min_cost_visits_per_year = round(min(visits_costs_per_year, na.rm = TRUE), 2),
-      max_cost_visits_per_year = round(max(visits_costs_per_year, na.rm = TRUE), 2),
+      mean_cost_visits_per_year = signif(tot_visits_costs / tot_exposed_yrs_all, 4), # Manual calculation of mean
+      sd_cost_visits_per_year = signif(sd(visits_costs_per_year, na.rm = TRUE), 4),
+      min_cost_visits_per_year = signif(min(visits_costs_per_year, na.rm = TRUE), 4),
+      max_cost_visits_per_year = signif(max(visits_costs_per_year, na.rm = TRUE), 4),
       num_subjects_visited = n_distinct(subject_id),
       .groups = "drop"
     )  %>% 
     dplyr::ungroup() %>% 
     CDMConnector::computeQuery()
   
-  return(list(user_only_cost_summary = user_only_cost_summary, all_cost_summary = all_cost_summary, tot_exposed_yrs_all=tot_exposed_yrs_all, tot_exposed_yrs_user=tot_exposed_yrs_user))
+  return(list(user_only_cost_summary = user_only_cost_summary, all_cost_summary = all_cost_summary, non_service_users = non_service_users, visits_cost_wide=visits_cost_wide, tot_exposed_yrs_all=tot_exposed_yrs_all, tot_exposed_yrs_user=tot_exposed_yrs_user))
 }
 
 # Cohort summary
@@ -694,12 +694,12 @@ cohort_summary <- function(data, cohort_name, non_service_users) {
     num_distinct_women = n_distinct(data$subject_id),
     num_entries = nrow(data),
     tot_exposed_yrs = sum(entries_per_woman$tot_exposed_yrs),
-    mean_entries_per_woman = round(mean(entries_per_woman$entries_per_woman), 2),
-    sd_entries_per_woman = round(sd(entries_per_woman$entries_per_woman), 2),
+    mean_entries_per_woman = signif(mean(entries_per_woman$entries_per_woman), 4),
+    sd_entries_per_woman = signif(sd(entries_per_woman$entries_per_woman), 4),
     min_entries_per_woman = min(entries_per_woman$entries_per_woman),
     max_entries_per_woman = max(entries_per_woman$entries_per_woman),
     num_non_service_users = unlist(non_service_users),
-    perc_non_service_users = unlist(round((non_service_users / n_distinct(data$subject_id) * 100), 2)),
+    perc_non_service_users = unlist(signif((non_service_users / n_distinct(data$subject_id) * 100), 4)),
     num_service_users = num_distinct_women - num_non_service_users,
     perc_service_users = 100-perc_non_service_users,
     num_women_1_entry = sum(entries_per_woman$entries_per_woman == 1),
