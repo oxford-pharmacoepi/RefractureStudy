@@ -17,12 +17,7 @@ if (country_setting == "UK") {
     dplyr::rename(subject_id=person_id) %>% # just renaming for consistency with cohort data
     dplyr::distinct(visit_detail_start_date, subject_id, specialty_source_value, .keep_all=TRUE) %>% # Keep only distinct rows - eliminate all visits in the same day with the same specialist by the same patient
     dplyr::rename(specialty = specialty_source_value) %>%  # renaming for consistency with other countries as this variable is used for the HCRU and costs too
-    computeQuery(
-      name = "visit_data", 
-      temporary = FALSE, 
-      schema = attr(cdm, "write_schema"), 
-      overwrite = TRUE
-    )
+    computeQuery()
   info(logger, "PRODUCING VISIT DATA FOR UK IS DONE")
 }
 

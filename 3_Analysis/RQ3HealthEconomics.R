@@ -379,24 +379,20 @@ if (country_setting != "Netherlands") {
                                                               upper_q_cost_visits_per_year = signif(quantile(data_all$tot_visits_per_yr, probs = (.75)), 4))
   
   target_results_cost_output[[names(target_results_cost)[1]]] <-target_results_cost_output[[names(target_results_cost)[1]]] %>% 
-    dplyr::mutate(tot_visits_costs = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), round(as.numeric(.data$tot_visits_costs)),1),
-                  mean_cost_visits_per_year = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), round(as.numeric(.data$mean_cost_visits_per_year)),1),
-                  sd_cost_visits_per_year = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), round(as.numeric(.data$sd_cost_visits_per_year)),1),
-                  min_cost_visits_per_year  = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), round(as.numeric(.data$min_cost_visits_per_year )),1),
-                  max_cost_visits_per_year = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), round(as.numeric(.data$max_cost_visits_per_year)), 1), 
-                  num_subjects_visited = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), round(as.numeric(.data$num_subjects_visited)),1))
+    dplyr::mutate(tot_visits_costs = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), round(as.numeric(.data$tot_visits_costs),1)),
+                  mean_cost_visits_per_year = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), round(as.numeric(.data$mean_cost_visits_per_year),1)),
+                  sd_cost_visits_per_year = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), round(as.numeric(.data$sd_cost_visits_per_year),1)),
+                  min_cost_visits_per_year  = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), round(as.numeric(.data$min_cost_visits_per_year),1)),
+                  max_cost_visits_per_year = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), round(as.numeric(.data$max_cost_visits_per_year), 1)), 
+                  num_subjects_visited = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), round(as.numeric(.data$num_subjects_visited),1)))
   
   target_results_cost_output[[names(target_results_cost)[2]]] <-target_results_cost_output[[names(target_results_cost)[2]]] %>% 
-    dplyr::mutate(tot_visits = ifelse((tot_visits<minimum_counts & tot_visits>0), paste0("<", minimum_counts), as.numeric(.data$tot_visits)),
-                  mean_cost_visits_per_year = ifelse((tot_visits<minimum_counts & tot_visits>0), paste0("<", minimum_counts), as.numeric(.data$mean_cost_visits_per_year)),
-                  sd_cost_visits_per_year = ifelse((tot_visits<minimum_counts & tot_visits>0), paste0("<", minimum_counts), as.numeric(.data$sd_cost_visits_per_year)),
-                  min_cost_visits_per_year  = ifelse((tot_visits<minimum_counts & tot_visits>0), paste0("<", minimum_counts), as.numeric(.data$min_cost_visits_per_year )),
-                  max_cost_visits_per_year = ifelse((tot_visits<minimum_counts & tot_visits>0), paste0("<", minimum_counts), as.numeric(.data$max_cost_visits_per_year)),
-                  num_subjects_visited = ifelse((tot_visits<minimum_counts & tot_visits>0), paste0("<", minimum_counts), as.numeric(.data$num_subjects_visited)))
-  
-  if(target_results_cost_output[[names(target_results_cost)[3]]]$nonservice<5 & target_results_cost_output[[names(target_results_cost)[3]]]$nonservice>0){
-    target_results_cost_output[[names(target_results_cost)[3]]]$nonservice <- paste0("<", minimum_counts)
-  }
+    dplyr::mutate(tot_visits_costs = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited > 0), paste0("<", minimum_counts), round(as.numeric(.data$tot_visits_costs),1)),
+                  mean_cost_visits_per_year = ifelse((num_subjects_visited < minimum_counts & num_subjects_visited > 0), paste0("<", minimum_counts), as.numeric(.data$mean_cost_visits_per_year)),
+                  sd_cost_visits_per_year = ifelse((num_subjects_visited < minimum_counts & num_subjects_visited > 0), paste0("<", minimum_counts), as.numeric(.data$sd_cost_visits_per_year)),
+                  min_cost_visits_per_year  = ifelse((num_subjects_visited < minimum_counts & num_subjects_visited > 0), paste0("<", minimum_counts), as.numeric(.data$min_cost_visits_per_year )),
+                  max_cost_visits_per_year = ifelse((num_subjects_visited < minimum_counts & num_subjects_visited > 0), paste0("<", minimum_counts), as.numeric(.data$max_cost_visits_per_year)),
+                  num_subjects_visited = ifelse((num_subjects_visited < minimum_counts & num_subjects_visited > 0), paste0("<", minimum_counts), as.numeric(.data$num_subjects_visited)))
   
   #####
   cohort1_comp1_results_cost_output <- list()
@@ -404,7 +400,7 @@ if (country_setting != "Netherlands") {
     cohort1_comp1_results_cost_output[[name]]<-cohort1_comp1_results_cost[[name]]
   }
   
-  data_all <- cohort1_comp1_results_cost_output[["visits_count_wide"]] %>% 
+  data_all <- cohort1_comp1_results_cost_output[["visits_cost_wide"]] %>% 
     dplyr::select(-exposed_yrs, -cohort) %>% 
     pivot_longer(cols = -c(subject_id, index_date, follow_up_end)) %>% 
     dplyr::group_by(subject_id, index_date, follow_up_end) %>% 
@@ -417,41 +413,37 @@ if (country_setting != "Netherlands") {
   data_user <- data_all %>% 
     dplyr::filter(tot_visits > 0)
   
-  cohort1_comp1_results_cost_output[["user_only_summary_statistics"]] <- tibble(mean_visit_per_year=(sum(data_user$tot_visits)/sum(data_user$tot_exposed_yrs)),
-                                                                           min_visit_per_year = min(data_user$tot_visits_per_yr),
-                                                                           max_visit_per_year = max(data_user$tot_visits_per_yr),
-                                                                           sd_visit_per_year = signif(sd(data_user$tot_visits_per_yr), 4),
-                                                                           median_visit_per_year = signif(quantile(data_user$tot_visits_per_yr, probs = (.5)), 4),
-                                                                           lower_q_visits_per_year = signif(quantile(data_user$tot_visits_per_yr, probs = (.25)), 4),
-                                                                           upper_q_visits_per_year = signif(quantile(data_user$tot_visits_per_yr, probs = (.75)), 4))
+  cohort1_comp1_results_cost_output[["user_only_summary_statistics"]] <- tibble(mean_cost_visit_per_year=(sum(data_user$tot_visits)/sum(data_user$tot_exposed_yrs)),
+                                                                           min_cost_visit_per_year = min(data_user$tot_visits_per_yr),
+                                                                           max_cost_visit_per_year = max(data_user$tot_visits_per_yr),
+                                                                           sd_cost_visit_per_year = signif(sd(data_user$tot_visits_per_yr), 4),
+                                                                           median_cost_visit_per_year = signif(quantile(data_user$tot_visits_per_yr, probs = (.5)), 4),
+                                                                           lower_q_cost_visits_per_year = signif(quantile(data_user$tot_visits_per_yr, probs = (.25)), 4),
+                                                                           upper_q_cost_visits_per_year = signif(quantile(data_user$tot_visits_per_yr, probs = (.75)), 4))
   
-  cohort1_comp1_results_cost_output[["all_summary_statistics"]] <- tibble(mean_visit_per_year=(sum(data_all$tot_visits)/sum(data_all$tot_exposed_yrs)),
-                                                                     min_visit_per_year = min(data_all$tot_visits_per_yr),
-                                                                     max_visit_per_year = max(data_all$tot_visits_per_yr),
-                                                                     sd_visit_per_year = signif(sd(data_all$tot_visits_per_yr),4),
-                                                                     median_visit_per_year = signif(quantile(data_all$tot_visits_per_yr, probs = (.5)), 4),
-                                                                     lower_q_visits_per_year = signif(quantile(data_all$tot_visits_per_yr, probs = (.25)), 4), 
-                                                                     upper_q_visits_per_year = signif(quantile(data_all$tot_visits_per_yr, probs = (.75)), 4))
+  cohort1_comp1_results_cost_output[["all_summary_statistics"]] <- tibble(mean_cost_visit_per_year=(sum(data_all$tot_visits)/sum(data_all$tot_exposed_yrs)),
+                                                                     min_cost_visit_per_year = min(data_all$tot_visits_per_yr),
+                                                                     max_cost_visit_per_year = max(data_all$tot_visits_per_yr),
+                                                                     sd_cost_visit_per_year = signif(sd(data_all$tot_visits_per_yr),4),
+                                                                     median_cost_visit_per_year = signif(quantile(data_all$tot_visits_per_yr, probs = (.5)), 4),
+                                                                     lower_q_cost_visits_per_year = signif(quantile(data_all$tot_visits_per_yr, probs = (.25)), 4), 
+                                                                     upper_q_cost_visits_per_year = signif(quantile(data_all$tot_visits_per_yr, probs = (.75)), 4))
   
   cohort1_comp1_results_cost_output[[names(cohort1_comp1_results_cost)[1]]] <-cohort1_comp1_results_cost_output[[names(cohort1_comp1_results_cost)[1]]] %>% 
-    dplyr::mutate(tot_visits = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.numeric(.data$tot_visits)),
-                  mean_visits_per_year = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.numeric(.data$mean_visits_per_year)),
-                  sd_visits_per_year = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.numeric(.data$sd_visits_per_year)),
-                  min_visits_per_year  = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.numeric(.data$min_visits_per_year )),
-                  max_visits_per_year = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.numeric(.data$max_visits_per_year)),
-                  num_subjects_visited = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.numeric(.data$num_subjects_visited)))
+    dplyr::mutate(tot_visits_costs = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), round(as.numeric(.data$tot_visits_costs),1)),
+                  mean_cost_visits_per_year = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), round(as.numeric(.data$mean_cost_visits_per_year),1)),
+                  sd_cost_visits_per_year = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), round(as.numeric(.data$sd_cost_visits_per_year),1)),
+                  min_cost_visits_per_year  = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), round(as.numeric(.data$min_cost_visits_per_year),1)),
+                  max_cost_visits_per_year = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), round(as.numeric(.data$max_cost_visits_per_year), 1)), 
+                  num_subjects_visited = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), round(as.numeric(.data$num_subjects_visited),1)))
   
   cohort1_comp1_results_cost_output[[names(cohort1_comp1_results_cost)[2]]] <-cohort1_comp1_results_cost_output[[names(cohort1_comp1_results_cost)[2]]] %>% 
-    dplyr::mutate(tot_visits = ifelse((tot_visits<minimum_counts & tot_visits>0), paste0("<", minimum_counts), as.numeric(.data$tot_visits)),
-                  mean_visits_per_year = ifelse((tot_visits<minimum_counts & tot_visits>0), paste0("<", minimum_counts), as.numeric(.data$mean_visits_per_year)),
-                  sd_visits_per_year = ifelse((tot_visits<minimum_counts & tot_visits>0), paste0("<", minimum_counts), as.numeric(.data$sd_visits_per_year)),
-                  min_visits_per_year  = ifelse((tot_visits<minimum_counts & tot_visits>0), paste0("<", minimum_counts), as.numeric(.data$min_visits_per_year )),
-                  max_visits_per_year = ifelse((tot_visits<minimum_counts & tot_visits>0), paste0("<", minimum_counts), as.numeric(.data$max_visits_per_year)),
-                  num_subjects_visited = ifelse((tot_visits<minimum_counts & tot_visits>0), paste0("<", minimum_counts), as.numeric(.data$num_subjects_visited)))
-  
-  if(cohort1_comp1_results_cost_output[[names(cohort1_comp1_results_cost)[3]]]$nonservice<5 & cohort1_comp1_results_cost_output[[names(cohort1_comp1_results_cost)[3]]]$nonservice>0){
-    cohort1_comp1_results_cost_output[[names(cohort1_comp1_results_cost)[3]]]$nonservice <- paste0("<", minimum_counts)
-  }
+    dplyr::mutate(tot_visits_costs = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited > 0), paste0("<", minimum_counts), round(as.numeric(.data$tot_visits_costs),1)),
+                  mean_cost_visits_per_year = ifelse((num_subjects_visited < minimum_counts & num_subjects_visited > 0), paste0("<", minimum_counts), as.numeric(.data$mean_cost_visits_per_year)),
+                  sd_cost_visits_per_year = ifelse((num_subjects_visited < minimum_counts & num_subjects_visited > 0), paste0("<", minimum_counts), as.numeric(.data$sd_cost_visits_per_year)),
+                  min_cost_visits_per_year  = ifelse((num_subjects_visited < minimum_counts & num_subjects_visited > 0), paste0("<", minimum_counts), as.numeric(.data$min_cost_visits_per_year )),
+                  max_cost_visits_per_year = ifelse((num_subjects_visited < minimum_counts & num_subjects_visited > 0), paste0("<", minimum_counts), as.numeric(.data$max_cost_visits_per_year)),
+                  num_subjects_visited = ifelse((num_subjects_visited < minimum_counts & num_subjects_visited > 0), paste0("<", minimum_counts), as.numeric(.data$num_subjects_visited)))
   
   #####
   cohort1_comp2_results_cost_output <- list()
@@ -459,54 +451,50 @@ if (country_setting != "Netherlands") {
     cohort1_comp2_results_cost_output[[name]]<-cohort1_comp2_results_cost[[name]]
   }
   
-  data_all <- cohort1_comp2_results_cost_output[["visits_count_wide"]] %>% 
+  data_all <- cohort1_comp2_results_cost_output[["visits_cost_wide"]] %>% 
     dplyr::select(-exposed_yrs, -cohort) %>% 
     pivot_longer(cols = -c(subject_id, index_date, follow_up_end)) %>% 
     dplyr::group_by(subject_id, index_date, follow_up_end) %>% 
     dplyr::summarise(tot_visits = sum(value, na.rm = T)) %>% 
     dplyr::ungroup() %>% 
-    dplyr::mutate(cohort = "cohort1_comp1",
+    dplyr::mutate(cohort = "cohort1_comp2",
                   tot_exposed_yrs = as.numeric((follow_up_end - index_date)/365.25),
                   tot_visits_per_yr = tot_visits/tot_exposed_yrs)
   
   data_user <- data_all %>% 
     dplyr::filter(tot_visits > 0)
   
-  cohort1_comp2_results_cost_output[["user_only_summary_statistics"]] <- tibble(mean_visit_per_year=(sum(data_user$tot_visits)/sum(data_user$tot_exposed_yrs)),
-                                                                           min_visit_per_year = min(data_user$tot_visits_per_yr),
-                                                                           max_visit_per_year = max(data_user$tot_visits_per_yr),
-                                                                           sd_visit_per_year = signif(sd(data_user$tot_visits_per_yr), 4),
-                                                                           median_visit_per_year = signif(quantile(data_user$tot_visits_per_yr, probs = (.5)), 4),
-                                                                           lower_q_visits_per_year = signif(quantile(data_user$tot_visits_per_yr, probs = (.25)), 4),
-                                                                           upper_q_visits_per_year = signif(quantile(data_user$tot_visits_per_yr, probs = (.75)), 4))
+  cohort1_comp2_results_cost_output[["user_only_summary_statistics"]] <- tibble(mean_cost_visit_per_year=(sum(data_user$tot_visits)/sum(data_user$tot_exposed_yrs)),
+                                                                                min_cost_visit_per_year = min(data_user$tot_visits_per_yr),
+                                                                                max_cost_visit_per_year = max(data_user$tot_visits_per_yr),
+                                                                                sd_cost_visit_per_year = signif(sd(data_user$tot_visits_per_yr), 4),
+                                                                                median_cost_visit_per_year = signif(quantile(data_user$tot_visits_per_yr, probs = (.5)), 4),
+                                                                                lower_q_cost_visits_per_year = signif(quantile(data_user$tot_visits_per_yr, probs = (.25)), 4),
+                                                                                upper_q_cost_visits_per_year = signif(quantile(data_user$tot_visits_per_yr, probs = (.75)), 4))
   
-  cohort1_comp2_results_cost_output[["all_summary_statistics"]] <- tibble(mean_visit_per_year=(sum(data_all$tot_visits)/sum(data_all$tot_exposed_yrs)),
-                                                                     min_visit_per_year = min(data_all$tot_visits_per_yr),
-                                                                     max_visit_per_year = max(data_all$tot_visits_per_yr),
-                                                                     sd_visit_per_year = signif(sd(data_all$tot_visits_per_yr),4),
-                                                                     median_visit_per_year = signif(quantile(data_all$tot_visits_per_yr, probs = (.5)), 4),
-                                                                     lower_q_visits_per_year = signif(quantile(data_all$tot_visits_per_yr, probs = (.25)), 4), 
-                                                                     upper_q_visits_per_year = signif(quantile(data_all$tot_visits_per_yr, probs = (.75)), 4))
+  cohort1_comp2_results_cost_output[["all_summary_statistics"]] <- tibble(mean_cost_visit_per_year=(sum(data_all$tot_visits)/sum(data_all$tot_exposed_yrs)),
+                                                                          min_cost_visit_per_year = min(data_all$tot_visits_per_yr),
+                                                                          max_cost_visit_per_year = max(data_all$tot_visits_per_yr),
+                                                                          sd_cost_visit_per_year = signif(sd(data_all$tot_visits_per_yr),4),
+                                                                          median_cost_visit_per_year = signif(quantile(data_all$tot_visits_per_yr, probs = (.5)), 4),
+                                                                          lower_q_cost_visits_per_year = signif(quantile(data_all$tot_visits_per_yr, probs = (.25)), 4), 
+                                                                          upper_q_cost_visits_per_year = signif(quantile(data_all$tot_visits_per_yr, probs = (.75)), 4))
   
   cohort1_comp2_results_cost_output[[names(cohort1_comp2_results_cost)[1]]] <-cohort1_comp2_results_cost_output[[names(cohort1_comp2_results_cost)[1]]] %>% 
-    dplyr::mutate(tot_visits = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.numeric(.data$tot_visits)),
-                  mean_visits_per_year = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.numeric(.data$mean_visits_per_year)),
-                  sd_visits_per_year = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.numeric(.data$sd_visits_per_year)),
-                  min_visits_per_year  = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.numeric(.data$min_visits_per_year )),
-                  max_visits_per_year = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.numeric(.data$max_visits_per_year)),
-                  num_subjects_visited = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.numeric(.data$num_subjects_visited)))
+    dplyr::mutate(tot_visits_costs = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), round(as.numeric(.data$tot_visits_costs),1)),
+                  mean_cost_visits_per_year = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), round(as.numeric(.data$mean_cost_visits_per_year),1)),
+                  sd_cost_visits_per_year = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), round(as.numeric(.data$sd_cost_visits_per_year),1)),
+                  min_cost_visits_per_year  = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), round(as.numeric(.data$min_cost_visits_per_year),1)),
+                  max_cost_visits_per_year = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), round(as.numeric(.data$max_cost_visits_per_year), 1)), 
+                  num_subjects_visited = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), round(as.numeric(.data$num_subjects_visited),1)))
   
   cohort1_comp2_results_cost_output[[names(cohort1_comp2_results_cost)[2]]] <-cohort1_comp2_results_cost_output[[names(cohort1_comp2_results_cost)[2]]] %>% 
-    dplyr::mutate(tot_visits = ifelse((tot_visits<minimum_counts & tot_visits>0), paste0("<", minimum_counts), as.numeric(.data$tot_visits)),
-                  mean_visits_per_year = ifelse((tot_visits<minimum_counts & tot_visits>0), paste0("<", minimum_counts), as.numeric(.data$mean_visits_per_year)),
-                  sd_visits_per_year = ifelse((tot_visits<minimum_counts & tot_visits>0), paste0("<", minimum_counts), as.numeric(.data$sd_visits_per_year)),
-                  min_visits_per_year  = ifelse((tot_visits<minimum_counts & tot_visits>0), paste0("<", minimum_counts), as.numeric(.data$min_visits_per_year )),
-                  max_visits_per_year = ifelse((tot_visits<minimum_counts & tot_visits>0), paste0("<", minimum_counts), as.numeric(.data$max_visits_per_year)),
-                  num_subjects_visited = ifelse((tot_visits<minimum_counts & tot_visits>0), paste0("<", minimum_counts), as.numeric(.data$num_subjects_visited)))
-  
-  if(cohort1_comp2_results_cost_output[[names(cohort1_comp2_results_cost)[3]]]$nonservice<5 & cohort1_comp2_results_cost_output[[names(cohort1_comp2_results_cost)[3]]]$nonservice>0){
-    cohort1_comp2_results_cost_output[[names(cohort1_comp2_results_cost)[3]]]$nonservice <- paste0("<", minimum_counts)
-  }
+    dplyr::mutate(tot_visits_costs = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited > 0), paste0("<", minimum_counts), round(as.numeric(.data$tot_visits_costs),1)),
+                  mean_cost_visits_per_year = ifelse((num_subjects_visited < minimum_counts & num_subjects_visited > 0), paste0("<", minimum_counts), as.numeric(.data$mean_cost_visits_per_year)),
+                  sd_cost_visits_per_year = ifelse((num_subjects_visited < minimum_counts & num_subjects_visited > 0), paste0("<", minimum_counts), as.numeric(.data$sd_cost_visits_per_year)),
+                  min_cost_visits_per_year  = ifelse((num_subjects_visited < minimum_counts & num_subjects_visited > 0), paste0("<", minimum_counts), as.numeric(.data$min_cost_visits_per_year )),
+                  max_cost_visits_per_year = ifelse((num_subjects_visited < minimum_counts & num_subjects_visited > 0), paste0("<", minimum_counts), as.numeric(.data$max_cost_visits_per_year)),
+                  num_subjects_visited = ifelse((num_subjects_visited < minimum_counts & num_subjects_visited > 0), paste0("<", minimum_counts), as.numeric(.data$num_subjects_visited)))
   
   ####
   cohort2_results_cost_output <- list()
@@ -514,7 +502,7 @@ if (country_setting != "Netherlands") {
     cohort2_results_cost_output[[name]]<-cohort2_results_cost[[name]]
   }
   
-  data_all <- cohort2_results_cost_output[["visits_count_wide"]] %>% 
+  data_all <- cohort2_results_cost_output[["visits_cost_wide"]] %>% 
     dplyr::select(-exposed_yrs, -cohort) %>% 
     pivot_longer(cols = -c(subject_id, index_date, follow_up_end)) %>% 
     dplyr::group_by(subject_id, index_date, follow_up_end) %>% 
@@ -527,96 +515,43 @@ if (country_setting != "Netherlands") {
   data_user <- data_all %>% 
     dplyr::filter(tot_visits > 0)
   
-  cohort2_results_cost_output[["user_only_summary_statistics"]] <- tibble(mean_visit_per_year=(sum(data_user$tot_visits)/sum(data_user$tot_exposed_yrs)),
-                                                                     min_visit_per_year = min(data_user$tot_visits_per_yr),
-                                                                     max_visit_per_year = max(data_user$tot_visits_per_yr),
-                                                                     sd_visit_per_year = signif(sd(data_user$tot_visits_per_yr), 4),
-                                                                     median_visit_per_year = signif(quantile(data_user$tot_visits_per_yr, probs = (.5)), 4),
-                                                                     lower_q_visits_per_year = signif(quantile(data_user$tot_visits_per_yr, probs = (.25)), 4),
-                                                                     upper_q_visits_per_year = signif(quantile(data_user$tot_visits_per_yr, probs = (.75)), 4))
+  cohort2_results_cost_output[["user_only_summary_statistics"]] <- tibble(mean_cost_visit_per_year=(sum(data_user$tot_visits)/sum(data_user$tot_exposed_yrs)),
+                                                                     min_cost_visit_per_year = min(data_user$tot_visits_per_yr),
+                                                                     max_cost_visit_per_year = max(data_user$tot_visits_per_yr),
+                                                                     sd_cost_visit_per_year = signif(sd(data_user$tot_visits_per_yr), 4),
+                                                                     median_cost_visit_per_year = signif(quantile(data_user$tot_visits_per_yr, probs = (.5)), 4),
+                                                                     lower_q_cost_visits_per_year = signif(quantile(data_user$tot_visits_per_yr, probs = (.25)), 4),
+                                                                     upper_q_cost_visits_per_year = signif(quantile(data_user$tot_visits_per_yr, probs = (.75)), 4))
   
-  cohort2_results_cost_output[["all_summary_statistics"]] <- tibble(mean_visit_per_year=(sum(data_all$tot_visits)/sum(data_all$tot_exposed_yrs)),
-                                                               min_visit_per_year = min(data_all$tot_visits_per_yr),
-                                                               max_visit_per_year = max(data_all$tot_visits_per_yr),
-                                                               sd_visit_per_year = signif(sd(data_all$tot_visits_per_yr),4),
-                                                               median_visit_per_year = signif(quantile(data_all$tot_visits_per_yr, probs = (.5)), 4),
-                                                               lower_q_visits_per_year = signif(quantile(data_all$tot_visits_per_yr, probs = (.25)), 4), 
-                                                               upper_q_visits_per_year = signif(quantile(data_all$tot_visits_per_yr, probs = (.75)), 4))
+  cohort2_results_cost_output[["all_summary_statistics"]] <- tibble(mean_cost_visit_per_year=(sum(data_all$tot_visits)/sum(data_all$tot_exposed_yrs)),
+                                                               min_cost_visit_per_year = min(data_all$tot_visits_per_yr),
+                                                               max_cost_visit_per_year = max(data_all$tot_visits_per_yr),
+                                                               sd_cost_visit_per_year = signif(sd(data_all$tot_visits_per_yr),4),
+                                                               median_cost_visit_per_year = signif(quantile(data_all$tot_visits_per_yr, probs = (.5)), 4),
+                                                               lower_q_cost_visits_per_year = signif(quantile(data_all$tot_visits_per_yr, probs = (.25)), 4), 
+                                                               upper_q_cost_visits_per_year = signif(quantile(data_all$tot_visits_per_yr, probs = (.75)), 4))
   
   cohort2_results_cost_output[[names(cohort2_results_cost)[1]]] <-cohort2_results_cost_output[[names(cohort2_results_cost)[1]]] %>% 
-    dplyr::mutate(tot_visits = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.numeric(.data$tot_visits)),
-                  mean_visits_per_year = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.numeric(.data$mean_visits_per_year)),
-                  sd_visits_per_year = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.numeric(.data$sd_visits_per_year)),
-                  min_visits_per_year  = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.numeric(.data$min_visits_per_year )),
-                  max_visits_per_year = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.numeric(.data$max_visits_per_year)),
-                  num_subjects_visited = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.numeric(.data$num_subjects_visited)))
+    dplyr::mutate(tot_visits_costs = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), round(as.numeric(.data$tot_visits_costs),1)),
+                  mean_cost_visits_per_year = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), round(as.numeric(.data$mean_cost_visits_per_year),1)),
+                  sd_cost_visits_per_year = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), round(as.numeric(.data$sd_cost_visits_per_year),1)),
+                  min_cost_visits_per_year  = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), round(as.numeric(.data$min_cost_visits_per_year),1)),
+                  max_cost_visits_per_year = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), round(as.numeric(.data$max_cost_visits_per_year), 1)), 
+                  num_subjects_visited = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), round(as.numeric(.data$num_subjects_visited),1)))
   
   cohort2_results_cost_output[[names(cohort2_results_cost)[2]]] <-cohort2_results_cost_output[[names(cohort2_results_cost)[2]]] %>% 
-    dplyr::mutate(tot_visits = ifelse((tot_visits<minimum_counts & tot_visits>0), paste0("<", minimum_counts), as.numeric(.data$tot_visits)),
-                  mean_visits_per_year = ifelse((tot_visits<minimum_counts & tot_visits>0), paste0("<", minimum_counts), as.numeric(.data$mean_visits_per_year)),
-                  sd_visits_per_year = ifelse((tot_visits<minimum_counts & tot_visits>0), paste0("<", minimum_counts), as.numeric(.data$sd_visits_per_year)),
-                  min_visits_per_year  = ifelse((tot_visits<minimum_counts & tot_visits>0), paste0("<", minimum_counts), as.numeric(.data$min_visits_per_year )),
-                  max_visits_per_year = ifelse((tot_visits<minimum_counts & tot_visits>0), paste0("<", minimum_counts), as.numeric(.data$max_visits_per_year)),
-                  num_subjects_visited = ifelse((tot_visits<minimum_counts & tot_visits>0), paste0("<", minimum_counts), as.numeric(.data$num_subjects_visited)))
-  
-  if(cohort2_results_cost_output[[names(cohort2_results_cost)[3]]]$nonservice<5 & cohort2_results_cost_output[[names(cohort2_results_cost)[3]]]$nonservice>0){
-    cohort2_results_cost_output[[names(cohort2_results_cost)[3]]]$nonservice <- paste0("<", minimum_counts)
-  }
+    dplyr::mutate(tot_visits_costs = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited > 0), paste0("<", minimum_counts), round(as.numeric(.data$tot_visits_costs),1)),
+                  mean_cost_visits_per_year = ifelse((num_subjects_visited < minimum_counts & num_subjects_visited > 0), paste0("<", minimum_counts), as.numeric(.data$mean_cost_visits_per_year)),
+                  sd_cost_visits_per_year = ifelse((num_subjects_visited < minimum_counts & num_subjects_visited > 0), paste0("<", minimum_counts), as.numeric(.data$sd_cost_visits_per_year)),
+                  min_cost_visits_per_year  = ifelse((num_subjects_visited < minimum_counts & num_subjects_visited > 0), paste0("<", minimum_counts), as.numeric(.data$min_cost_visits_per_year )),
+                  max_cost_visits_per_year = ifelse((num_subjects_visited < minimum_counts & num_subjects_visited > 0), paste0("<", minimum_counts), as.numeric(.data$max_cost_visits_per_year)),
+                  num_subjects_visited = ifelse((num_subjects_visited < minimum_counts & num_subjects_visited > 0), paste0("<", minimum_counts), as.numeric(.data$num_subjects_visited)))
   
   #HCRU
-  write.xlsx(target_results_cost_output[-4], file = here(sub_output_folder, "target_results_cost.xlsx"))
-  write.xlsx(cohort1_comp1_results_cost_output[-4], file = here(sub_output_folder, "cohort1_comp1_results_cost.xlsx"))
-  write.xlsx(cohort1_comp2_results_cost_output[-4], file = here(sub_output_folder, "cohort1_comp2_results_cost.xlsx"))
-  write.xlsx(cohort2_results_cost_output[-4], file = here(sub_output_folder, "cohort2_results_cost.xlsx"))
-  
-  target_results_cost[["user_only_mean_costs_per_year"]] <- tibble(mean_cost_visit=(sum(as.numeric(target_results_cost[[1]]$tot_visits_costs))/target_results_output[["tot_exposed_yrs_user"]]))
-  target_results_cost[["all_mean_costs_per_year"]] <- tibble(mean_visit=(sum(as.numeric(target_results_cost[[2]]$tot_visits_costs))/target_results_output[["tot_exposed_yrs_all"]]))
-  
-  cohort1_comp1_results_cost[["user_only_mean_costs_per_year"]] <- tibble(mean_cost_visit=(sum(as.numeric(cohort1_comp1_results_cost[[1]]$tot_visits_costs))/cohort1_comp1_results_cost[["tot_exposed_yrs_user"]]))
-  cohort1_comp1_results_cost[["all_mean_costs_per_year"]] <- tibble(mean_visit=(sum(as.numeric(cohort1_comp1_results_cost[[2]]$tot_visits_costs))/cohort1_comp1_results_cost[["tot_exposed_yrs_all"]]))
-  
-  cohort1_comp2_results_cost[["user_only_mean_costs_per_year"]] <- tibble(mean_cost_visit=(sum(as.numeric(cohort1_comp2_results_cost[[1]]$tot_visits_costs))/cohort1_comp2_results_cost[["tot_exposed_yrs_user"]]))
-  cohort1_comp2_results_cost[["all_mean_costs_per_year"]] <- tibble(mean_visit=(sum(as.numeric(cohort1_comp2_results_cost[[2]]$tot_visits_costs))/cohort1_comp2_results_cost[["tot_exposed_yrs_all"]]))
-  
-  cohort2_results_cost[["user_only_mean_costs_per_year"]] <- tibble(mean_cost_visit=(sum(as.numeric(cohort2_results_cost[[1]]$tot_visits_costs))/cohort2_results_cost[["tot_exposed_yrs_user"]]))
-  cohort2_results_cost[["all_mean_costs_per_year"]] <- tibble(mean_visit=(sum(as.numeric(cohort2_results_cost[[2]]$tot_visits_costs))/cohort2_results_cost[["tot_exposed_yrs_all"]]))
-  
-target_results_cost[[1]] <- target_results_cost[[1]] %>% 
-  dplyr::mutate(tot_visits_costs = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.numeric(.data$tot_visits_costs)),
-                mean_cost_visits_per_year = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.numeric(.data$mean_cost_visits_per_year)),
-                sd_cost_visits_per_year = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.numeric(.data$sd_cost_visits_per_year)),
-                min_cost_visits_per_year  = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.numeric(.data$min_cost_visits_per_year )),
-                max_cost_visits_per_year = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.numeric(.data$max_cost_visits_per_year)),
-                num_subjects_visited = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.numeric(.data$num_subjects_visited)))
-write.xlsx(target_results_cost, file = here(sub_output_folder, "target_results_cost.xlsx"))
-
-cohort1_comp1_results_cost[[1]] <- cohort1_comp1_results_cost[[1]] %>% 
-  dplyr::mutate(tot_visits_costs = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.numeric(.data$tot_visits_costs)),
-                mean_cost_visits_per_year = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.numeric(.data$mean_cost_visits_per_year)),
-                sd_cost_visits_per_year = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.numeric(.data$sd_cost_visits_per_year)),
-                min_cost_visits_per_year  = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.numeric(.data$min_cost_visits_per_year )),
-                max_cost_visits_per_year = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.numeric(.data$max_cost_visits_per_year)),
-                num_subjects_visited = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.numeric(.data$num_subjects_visited)))
-write.xlsx(cohort1_comp1_results_cost, file = here(sub_output_folder, "cohort1_comp1_results_cost.xlsx"))
-
-cohort1_comp2_results_cost[[1]] <- cohort1_comp2_results_cost[[1]] %>% 
-  dplyr::mutate(tot_visits_costs = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.numeric(.data$tot_visits_costs)),
-                mean_cost_visits_per_year = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.numeric(.data$mean_cost_visits_per_year)),
-                sd_cost_visits_per_year = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.numeric(.data$sd_cost_visits_per_year)),
-                min_cost_visits_per_year  = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.numeric(.data$min_cost_visits_per_year )),
-                max_cost_visits_per_year = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.numeric(.data$max_cost_visits_per_year)),
-                num_subjects_visited = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.numeric(.data$num_subjects_visited)))
-write.xlsx(cohort1_comp2_results_cost, file = here(sub_output_folder, "cohort1_comp2_results_cost.xlsx"))
-
-cohort2_results_cost[[1]] <- cohort2_results_cost[[1]] %>% 
-  dplyr::mutate(tot_visits_costs = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.numeric(.data$tot_visits_costs)),
-                mean_cost_visits_per_year = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.numeric(.data$mean_cost_visits_per_year)),
-                sd_cost_visits_per_year = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.numeric(.data$sd_cost_visits_per_year)),
-                min_cost_visits_per_year  = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.numeric(.data$min_cost_visits_per_year )),
-                max_cost_visits_per_year = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.numeric(.data$max_cost_visits_per_year)),
-                num_subjects_visited = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.numeric(.data$num_subjects_visited)))
-write.xlsx(cohort2_results_cost, file = here(sub_output_folder, "cohort2_results_cost.xlsx"))
-
+  write.xlsx(target_results_cost_output[-3], file = here(sub_output_folder, "target_results_cost.xlsx"))
+  write.xlsx(cohort1_comp1_results_cost_output[-3], file = here(sub_output_folder, "cohort1_comp1_results_cost.xlsx"))
+  write.xlsx(cohort1_comp2_results_cost_output[-3], file = here(sub_output_folder, "cohort1_comp2_results_cost.xlsx"))
+  write.xlsx(cohort2_results_cost_output[-3], file = here(sub_output_folder, "cohort2_results_cost.xlsx"))
 }
 
 #summary

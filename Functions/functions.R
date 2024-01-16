@@ -676,7 +676,7 @@ analyse_visits_cost <- function(cohort_combined, visit_data) {
     dplyr::ungroup() %>% 
     CDMConnector::computeQuery()
   
-  return(list(user_only_cost_summary = user_only_cost_summary, all_cost_summary = all_cost_summary, non_service_users = non_service_users, visits_cost_wide=visits_cost_wide, tot_exposed_yrs_all=tot_exposed_yrs_all, tot_exposed_yrs_user=tot_exposed_yrs_user))
+  return(list(user_only_cost_summary = user_only_cost_summary, all_cost_summary = all_cost_summary, visits_cost_wide=visits_cost_wide, tot_exposed_yrs_all=tot_exposed_yrs_all, tot_exposed_yrs_user=tot_exposed_yrs_user))
 }
 
 # Cohort summary
