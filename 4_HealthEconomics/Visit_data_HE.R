@@ -13,7 +13,7 @@ if (country_setting == "UK") {
     dplyr::filter(Include == "1") %>% # Filter for only meaningful specialties
     dplyr::select(person_id, provider_id, specialty_source_value, visit_detail_start_date, visit_detail_id, unit_cost) %>%
     dplyr::filter(visit_detail_start_date >= study_start_date & # include only visits in the study period
-             visit_detail_start_date <= study_end_date) %>%
+                   visit_detail_start_date <= study_end_date) %>%
     dplyr::rename(subject_id=person_id) %>% # just renaming for consistency with cohort data
     dplyr::distinct(visit_detail_start_date, subject_id, specialty_source_value, .keep_all=TRUE) %>% # Keep only distinct rows - eliminate all visits in the same day with the same specialist by the same patient
     dplyr::rename(specialty = specialty_source_value) %>%  # renaming for consistency with other countries as this variable is used for the HCRU and costs too
@@ -65,7 +65,7 @@ if (country_setting == "France") {
   # visit_data_tele <- visit_data %>% filter(visit_concept_id == 5083)
   # visit_data_office <- visit_data %>% filter(visit_concept_id == 581477)
   info(logger, "PRODUCING VISIT DATA FOR FRANCE IS DONE")
-
+  
 }
 
 ## Germany -----------------
@@ -216,7 +216,7 @@ if (country_setting == "Netherlands") {
     )  
   visits_check<-list()
   target_matched_visit_check <- 
-  target_matched %>% 
+    target_matched %>% 
     dplyr::inner_join(cdm[["visit_occurrence"]], by = c("subject_id" = "person_id"), copy = T) %>% 
     dplyr::filter(visit_start_date<=follow_up_end & visit_start_date >=index_date) %>% 
     dplyr::left_join(cdm[["provider"]], by = c("provider_id"), copy = T) %>% 
@@ -232,7 +232,7 @@ if (country_setting == "Netherlands") {
     dplyr::select(subject_id, index_date, follow_up_end, cohort, provider_id, specialty_concept_id, specialty_source_value) %>% 
     dplyr::group_by(specialty_concept_id, specialty_source_value) %>% 
     dplyr::tally()
-    
+  
   c1_matched_from_visit_check <- 
     cohort1_matched_from %>% 
     dplyr::inner_join(cdm[["visit_occurrence"]], by = c("subject_id" = "person_id"), copy = T) %>% 

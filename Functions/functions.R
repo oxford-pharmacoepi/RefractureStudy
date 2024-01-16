@@ -1058,3 +1058,101 @@ reformat_table_one_rq3_across<- function(table_one, name1, name2){
   )
   return(reformatted_table1)
 }
+
+procedure_frequency_table <- function(cohort_freq){
+  freq_procedure_tbl <- cohort_freq %>%
+    dplyr::inner_join(cdm[["visit_occurrence_hes"]] %>% dplyr::select(person_id, visit_concept_id, visit_start_date, visit_end_date),
+                      by = c("subject_id" = "person_id"),
+                      copy = T,
+                      relationship = "many-to-many") %>%
+    dplyr::inner_join(cdm[["procedure_occurrence_hes"]] %>% dplyr::select(person_id, procedure_source_value, procedure_date),
+                      by = c("subject_id" = "person_id"),
+                      copy = T,
+                      relationship = "many-to-many") %>%
+    dplyr::filter(procedure_date >=visit_start_date & procedure_date <= visit_end_date) %>%
+    dplyr::filter(procedure_date >=index_date & procedure_date <= follow_up_end) %>%
+    dplyr::distinct()
+  
+  freq_procedure <- freq_procedure_tbl %>% 
+    dplyr::group_by(procedure_source_value) %>%
+    dplyr::tally() %>%
+    dplyr::arrange(desc(n)) %>% 
+    dplyr::rename(counts = n) %>% 
+    dplyr::mutate(percentage = counts/nrow(freq_procedure_tbl)) %>% 
+    dplyr::mutate(percentage = round(percentage*100, digits = 2))
+  
+  freq_procedure_tbl1 <- cohort_freq %>%
+    dplyr::inner_join(cdm[["visit_occurrence_hes"]] %>% dplyr::select(person_id, visit_concept_id, visit_start_date, visit_end_date),
+                      by = c("subject_id" = "person_id"),
+                      copy = T,
+                      relationship = "many-to-many") %>%
+    dplyr::inner_join(cdm[["procedure_occurrence_hes"]] %>% 
+                        dplyr::filter(modifier_source_value == "1") %>%
+                        CDMConnector::computeQuery() %>% 
+                        dplyr::select(person_id, procedure_source_value, procedure_date),
+                      by = c("subject_id" = "person_id"),
+                      copy = T,
+                      relationship = "many-to-many") %>%
+    dplyr::filter(procedure_date >=visit_start_date & procedure_date <= visit_end_date) %>%
+    dplyr::filter(procedure_date >=index_date & procedure_date <= follow_up_end) %>%
+    dplyr::distinct()
+  
+  freq_procedure1 <- freq_procedure_tbl1 %>% 
+    dplyr::group_by(procedure_source_value) %>%
+    dplyr::tally() %>%
+    dplyr::arrange(desc(n)) %>% 
+    dplyr::rename(counts = n) %>% 
+    dplyr::mutate(percentage = counts/nrow(freq_procedure_tbl1)) %>% 
+    dplyr::mutate(percentage = round(percentage*100, digits = 2))
+  
+  return(list(freq_procedure = freq_procedure, freq_procedure1 = freq_procedure1))
+}
+
+condition_frequency_table <- function(cohort_freq){
+  freq_condition_tbl <- cohort_freq %>% 
+    dplyr::inner_join(cdm[["visit_occurrence_hes"]] %>% dplyr::select(person_id, visit_concept_id, visit_start_date, visit_end_date),
+                      by = c("subject_id" = "person_id"),
+                      copy = T,
+                      relationship = "many-to-many") %>%
+    dplyr::inner_join(cdm[["condition_occurrence_hes"]] %>% dplyr::select(person_id, condition_source_value, condition_start_date),
+                      by = c("subject_id" = "person_id"),
+                      copy = T,
+                      relationship = "many-to-many") %>%
+    dplyr::filter(condition_start_date >=visit_start_date & condition_start_date <= visit_end_date) %>%
+    dplyr::filter(condition_start_date >=index_date & condition_start_date <= follow_up_end) %>%
+    dplyr::distinct()
+  
+  freq_condition <- freq_condition_tbl %>% 
+    dplyr::group_by(condition_source_value) %>%
+    dplyr::tally() %>%
+    dplyr::arrange(desc(n)) %>% 
+    dplyr::rename(counts = n) %>% 
+    dplyr::mutate(percentage = counts/nrow(freq_condition_tbl)) %>% 
+    dplyr::mutate(percentage = round(percentage*100, digits = 2))
+  
+  freq_condition_tbl1 <- cohort_freq %>%
+    dplyr::inner_join(cdm[["visit_occurrence_hes"]] %>% dplyr::select(person_id, visit_concept_id, visit_start_date, visit_end_date),
+                      by = c("subject_id" = "person_id"),
+                      copy = T,
+                      relationship = "many-to-many") %>%
+    dplyr::inner_join(cdm[["condition_occurrence_hes"]] %>% 
+                        dplyr::filter(condition_status_source_value == "1") %>%
+                        CDMConnector::computeQuery() %>% 
+                        dplyr::select(person_id, condition_source_value, condition_start_date),
+                      by = c("subject_id" = "person_id"),
+                      copy = T,
+                      relationship = "many-to-many") %>%
+    dplyr::filter(condition_start_date >=visit_start_date & condition_start_date <= visit_end_date) %>%
+    dplyr::filter(condition_start_date >=index_date & condition_start_date <= follow_up_end) %>%
+    dplyr::distinct()
+  
+  freq_condition1 <- freq_condition_tbl1 %>% 
+    dplyr::group_by(condition_source_value) %>%
+    dplyr::tally() %>%
+    dplyr::arrange(desc(n)) %>% 
+    dplyr::rename(counts = n) %>% 
+    dplyr::mutate(percentage = counts/nrow(freq_condition_tbl1)) %>% 
+    dplyr::mutate(percentage = round(percentage*100, digits = 2))
+  
+  return(list(freq_condition = freq_condition, freq_condition1 = freq_condition1))
+}
