@@ -1156,3 +1156,26 @@ condition_frequency_table <- function(cohort_freq){
   
   return(list(freq_condition = freq_condition, freq_condition1 = freq_condition1))
 }
+
+visit_occurrence_summary <- function(cohort_freq){
+  freq_visit_occurrence_tbl <- cohort_freq %>% 
+    dplyr::inner_join(cdm[["visit_occurrence_hes"]] %>% dplyr::select(person_id, visit_concept_id, visit_start_date, visit_end_date),
+                      by = c("subject_id" = "person_id"),
+                      copy = T,
+                      relationship = "many-to-many") %>%
+    dplyr::filter(visit_start_date >=index_date & visit_start_date <= follow_up_end) %>%
+    dplyr::distinct() %>% 
+    dplyr::mutate(length_of_stay = visit_end_date - visit_start_date+1) %>% 
+    dplyr::group_by(subject_id, index_date) %>% 
+    dplyr::summarise(tot_los = sum(length_of_stay), .groups = "drop") %>% 
+    ungroup()
+  
+  freq_visit_occurrence_summary <- tibble(mean_cost_visit_per_year=(mean(freq_visit_occurrence_tbl$tot_los)),
+                                          min_cost_visit_per_year = min(freq_visit_occurrence_tbl$tot_los),
+                                          max_cost_visit_per_year = max(freq_visit_occurrence_tbl$tot_los),
+                                          sd_cost_visit_per_year = round(sd(freq_visit_occurrence_tbl$tot_los), 2),
+                                          median_cost_visit_per_year = round(quantile(freq_visit_occurrence_tbl$tot_los, probs = (.5)), 2),
+                                          lower_q_cost_visits_per_year = round(quantile(freq_visit_occurrence_tbl$tot_los, probs = (.25)), 2),
+                                          upper_q_cost_visits_per_year = round(quantile(freq_visit_occurrence_tbl$tot_los, probs = (.75)), 2))
+  return(freq_visit_occurrence_summary)
+}
