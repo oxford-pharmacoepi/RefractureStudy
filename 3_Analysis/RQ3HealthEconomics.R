@@ -14,7 +14,13 @@ sheet_name <- switch(country_setting,
 # Import the data from the selected sheet
 provider_cost_inputs <- read_excel(file_path, sheet = sheet_name)
 
-specialty_names <- provider_cost_inputs %>% dplyr::filter(Include == 1) %>% dplyr::pull(specialty_source_value)
+if(country_setting %in% c("UK", "Italy")){
+  specialty_names <- provider_cost_inputs %>% dplyr::filter(Include == 1) %>% dplyr::pull(specialty_source_value)
+} else if(country_setting %in% c("Spain", "Germany", "France")){
+  specialty_names <- provider_cost_inputs %>% dplyr::filter(Include == 1) %>% dplyr::pull(specialty_concept_id)
+} else {
+  specialty_names <- provider_cost_inputs %>% dplyr::filter(Include == 1) %>% dplyr::pull(visit_concept_id)
+}
 
 # VISIT DATA ----
 info(logger, "START COMPUTING VISIT DATA")
