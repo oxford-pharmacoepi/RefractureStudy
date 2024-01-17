@@ -76,3 +76,4 @@ write.xlsx(target_visit_occurrence, file = here(sub_output_folder, "target_visit
 write.xlsx(c1_comp1_visit_occurrence, file = here(sub_output_folder, "c1_comp1_visit_occurrence.xlsx"))
 write.xlsx(c1_comp2_visit_occurrence, file = here(sub_output_folder, "c1_comp2_visit_occurrence.xlsx"))
 write.xlsx(c2_visit_occurrence, file = here(sub_output_folder, "c2_visit_occurrence.xlsx"))
+

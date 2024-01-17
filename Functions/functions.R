@@ -1170,12 +1170,12 @@ visit_occurrence_summary <- function(cohort_freq){
     dplyr::summarise(tot_los = sum(length_of_stay), .groups = "drop") %>% 
     ungroup()
   
-  freq_visit_occurrence_summary <- tibble(mean_cost_visit_per_year=(mean(freq_visit_occurrence_tbl$tot_los)),
-                                          min_cost_visit_per_year = min(freq_visit_occurrence_tbl$tot_los),
-                                          max_cost_visit_per_year = max(freq_visit_occurrence_tbl$tot_los),
-                                          sd_cost_visit_per_year = round(sd(freq_visit_occurrence_tbl$tot_los), 2),
-                                          median_cost_visit_per_year = round(quantile(freq_visit_occurrence_tbl$tot_los, probs = (.5)), 2),
-                                          lower_q_cost_visits_per_year = round(quantile(freq_visit_occurrence_tbl$tot_los, probs = (.25)), 2),
-                                          upper_q_cost_visits_per_year = round(quantile(freq_visit_occurrence_tbl$tot_los, probs = (.75)), 2))
+  freq_visit_occurrence_summary <- tibble(mean_length_of_stay_per_person=(mean(freq_visit_occurrence_tbl$tot_los)),
+                                          min_length_of_stay_per_person = min(freq_visit_occurrence_tbl$tot_los),
+                                          max_length_of_stay_per_person = max(freq_visit_occurrence_tbl$tot_los),
+                                          sd_length_of_stay_per_person = round(sd(freq_visit_occurrence_tbl$tot_los), 2),
+                                          median_length_of_stay_per_person = round(quantile(freq_visit_occurrence_tbl$tot_los, probs = (.5)), 2),
+                                          lower_q_length_of_stay_per_person = round(quantile(freq_visit_occurrence_tbl$tot_los, probs = (.25)), 2),
+                                          upper_q_length_of_stay_per_person = round(quantile(freq_visit_occurrence_tbl$tot_los, probs = (.75)), 2))
   return(freq_visit_occurrence_summary)
 }
