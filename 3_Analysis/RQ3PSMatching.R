@@ -321,7 +321,7 @@ for (l in (1:length(compCohort1))){
   rm(x,y)
   
   print(paste0("Producing selectedLassoFeatures at ", Sys.time()))
-  coef.lasso_reg <- coef(lasso_reg_01[[l]], s = lasso_reg_01[[l]]$lambda.1se)
+  coef.lasso_reg <- coef(lasso_reg_12[[l]], s = lasso_reg_12[[l]]$lambda.1se)
   selectedLassoFeatures01[[l]] <- c("age", names(coef.lasso_reg[(coef.lasso_reg[,1]!=0),1])) %>% unique()
   selectedLassoFeatures01[[l]] <- selectedLassoFeatures01[[l]][selectedLassoFeatures01[[l]] != "(Intercept)"]
   
