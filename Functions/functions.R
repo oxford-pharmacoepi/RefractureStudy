@@ -1059,123 +1059,353 @@ reformat_table_one_rq3_across<- function(table_one, name1, name2){
   return(reformatted_table1)
 }
 
-procedure_frequency_table <- function(cohort_freq){
-  freq_procedure_tbl <- cohort_freq %>%
-    dplyr::inner_join(cdm[["visit_occurrence_hes"]] %>% dplyr::select(person_id, visit_concept_id, visit_start_date, visit_end_date),
-                      by = c("subject_id" = "person_id"),
-                      copy = T,
-                      relationship = "many-to-many") %>%
-    dplyr::inner_join(cdm[["procedure_occurrence_hes"]] %>% dplyr::select(person_id, procedure_source_value, procedure_date),
-                      by = c("subject_id" = "person_id"),
-                      copy = T,
-                      relationship = "many-to-many") %>%
-    dplyr::filter(procedure_date >=visit_start_date & procedure_date <= visit_end_date) %>%
-    dplyr::filter(procedure_date >=index_date & procedure_date <= follow_up_end) %>%
-    dplyr::distinct()
+###conditions
+condition_frequency_table <- function(cohort_freq, primary = F){
+  if (primary== F){
+    freq_condition_tbl <- cohort_freq %>% 
+      dplyr::inner_join(cdm[["visit_detail_hes"]] %>% dplyr::select(person_id, visit_detail_concept_id, visit_detail_start_date, visit_detail_end_date),
+                        by = c("subject_id" = "person_id"),
+                        copy = T,
+                        relationship = "many-to-many") %>%
+      dplyr::inner_join(cdm[["condition_occurrence_hes"]] %>% dplyr::select(person_id, condition_source_value, condition_start_date),
+                        by = c("subject_id" = "person_id"),
+                        copy = T,
+                        relationship = "many-to-many") %>%
+      dplyr::filter(condition_start_date >=visit_detail_start_date & condition_start_date <= visit_detail_end_date) %>%
+      dplyr::filter(condition_start_date >=index_date & condition_start_date <= follow_up_end) %>%
+      dplyr::distinct() %>% 
+      dplyr::mutate(LoS = .data$visit_detail_end_date - .data$visit_detail_start_date + 1)
+    
+    tot_episodes <- nrow(freq_condition_tbl)
+    
+    multiple <- freq_condition_tbl %>% 
+      dplyr::group_by(subject_id, index_date, condition_start_date) %>%
+      dplyr::tally() %>% 
+      dplyr::filter(n>=2) %>% 
+      dplyr::ungroup() %>% 
+      dplyr::summarise(sum_of_conditions_more_than_one = sum(n)) %>% 
+      dplyr::mutate(tot_conditions = nrow(freq_condition_tbl)) %>% 
+      dplyr::mutate(more_than_one_perc = round(sum_of_conditions_more_than_one/nrow(freq_condition_tbl)*100, 2))
+    
+    freq_condition <- freq_condition_tbl %>% 
+      dplyr::group_by(condition_source_value) %>%
+      dplyr::summarise(mean_los = mean(.data$LoS),
+                       counts = n()) %>% 
+      dplyr::ungroup() %>% 
+      dplyr::arrange(desc(counts)) %>% 
+      dplyr::mutate(percentage = counts/tot_episodes) %>% 
+      dplyr::mutate(percentage = round(percentage*100, digits = 2),
+                    mean_los = round(mean_los, digits = 2)) 
+    
+    summary_LoS <- tibble(mean_length_of_stay_per_condition = as.integer(sum(freq_condition_tbl$LoS))/tot_episodes,
+                          min_length_of_stay_per_condition = min(freq_condition$mean_los),
+                          max_length_of_stay_per_condition = max(freq_condition$mean_los),
+                          sd_length_of_stay_per_condition = round(sd(freq_condition$mean_los), 2),
+                          median_length_of_stay_per_condition = round(quantile(freq_condition$mean_los, probs = (.5)), 2),
+                          lower_q_length_of_stay_per_condition = round(quantile(freq_condition$mean_los, probs = (.25)), 2),
+                          upper_q_length_of_stay_per_condition = round(quantile(freq_condition$mean_los, probs = (.75)), 2))
+    
+    episode_per_person <- freq_condition_tbl %>% 
+      dplyr::group_by(subject_id, index_date, exposed_yrs) %>% 
+      dplyr::summarise(counts = n()) %>% 
+      dplyr::ungroup() %>% 
+      dplyr::mutate(counts_per_yr = counts/exposed_yrs)
+    
+    summary_episode_per_person_per_year <- tibble(mean_condition_episode_per_person_per_year = sum(episode_per_person$counts)/sum(episode_per_person$exposed_yrs),
+                                                  min_condition_episode_per_person_per_year = min(episode_per_person$counts_per_yr),
+                                                  max_condition_episode_per_person_per_year = max(episode_per_person$counts_per_yr),
+                                                  sd_condition_episode_per_person_per_year = round(sd(episode_per_person$counts_per_yr), 2),
+                                                  median_condition_episode_per_person_per_year = round(quantile(episode_per_person$counts_per_yr, probs = (.5)), 2),
+                                                  lower_q_condition_episode_per_person_per_year = round(quantile(episode_per_person$counts_per_yr, probs = (.25)), 2),
+                                                  upper_q_condition_episode_per_person_per_year = round(quantile(episode_per_person$counts_per_yr, probs = (.75)), 2))
   
-  freq_procedure <- freq_procedure_tbl %>% 
-    dplyr::group_by(procedure_source_value) %>%
-    dplyr::tally() %>%
-    dplyr::arrange(desc(n)) %>% 
-    dplyr::rename(counts = n) %>% 
-    dplyr::mutate(percentage = counts/nrow(freq_procedure_tbl)) %>% 
-    dplyr::mutate(percentage = round(percentage*100, digits = 2))
+    
+    freq_condition <- freq_condition %>% 
+      dplyr::mutate(mean_los = ifelse((counts < 5 & counts > 0), paste0("<", minimum_counts), mean_los),
+                    percentage = ifelse((counts < 5 & counts > 0), paste0("<", minimum_counts), percentage),
+                    counts = ifelse((counts < 5 & counts > 0), paste0("<", minimum_counts), counts))
+    }
   
-  freq_procedure_tbl1 <- cohort_freq %>%
-    dplyr::inner_join(cdm[["visit_occurrence_hes"]] %>% dplyr::select(person_id, visit_concept_id, visit_start_date, visit_end_date),
-                      by = c("subject_id" = "person_id"),
-                      copy = T,
-                      relationship = "many-to-many") %>%
-    dplyr::inner_join(cdm[["procedure_occurrence_hes"]] %>% 
-                        dplyr::filter(modifier_source_value == "1") %>%
-                        CDMConnector::computeQuery() %>% 
-                        dplyr::select(person_id, procedure_source_value, procedure_date),
-                      by = c("subject_id" = "person_id"),
-                      copy = T,
-                      relationship = "many-to-many") %>%
-    dplyr::filter(procedure_date >=visit_start_date & procedure_date <= visit_end_date) %>%
-    dplyr::filter(procedure_date >=index_date & procedure_date <= follow_up_end) %>%
-    dplyr::distinct()
-  
-  freq_procedure1 <- freq_procedure_tbl1 %>% 
-    dplyr::group_by(procedure_source_value) %>%
-    dplyr::tally() %>%
-    dplyr::arrange(desc(n)) %>% 
-    dplyr::rename(counts = n) %>% 
-    dplyr::mutate(percentage = counts/nrow(freq_procedure_tbl1)) %>% 
-    dplyr::mutate(percentage = round(percentage*100, digits = 2))
-  
-  return(list(freq_procedure = freq_procedure, freq_procedure1 = freq_procedure1))
+  else {
+    freq_condition_tbl <- cohort_freq %>% 
+      dplyr::inner_join(cdm[["visit_detail_hes"]] %>% dplyr::select(person_id, visit_detail_concept_id, visit_detail_start_date, visit_detail_end_date),
+                        by = c("subject_id" = "person_id"),
+                        copy = T,
+                        relationship = "many-to-many") %>%
+      dplyr::inner_join(cdm[["condition_occurrence_hes"]] %>% dplyr::filter(condition_status_source_value == "1") %>% dplyr::select(person_id, condition_source_value, condition_start_date),
+                        by = c("subject_id" = "person_id"),
+                        copy = T,
+                        relationship = "many-to-many") %>%
+      dplyr::filter(condition_start_date >=visit_detail_start_date & condition_start_date <= visit_detail_end_date) %>%
+      dplyr::filter(condition_start_date >=index_date & condition_start_date <= follow_up_end) %>%
+      dplyr::distinct() %>% 
+      dplyr::mutate(LoS = .data$visit_detail_end_date - .data$visit_detail_start_date + 1)
+    
+    tot_episodes <- nrow(freq_condition_tbl)
+    
+    multiple <- freq_condition_tbl %>% 
+      dplyr::group_by(subject_id, index_date, condition_start_date) %>%
+      dplyr::tally() %>% 
+      dplyr::filter(n>=2) %>% 
+      dplyr::ungroup() %>% 
+      dplyr::summarise(sum_of_conditions_more_than_one = sum(n)) %>% 
+      dplyr::mutate(tot_conditions = nrow(freq_condition_tbl)) %>% 
+      dplyr::mutate(more_than_one_perc = round(sum_of_conditions_more_than_one/nrow(freq_condition_tbl)*100, 2))
+    
+    freq_condition <- freq_condition_tbl %>% 
+      dplyr::group_by(condition_source_value) %>%
+      dplyr::summarise(mean_los = mean(.data$LoS),
+                       counts = n()) %>% 
+      dplyr::ungroup() %>% 
+      dplyr::arrange(desc(counts)) %>% 
+      dplyr::mutate(percentage = counts/tot_episodes) %>% 
+      dplyr::mutate(percentage = round(percentage*100, digits = 2),
+                    mean_los = round(mean_los, digits = 2)) 
+    
+    summary_LoS <- tibble(mean_length_of_stay_per_condition=sum(episode_per_person$counts)/sum(episode_per_person$exposed_yrs),
+                          min_length_of_stay_per_condition = min(freq_condition$mean_los),
+                          max_length_of_stay_per_condition = max(freq_condition$mean_los),
+                          sd_length_of_stay_per_condition = round(sd(freq_condition$mean_los), 2),
+                          median_length_of_stay_per_condition = round(quantile(freq_condition$mean_los, probs = (.5)), 2),
+                          lower_q_length_of_stay_per_condition = round(quantile(freq_condition$mean_los, probs = (.25)), 2),
+                          upper_q_length_of_stay_per_condition = round(quantile(freq_condition$mean_los, probs = (.75)), 2))
+    
+    episode_per_person <- freq_condition_tbl %>% 
+      dplyr::group_by(subject_id, index_date, exposed_yrs) %>% 
+      dplyr::summarise(counts = n()) %>% 
+      dplyr::ungroup() %>% 
+      dplyr::mutate(counts_per_yr = counts/exposed_yrs)
+    
+    summary_episode_per_person_per_year <- tibble(mean_condition_episode_per_person_per_year = sum(episode_per_person$counts)/sum(episode_per_person$exposed_yrs),
+                                                  min_condition_episode_per_person_per_year = min(episode_per_person$counts_per_yr),
+                                                  max_condition_episode_per_person_per_year = max(episode_per_person$counts_per_yr),
+                                                  sd_condition_episode_per_person_per_year = round(sd(episode_per_person$counts_per_yr), 2),
+                                                  median_condition_episode_per_person_per_year = round(quantile(episode_per_person$counts_per_yr, probs = (.5)), 2),
+                                                  lower_q_condition_episode_per_person_per_year = round(quantile(episode_per_person$counts_per_yr, probs = (.25)), 2),
+                                                  upper_q_condition_episode_per_person_per_year = round(quantile(episode_per_person$counts_per_yr, probs = (.75)), 2))
+    
+    freq_condition <- freq_condition %>% 
+      dplyr::mutate(mean_los = ifelse((counts < 5 & counts > 0), paste0("<", minimum_counts), mean_los),
+                    percentage = ifelse((counts < 5 & counts > 0), paste0("<", minimum_counts), percentage),
+                    counts = ifelse((counts < 5 & counts > 0), paste0("<", minimum_counts), counts))
+  }
+  return(list(freq_condition = freq_condition, number_of_episodes = tot_episodes, more_than_one = multiple, summary_LoS = summary_LoS, summary_epi_per_person_per_yr = summary_episode_per_person_per_year))
 }
 
-condition_frequency_table <- function(cohort_freq){
-  freq_condition_tbl <- cohort_freq %>% 
-    dplyr::inner_join(cdm[["visit_occurrence_hes"]] %>% dplyr::select(person_id, visit_concept_id, visit_start_date, visit_end_date),
-                      by = c("subject_id" = "person_id"),
-                      copy = T,
-                      relationship = "many-to-many") %>%
-    dplyr::inner_join(cdm[["condition_occurrence_hes"]] %>% dplyr::select(person_id, condition_source_value, condition_start_date),
-                      by = c("subject_id" = "person_id"),
-                      copy = T,
-                      relationship = "many-to-many") %>%
-    dplyr::filter(condition_start_date >=visit_start_date & condition_start_date <= visit_end_date) %>%
-    dplyr::filter(condition_start_date >=index_date & condition_start_date <= follow_up_end) %>%
-    dplyr::distinct()
+###procedures
+procedure_frequency_table <- function(cohort_freq, primary = F){
+  if (primary== F){
+    freq_procedure_tbl <- cohort_freq %>% 
+      dplyr::inner_join(cdm[["visit_detail_hes"]] %>% dplyr::select(person_id, visit_detail_concept_id, visit_detail_start_date, visit_detail_end_date),
+                        by = c("subject_id" = "person_id"),
+                        copy = T,
+                        relationship = "many-to-many") %>%
+      dplyr::inner_join(cdm[["procedure_occurrence_hes"]] %>% dplyr::select(person_id, procedure_source_value, procedure_date),
+                        by = c("subject_id" = "person_id"),
+                        copy = T,
+                        relationship = "many-to-many") %>%
+      dplyr::filter(procedure_date >=visit_detail_start_date & procedure_date <= visit_detail_end_date) %>%
+      dplyr::filter(procedure_date >=index_date & procedure_date <= follow_up_end) %>%
+      dplyr::distinct() %>% 
+      dplyr::mutate(LoS = .data$visit_detail_end_date - .data$visit_detail_start_date + 1)
+    
+    tot_episodes <- nrow(freq_procedure_tbl)
+    
+    multiple <- freq_procedure_tbl %>% 
+      dplyr::group_by(subject_id, index_date, procedure_date) %>%
+      dplyr::tally() %>% 
+      dplyr::filter(n>=2) %>% 
+      dplyr::ungroup() %>% 
+      dplyr::summarise(sum_of_procedures_more_than_one = sum(n)) %>% 
+      dplyr::mutate(tot_procedures = nrow(freq_procedure_tbl)) %>% 
+      dplyr::mutate(more_than_one_perc = round(sum_of_procedures_more_than_one/nrow(freq_procedure_tbl)*100, 2))
+    
+    freq_procedure <- freq_procedure_tbl %>% 
+      dplyr::group_by(procedure_source_value) %>%
+      dplyr::summarise(mean_los = mean(.data$LoS),
+                       counts = n()) %>% 
+      dplyr::ungroup() %>% 
+      dplyr::arrange(desc(counts)) %>% 
+      dplyr::mutate(percentage = counts/tot_episodes) %>% 
+      dplyr::mutate(percentage = round(percentage*100, digits = 2),
+                    mean_los = round(mean_los, digits = 2)) 
+    
+    summary_LoS <- tibble(mean_length_of_stay_per_procedure = as.integer(sum(freq_procedure_tbl$LoS))/tot_episodes,
+                          min_length_of_stay_per_procedure = min(freq_procedure$mean_los),
+                          max_length_of_stay_per_procedure = max(freq_procedure$mean_los),
+                          sd_length_of_stay_per_procedure = round(sd(freq_procedure$mean_los), 2),
+                          median_length_of_stay_per_procedure = round(quantile(freq_procedure$mean_los, probs = (.5)), 2),
+                          lower_q_length_of_stay_per_procedure = round(quantile(freq_procedure$mean_los, probs = (.25)), 2),
+                          upper_q_length_of_stay_per_procedure = round(quantile(freq_procedure$mean_los, probs = (.75)), 2))
+    
+    episode_per_person <- freq_procedure_tbl %>% 
+      dplyr::group_by(subject_id, index_date, exposed_yrs) %>% 
+      dplyr::summarise(counts = n()) %>% 
+      dplyr::ungroup() %>% 
+      dplyr::mutate(counts_per_yr = counts/exposed_yrs)
+    
+    summary_episode_per_person_per_year <- tibble(mean_procedure_episode_per_person_per_year = sum(episode_per_person$counts)/sum(episode_per_person$exposed_yrs),
+                                                  min_procedure_episode_per_person_per_year = min(episode_per_person$counts_per_yr),
+                                                  max_procedure_episode_per_person_per_year = max(episode_per_person$counts_per_yr),
+                                                  sd_procedure_episode_per_person_per_year = round(sd(episode_per_person$counts_per_yr), 2),
+                                                  median_procedure_episode_per_person_per_year = round(quantile(episode_per_person$counts_per_yr, probs = (.5)), 2),
+                                                  lower_q_procedure_episode_per_person_per_year = round(quantile(episode_per_person$counts_per_yr, probs = (.25)), 2),
+                                                  upper_q_procedure_episode_per_person_per_year = round(quantile(episode_per_person$counts_per_yr, probs = (.75)), 2))
+    
+    
+    freq_procedure <- freq_procedure %>% 
+      dplyr::mutate(mean_los = ifelse((counts < 5 & counts > 0), paste0("<", minimum_counts), mean_los),
+                    percentage = ifelse((counts < 5 & counts > 0), paste0("<", minimum_counts), percentage),
+                    counts = ifelse((counts < 5 & counts > 0), paste0("<", minimum_counts), counts))
+  }
   
-  freq_condition <- freq_condition_tbl %>% 
-    dplyr::group_by(condition_source_value) %>%
-    dplyr::tally() %>%
-    dplyr::arrange(desc(n)) %>% 
-    dplyr::rename(counts = n) %>% 
-    dplyr::mutate(percentage = counts/nrow(freq_condition_tbl)) %>% 
-    dplyr::mutate(percentage = round(percentage*100, digits = 2))
-  
-  freq_condition_tbl1 <- cohort_freq %>%
-    dplyr::inner_join(cdm[["visit_occurrence_hes"]] %>% dplyr::select(person_id, visit_concept_id, visit_start_date, visit_end_date),
-                      by = c("subject_id" = "person_id"),
-                      copy = T,
-                      relationship = "many-to-many") %>%
-    dplyr::inner_join(cdm[["condition_occurrence_hes"]] %>% 
-                        dplyr::filter(condition_status_source_value == "1") %>%
-                        CDMConnector::computeQuery() %>% 
-                        dplyr::select(person_id, condition_source_value, condition_start_date),
-                      by = c("subject_id" = "person_id"),
-                      copy = T,
-                      relationship = "many-to-many") %>%
-    dplyr::filter(condition_start_date >=visit_start_date & condition_start_date <= visit_end_date) %>%
-    dplyr::filter(condition_start_date >=index_date & condition_start_date <= follow_up_end) %>%
-    dplyr::distinct()
-  
-  freq_condition1 <- freq_condition_tbl1 %>% 
-    dplyr::group_by(condition_source_value) %>%
-    dplyr::tally() %>%
-    dplyr::arrange(desc(n)) %>% 
-    dplyr::rename(counts = n) %>% 
-    dplyr::mutate(percentage = counts/nrow(freq_condition_tbl1)) %>% 
-    dplyr::mutate(percentage = round(percentage*100, digits = 2))
-  
-  return(list(freq_condition = freq_condition, freq_condition1 = freq_condition1))
+  else {
+    freq_procedure_tbl <- cohort_freq %>% 
+      dplyr::inner_join(cdm[["visit_detail_hes"]] %>% dplyr::select(person_id, visit_detail_concept_id, visit_detail_start_date, visit_detail_end_date),
+                        by = c("subject_id" = "person_id"),
+                        copy = T,
+                        relationship = "many-to-many") %>%
+      dplyr::inner_join(cdm[["procedure_occurrence_hes"]] %>% dplyr::filter(modifier_source_value == "1") %>% dplyr::select(person_id, procedure_source_value, procedure_date),
+                        by = c("subject_id" = "person_id"),
+                        copy = T,
+                        relationship = "many-to-many") %>%
+      dplyr::filter(procedure_date >=visit_detail_start_date & procedure_date <= visit_detail_end_date) %>%
+      dplyr::filter(procedure_date >=index_date & procedure_date <= follow_up_end) %>%
+      dplyr::distinct() %>% 
+      dplyr::mutate(LoS = .data$visit_detail_end_date - .data$visit_detail_start_date + 1)
+    
+    tot_episodes <- nrow(freq_procedure_tbl)
+    
+    multiple <- freq_procedure_tbl %>% 
+      dplyr::group_by(subject_id, index_date, procedure_date) %>%
+      dplyr::tally() %>% 
+      dplyr::filter(n>=2) %>% 
+      dplyr::ungroup() %>% 
+      dplyr::summarise(sum_of_procedures_more_than_one = sum(n)) %>% 
+      dplyr::mutate(tot_procedures = nrow(freq_procedure_tbl)) %>% 
+      dplyr::mutate(more_than_one_perc = round(sum_of_procedures_more_than_one/nrow(freq_procedure_tbl)*100, 2))
+    
+    freq_procedure <- freq_procedure_tbl %>% 
+      dplyr::group_by(procedure_source_value) %>%
+      dplyr::summarise(mean_los = mean(.data$LoS),
+                       counts = n()) %>% 
+      dplyr::ungroup() %>% 
+      dplyr::arrange(desc(counts)) %>% 
+      dplyr::mutate(percentage = counts/tot_episodes) %>% 
+      dplyr::mutate(percentage = round(percentage*100, digits = 2),
+                    mean_los = round(mean_los, digits = 2)) 
+    
+    summary_LoS <- tibble(mean_length_of_stay_per_procedure=sum(freq_procedure_tbl$counts)/sum(freq_procedure_tbl$exposed_yrs),
+                          min_length_of_stay_per_procedure = min(freq_procedure$mean_los),
+                          max_length_of_stay_per_procedure = max(freq_procedure$mean_los),
+                          sd_length_of_stay_per_procedure = round(sd(freq_procedure$mean_los), 2),
+                          median_length_of_stay_per_procedure = round(quantile(freq_procedure$mean_los, probs = (.5)), 2),
+                          lower_q_length_of_stay_per_procedure = round(quantile(freq_procedure$mean_los, probs = (.25)), 2),
+                          upper_q_length_of_stay_per_procedure = round(quantile(freq_procedure$mean_los, probs = (.75)), 2))
+    
+    episode_per_person <- freq_procedure_tbl %>% 
+      dplyr::group_by(subject_id, index_date, exposed_yrs) %>% 
+      dplyr::summarise(counts = n()) %>% 
+      dplyr::ungroup() %>% 
+      dplyr::mutate(counts_per_yr = counts/exposed_yrs)
+    
+    summary_episode_per_person_per_year <- tibble(mean_procedure_episode_per_person_per_year = sum(episode_per_person$counts)/sum(episode_per_person$exposed_yrs),
+                                                  min_procedure_episode_per_person_per_year = min(episode_per_person$counts_per_yr),
+                                                  max_procedure_episode_per_person_per_year = max(episode_per_person$counts_per_yr),
+                                                  sd_procedure_episode_per_person_per_year = round(sd(episode_per_person$counts_per_yr), 2),
+                                                  median_procedure_episode_per_person_per_year = round(quantile(episode_per_person$counts_per_yr, probs = (.5)), 2),
+                                                  lower_q_procedure_episode_per_person_per_year = round(quantile(episode_per_person$counts_per_yr, probs = (.25)), 2),
+                                                  upper_q_procedure_episode_per_person_per_year = round(quantile(episode_per_person$counts_per_yr, probs = (.75)), 2))
+    
+    freq_procedure <- freq_procedure %>% 
+      dplyr::mutate(mean_los = ifelse((counts < 5 & counts > 0), paste0("<", minimum_counts), mean_los),
+                    percentage = ifelse((counts < 5 & counts > 0), paste0("<", minimum_counts), percentage),
+                    counts = ifelse((counts < 5 & counts > 0), paste0("<", minimum_counts), counts))
+  }
+  return(list(freq_procedure = freq_procedure, number_of_episodes = tot_episodes, more_than_one = multiple, summary_LoS = summary_LoS, summary_epi_per_person_per_yr = summary_episode_per_person_per_year))
 }
 
-visit_occurrence_summary <- function(cohort_freq){
+visit_summary <- function(cohort_freq){
   freq_visit_occurrence_tbl <- cohort_freq %>% 
+    dplyr::left_join(cdm[["visit_occurrence_hes"]] %>% dplyr::select(person_id, visit_concept_id, visit_start_date, visit_end_date),
+                      by = c("subject_id" = "person_id"),
+                      copy = T,
+                      relationship = "many-to-many") 
+  
+  non_user <- freq_visit_occurrence_tbl %>% 
+    dplyr::filter(is.na(visit_concept_id))
+  
+  user <- freq_visit_occurrence_tbl %>% 
+    dplyr::filter(!is.na(visit_concept_id)) %>% 
+    dplyr::filter(visit_start_date >=index_date & visit_start_date <= follow_up_end) %>%
+    dplyr::distinct() %>% 
+    dplyr::mutate(LoS = visit_end_date - visit_start_date + 1)
+  
+  user_count <- user %>% 
+    dplyr::group_by(subject_id, index_date, exposed_yrs) %>% 
+    dplyr::summarise(counts = n()) %>% 
+    dplyr::ungroup() %>% 
+    dplyr::mutate(counts_per_yr = counts/exposed_yrs)
+  
+  non_user_count <- non_user %>% 
+    dplyr::select(subject_id, index_date, exposed_yrs) %>% 
+    dplyr::mutate(counts = 0,
+                  counts_per_yr = 0)
+  
+  tot_count_hos <- union_all(user_count, non_user_count)
+  
+  summary_hospitalisation_per_person_per_year_all <- tibble(mean_hospitalisation_per_person_per_year=(sum(tot_count_hos$counts)/sum(tot_count_hos$exposed_yrs)),
+                                            min_hospitalisation_per_person_per_year = min(tot_count_hos$counts_per_yr),
+                                            max_hospitalisation_per_person_per_year = max(tot_count_hos$counts_per_yr),
+                                            sd_hospitalisation_per_person_per_year = round(sd(tot_count_hos$counts_per_yr), 2),
+                                            median_hospitalisation_per_person_per_year = round(quantile(tot_count_hos$counts_per_yr, probs = (.5)), 2),
+                                            lower_q_hospitalisation_per_person_per_year = round(quantile(tot_count_hos$counts_per_yr, probs = (.25)), 2),
+                                            upper_q_hospitalisation_per_person_per_year = round(quantile(tot_count_hos$counts_per_yr, probs = (.75)), 2))
+  
+  summary_hospitalisation_per_person_per_year_user <- tibble(mean_hospitalisation_per_person_per_year=(sum(user_count$counts)/sum(user_count$exposed_yrs)),
+                                                            min_hospitalisation_per_person_per_year = min(user_count$counts_per_yr),
+                                                            max_hospitalisation_per_person_per_year = max(user_count$counts_per_yr),
+                                                            sd_hospitalisation_per_person_per_year = round(sd(user_count$counts_per_yr), 2),
+                                                            median_hospitalisation_per_person_per_year = round(quantile(user_count$counts_per_yr, probs = (.5)), 2),
+                                                            lower_q_hospitalisation_per_person_per_year = round(quantile(user_count$counts_per_yr, probs = (.25)), 2),
+                                                            upper_q_hospitalisation_per_person_per_year = round(quantile(user_count$counts_per_yr, probs = (.75)), 2))
+  
+  freq_visit_hosp <- cohort_freq %>% 
     dplyr::inner_join(cdm[["visit_occurrence_hes"]] %>% dplyr::select(person_id, visit_concept_id, visit_start_date, visit_end_date),
                       by = c("subject_id" = "person_id"),
                       copy = T,
                       relationship = "many-to-many") %>%
     dplyr::filter(visit_start_date >=index_date & visit_start_date <= follow_up_end) %>%
     dplyr::distinct() %>% 
-    dplyr::mutate(length_of_stay = visit_end_date - visit_start_date+1) %>% 
-    dplyr::group_by(subject_id, index_date) %>% 
-    dplyr::summarise(tot_los = sum(length_of_stay), .groups = "drop") %>% 
-    ungroup()
+    dplyr::mutate(length_of_stay = visit_end_date - visit_start_date+1)
   
-  freq_visit_occurrence_summary <- tibble(mean_length_of_stay_per_person=(mean(freq_visit_occurrence_tbl$tot_los)),
-                                          min_length_of_stay_per_person = min(freq_visit_occurrence_tbl$tot_los),
-                                          max_length_of_stay_per_person = max(freq_visit_occurrence_tbl$tot_los),
-                                          sd_length_of_stay_per_person = round(sd(freq_visit_occurrence_tbl$tot_los), 2),
-                                          median_length_of_stay_per_person = round(quantile(freq_visit_occurrence_tbl$tot_los, probs = (.5)), 2),
-                                          lower_q_length_of_stay_per_person = round(quantile(freq_visit_occurrence_tbl$tot_los, probs = (.25)), 2),
-                                          upper_q_length_of_stay_per_person = round(quantile(freq_visit_occurrence_tbl$tot_los, probs = (.75)), 2))
-  return(freq_visit_occurrence_summary)
+  summary_LoS_per_person_per_hosp <- tibble(mean_LoS_per_hosp=(mean(freq_visit_hosp$length_of_stay)),
+                                                       min_LoS_per_hosp = min(freq_visit_hosp$length_of_stay),
+                                                       max_LoS_per_hosp = max(freq_visit_hosp$length_of_stay),
+                                                       sd_LoS_per_hosp = round(sd(freq_visit_hosp$length_of_stay), 2),
+                                                       median_LoS_per_hosp = round(quantile(freq_visit_hosp$length_of_stay, probs = (.5)), 2),
+                                                       lower_q_LoS_per_hosp = round(quantile(freq_visit_hosp$length_of_stay, probs = (.25)), 2),
+                                                       upper_q_LoS_per_hosp = round(quantile(freq_visit_hosp$length_of_stay, probs = (.75)), 2))
+  
+  freq_visit_epi <- cohort_freq %>% 
+    dplyr::inner_join(cdm[["visit_detail_hes"]] %>% dplyr::select(person_id, visit_detail_concept_id, visit_detail_start_date, visit_detail_end_date),
+                      by = c("subject_id" = "person_id"),
+                      copy = T,
+                      relationship = "many-to-many") %>%
+    dplyr::filter(visit_detail_start_date >=index_date & visit_detail_start_date <= follow_up_end) %>%
+    dplyr::distinct() %>% 
+    dplyr::mutate(length_of_stay = visit_detail_end_date - visit_detail_start_date+1)
+  
+  summary_LoS_per_person_per_episode <- tibble(mean_LoS_per_episode=(mean(freq_visit_epi$length_of_stay)),
+                                               min_LoS_per_episode = min(freq_visit_epi$length_of_stay),
+                                               max_LoS_per_episode = max(freq_visit_epi$length_of_stay),
+                                               sd_LoS_per_episode = round(sd(freq_visit_epi$length_of_stay), 2),
+                                               median_LoS_per_episode = round(quantile(freq_visit_epi$length_of_stay, probs = (.5)), 2),
+                                               lower_q_LoS_per_episode = round(quantile(freq_visit_epi$length_of_stay, probs = (.25)), 2),
+                                               upper_q_LoS_per_episode = round(quantile(freq_visit_epi$length_of_stay, probs = (.75)), 2))
+  
+  return(list(summary_hos_per_pers_yr_all = summary_hospitalisation_per_person_per_year_all,
+              summary_hos_per_pers_yr_user = summary_hospitalisation_per_person_per_year_user,
+              summary_LoS_per_hos = summary_LoS_per_person_per_hosp,
+              summary_LoS_per_epi = summary_LoS_per_person_per_episode))
 }
