@@ -1060,10 +1060,10 @@ reformat_table_one_rq3_across<- function(table_one, name1, name2){
 }
 
 ###conditions
-condition_frequency_table <- function(cohort_freq, primary = F){
+condition_frequency_table <- function(cohort_freq, table_name, primary = F){
   if (primary== F){
     freq_condition_tbl <- cohort_freq %>% 
-      dplyr::inner_join(cdm[["visit_detail_hes"]] %>% dplyr::select(person_id, visit_detail_concept_id, visit_detail_start_date, visit_detail_end_date),
+      dplyr::inner_join(cdm[[table_name]] %>% dplyr::select(person_id, visit_detail_concept_id, visit_detail_start_date, visit_detail_end_date),
                         by = c("subject_id" = "person_id"),
                         copy = T,
                         relationship = "many-to-many") %>%
@@ -1128,7 +1128,7 @@ condition_frequency_table <- function(cohort_freq, primary = F){
   
   else {
     freq_condition_tbl <- cohort_freq %>% 
-      dplyr::inner_join(cdm[["visit_detail_hes"]] %>% dplyr::select(person_id, visit_detail_concept_id, visit_detail_start_date, visit_detail_end_date),
+      dplyr::inner_join(cdm[[table_name]] %>% dplyr::select(person_id, visit_detail_concept_id, visit_detail_start_date, visit_detail_end_date),
                         by = c("subject_id" = "person_id"),
                         copy = T,
                         relationship = "many-to-many") %>%
@@ -1194,10 +1194,10 @@ condition_frequency_table <- function(cohort_freq, primary = F){
 }
 
 ###procedures
-procedure_frequency_table <- function(cohort_freq, primary = F){
+procedure_frequency_table <- function(cohort_freq, table_name, primary = F){
   if (primary== F){
     freq_procedure_tbl <- cohort_freq %>% 
-      dplyr::inner_join(cdm[["visit_detail_hes"]] %>% dplyr::select(person_id, visit_detail_concept_id, visit_detail_start_date, visit_detail_end_date),
+      dplyr::inner_join(cdm[[table_name]] %>% dplyr::select(person_id, visit_detail_concept_id, visit_detail_start_date, visit_detail_end_date),
                         by = c("subject_id" = "person_id"),
                         copy = T,
                         relationship = "many-to-many") %>%
@@ -1262,7 +1262,7 @@ procedure_frequency_table <- function(cohort_freq, primary = F){
   
   else {
     freq_procedure_tbl <- cohort_freq %>% 
-      dplyr::inner_join(cdm[["visit_detail_hes"]] %>% dplyr::select(person_id, visit_detail_concept_id, visit_detail_start_date, visit_detail_end_date),
+      dplyr::inner_join(cdm[[table_name]] %>% dplyr::select(person_id, visit_detail_concept_id, visit_detail_start_date, visit_detail_end_date),
                         by = c("subject_id" = "person_id"),
                         copy = T,
                         relationship = "many-to-many") %>%
@@ -1326,7 +1326,7 @@ procedure_frequency_table <- function(cohort_freq, primary = F){
   return(list(freq_procedure = freq_procedure, number_of_episodes = tot_episodes, more_than_one = multiple, summary_LoS = summary_LoS, summary_epi_per_person_per_yr = summary_episode_per_person_per_year))
 }
 
-visit_summary <- function(cohort_freq){
+visit_summary <- function(cohort_freq, table_name){
   freq_visit_occurrence_tbl <- cohort_freq %>% 
     dplyr::left_join(cdm[["visit_occurrence_hes"]] %>% dplyr::select(person_id, visit_concept_id, visit_start_date, visit_end_date),
                       by = c("subject_id" = "person_id"),
@@ -1389,7 +1389,7 @@ visit_summary <- function(cohort_freq){
                                                        upper_q_LoS_per_hosp = round(quantile(freq_visit_hosp$length_of_stay, probs = (.75)), 2))
   
   freq_visit_epi <- cohort_freq %>% 
-    dplyr::inner_join(cdm[["visit_detail_hes"]] %>% dplyr::select(person_id, visit_detail_concept_id, visit_detail_start_date, visit_detail_end_date),
+    dplyr::inner_join(cdm[[table_name]] %>% dplyr::select(person_id, visit_detail_concept_id, visit_detail_start_date, visit_detail_end_date),
                       by = c("subject_id" = "person_id"),
                       copy = T,
                       relationship = "many-to-many") %>%
@@ -1429,7 +1429,7 @@ condition_frequency_table_sidiap <- function(cohort_freq, table_name, primary = 
       dplyr::distinct() %>% 
       dplyr::mutate(LoS = .data$visit_end_date - .data$visit_start_date + 1)
     
-    tot_episodes <- nrow(freq_condition_tbl)
+    tot_hospitalisations <- nrow(freq_condition_tbl)
     
     multiple <- freq_condition_tbl %>% 
       dplyr::group_by(subject_id, index_date, condition_start_date) %>%
@@ -1446,11 +1446,11 @@ condition_frequency_table_sidiap <- function(cohort_freq, table_name, primary = 
                        counts = n()) %>% 
       dplyr::ungroup() %>% 
       dplyr::arrange(desc(counts)) %>% 
-      dplyr::mutate(percentage = counts/tot_episodes) %>% 
+      dplyr::mutate(percentage = counts/tot_hospitalisations) %>% 
       dplyr::mutate(percentage = round(percentage*100, digits = 2),
                     mean_los = round(mean_los, digits = 2)) 
     
-    summary_LoS <- tibble(mean_length_of_stay_per_condition = as.integer(sum(freq_condition_tbl$LoS))/tot_episodes,
+    summary_LoS <- tibble(mean_length_of_stay_per_condition = as.integer(sum(freq_condition_tbl$LoS))/tot_hospitalisations,
                           min_length_of_stay_per_condition = min(freq_condition$mean_los),
                           max_length_of_stay_per_condition = max(freq_condition$mean_los),
                           sd_length_of_stay_per_condition = round(sd(freq_condition$mean_los), 2),
@@ -1494,7 +1494,7 @@ condition_frequency_table_sidiap <- function(cohort_freq, table_name, primary = 
       dplyr::distinct() %>% 
       dplyr::mutate(LoS = .data$visit_end_date - .data$visit_start_date + 1)
     
-    tot_episodes <- nrow(freq_condition_tbl)
+    tot_hospitalisations <- nrow(freq_condition_tbl)
     
     multiple <- freq_condition_tbl %>% 
       dplyr::group_by(subject_id, index_date, condition_start_date) %>%
@@ -1511,11 +1511,11 @@ condition_frequency_table_sidiap <- function(cohort_freq, table_name, primary = 
                        counts = n()) %>% 
       dplyr::ungroup() %>% 
       dplyr::arrange(desc(counts)) %>% 
-      dplyr::mutate(percentage = counts/tot_episodes) %>% 
+      dplyr::mutate(percentage = counts/tot_hospitalisations) %>% 
       dplyr::mutate(percentage = round(percentage*100, digits = 2),
                     mean_los = round(mean_los, digits = 2)) 
     
-    summary_LoS <- tibble(mean_length_of_stay_per_condition=as.integer(sum(freq_procedure_tbl$LoS))/tot_episodes,
+    summary_LoS <- tibble(mean_length_of_stay_per_condition=as.integer(sum(freq_procedure_tbl$LoS))/tot_hospitalisations,
                           min_length_of_stay_per_condition = min(freq_condition$mean_los),
                           max_length_of_stay_per_condition = max(freq_condition$mean_los),
                           sd_length_of_stay_per_condition = round(sd(freq_condition$mean_los), 2),
@@ -1542,7 +1542,7 @@ condition_frequency_table_sidiap <- function(cohort_freq, table_name, primary = 
                     percentage = ifelse((counts < 5 & counts > 0), paste0("<", minimum_counts), percentage),
                     counts = ifelse((counts < 5 & counts > 0), paste0("<", minimum_counts), counts))
   }
-  return(list(freq_condition = freq_condition, number_of_episodes = tot_episodes, more_than_one = multiple, summary_LoS = summary_LoS, summary_epi_per_person_per_yr = summary_episode_per_person_per_year))
+  return(list(freq_condition = freq_condition, number_of_hospitalisations = tot_hospitalisations, more_than_one = multiple, summary_LoS = summary_LoS, summary_epi_per_person_per_yr = summary_episode_per_person_per_year))
 }
 
 ###procedures
@@ -1562,7 +1562,7 @@ procedure_frequency_table_sidiap <- function(cohort_freq, table_name, primary = 
       dplyr::distinct() %>% 
       dplyr::mutate(LoS = .data$visit_end_date - .data$visit_start_date + 1)
     
-    tot_episodes <- nrow(freq_procedure_tbl)
+    tot_hospitalisations <- nrow(freq_procedure_tbl)
     
     multiple <- freq_procedure_tbl %>% 
       dplyr::group_by(subject_id, index_date, procedure_date) %>%
@@ -1579,11 +1579,11 @@ procedure_frequency_table_sidiap <- function(cohort_freq, table_name, primary = 
                        counts = n()) %>% 
       dplyr::ungroup() %>% 
       dplyr::arrange(desc(counts)) %>% 
-      dplyr::mutate(percentage = counts/tot_episodes) %>% 
+      dplyr::mutate(percentage = counts/tot_hospitalisations) %>% 
       dplyr::mutate(percentage = round(percentage*100, digits = 2),
                     mean_los = round(mean_los, digits = 2)) 
     
-    summary_LoS <- tibble(mean_length_of_stay_per_procedure = as.integer(sum(freq_procedure_tbl$LoS))/tot_episodes,
+    summary_LoS <- tibble(mean_length_of_stay_per_procedure = as.integer(sum(freq_procedure_tbl$LoS))/tot_hospitalisations,
                           min_length_of_stay_per_procedure = min(freq_procedure$mean_los),
                           max_length_of_stay_per_procedure = max(freq_procedure$mean_los),
                           sd_length_of_stay_per_procedure = round(sd(freq_procedure$mean_los), 2),
@@ -1627,7 +1627,7 @@ procedure_frequency_table_sidiap <- function(cohort_freq, table_name, primary = 
       dplyr::distinct() %>% 
       dplyr::mutate(LoS = .data$visit_end_date - .data$visit_start_date + 1)
     
-    tot_episodes <- nrow(freq_procedure_tbl)
+    tot_hospitalisations <- nrow(freq_procedure_tbl)
     
     multiple <- freq_procedure_tbl %>% 
       dplyr::group_by(subject_id, index_date, procedure_date) %>%
@@ -1644,11 +1644,11 @@ procedure_frequency_table_sidiap <- function(cohort_freq, table_name, primary = 
                        counts = n()) %>% 
       dplyr::ungroup() %>% 
       dplyr::arrange(desc(counts)) %>% 
-      dplyr::mutate(percentage = counts/tot_episodes) %>% 
+      dplyr::mutate(percentage = counts/tot_hospitalisations) %>% 
       dplyr::mutate(percentage = round(percentage*100, digits = 2),
                     mean_los = round(mean_los, digits = 2)) 
     
-    summary_LoS <- tibble(mean_length_of_stay_per_procedure=as.integer(sum(freq_procedure_tbl$LoS))/tot_episodes,
+    summary_LoS <- tibble(mean_length_of_stay_per_procedure=as.integer(sum(freq_procedure_tbl$LoS))/tot_hospitalisations,
                           min_length_of_stay_per_procedure = min(freq_procedure$mean_los),
                           max_length_of_stay_per_procedure = max(freq_procedure$mean_los),
                           sd_length_of_stay_per_procedure = round(sd(freq_procedure$mean_los), 2),
@@ -1675,7 +1675,7 @@ procedure_frequency_table_sidiap <- function(cohort_freq, table_name, primary = 
                     percentage = ifelse((counts < 5 & counts > 0), paste0("<", minimum_counts), percentage),
                     counts = ifelse((counts < 5 & counts > 0), paste0("<", minimum_counts), counts))
   }
-  return(list(freq_procedure = freq_procedure, number_of_episodes = tot_episodes, more_than_one = multiple, summary_LoS = summary_LoS, summary_epi_per_person_per_yr = summary_episode_per_person_per_year))
+  return(list(freq_procedure = freq_procedure, number_of_hospitalisations = tot_hospitalisations, more_than_one = multiple, summary_LoS = summary_LoS, summary_epi_per_person_per_yr = summary_episode_per_person_per_year))
 }
 
 visit_summary_sidiap <- function(cohort_freq, table_name){
