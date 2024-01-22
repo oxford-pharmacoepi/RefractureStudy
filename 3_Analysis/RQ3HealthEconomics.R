@@ -569,4 +569,9 @@ if (country_setting != "UK") {
   write.xlsx(check_dates, file = here(sub_output_folder, "check_dates.xlsx"))
   write.xlsx(visit_type_by_specialty, file = here(sub_output_folder, "visit_type_by_specialty.xlsx"))
 }
+
+#Secondary Care
+if (country_setting %in% c("Spain", "UK")){
+  source(here("4_HealthEconomics", "secondary_care.R"))
+}
 info(logger, "OUTPUT FOR HEALTH ECONOMICS IS DONE")
