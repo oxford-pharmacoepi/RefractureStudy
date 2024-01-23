@@ -322,8 +322,8 @@ for (l in (1:length(compCohort1))){
   
   print(paste0("Producing selectedLassoFeatures at ", Sys.time()))
   coef.lasso_reg <- coef(lasso_reg_12[[l]], s = lasso_reg_12[[l]]$lambda.1se)
-  selectedLassoFeatures01[[l]] <- c("age", names(coef.lasso_reg[(coef.lasso_reg[,1]!=0),1])) %>% unique()
-  selectedLassoFeatures01[[l]] <- selectedLassoFeatures01[[l]][selectedLassoFeatures01[[l]] != "(Intercept)"]
+  selectedLassoFeatures12[[l]] <- c("age", names(coef.lasso_reg[(coef.lasso_reg[,1]!=0),1])) %>% unique()
+  selectedLassoFeatures12[[l]] <- selectedLassoFeatures12[[l]][selectedLassoFeatures12[[l]] != "(Intercept)"]
   
   features_lasso12 <- features_lasso12 %>%
     dplyr::select(all_of(c("subject_id", "group", "index_date", "follow_up_end", selectedLassoFeatures12[[l]])))
