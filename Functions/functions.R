@@ -760,10 +760,11 @@ reformat_table_one_rq3<- function(table_one, period, name1, name2, j, k){
   #variables assembled by percentage
   cont_var <- table_one_1 %>% 
     dplyr::filter(estimate_type == "percentage") %>% 
-    filter(!variable == "Sex") %>% 
+    dplyr::filter(!variable == "Sex") %>% 
     dplyr::select(variable_level) %>% 
     dplyr::distinct() %>% 
-    dplyr::pull(variable_level)  
+    dplyr::filter(!is.na(variable_level)) %>% 
+    dplyr::pull(variable_level) 
   
   reformatted_table1_2<-data.frame(x = NA, y= NA, z= NA, percentage1 = NA, percentage2 = NA)
   for (i in (1:length(cont_var))){
