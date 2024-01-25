@@ -1745,4 +1745,3 @@ visit_summary_sidiap <- function(cohort_freq, table_name){
               summary_hos_per_pers_yr_user = summary_hospitalisation_per_person_per_year_user,
               summary_LoS_per_hos = summary_LoS_per_person_per_hosp))
 }
-
