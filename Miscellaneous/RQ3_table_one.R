@@ -1,3 +1,4 @@
+########################## LOADING NECESSARY DATA #############################
 load(here::here(sub_output_folder, "tempData", "subclasses01.RData"))
 load(here::here(sub_output_folder, "tempData", "subclasses12.RData"))
 load(here::here(sub_output_folder, "tempData", "targetCohort.RData"))
@@ -15,6 +16,7 @@ tot_periods_c1 <- length(compCohort1)
 info(logger, "START TO CREATE THE SUMMARY - BEFORE MATCHING")
 print(paste0("Creating before matching cohorts at ", Sys.time()))
 
+############################## CDM CREATE COHORTS - BEFORE MATCHING ###############################
 cdm[["before_matching"]] <- 
   Reduce(dplyr::union_all, targetCohort) %>%
   dplyr::select(subject_id, index_date, period) %>% 
@@ -83,6 +85,7 @@ table_one_cohort_count <- cdm[["before_matching"]] %>%
     overwrite = TRUE
   )
 
+###################### OVERALL TABLE 1 BEFORE MATCHING ##############################
 print(paste0("Creating table1 for before matching cohorts at ", Sys.time()))
 stem_table <- "rq3"
 conditions <- paste0(stem_table, "_conditions")
@@ -134,19 +137,74 @@ result_before_matching <- cdm_char[["table_one_cohort"]] %>%
   )
 write_csv(result_before_matching, here(t1_sub_output_folder, "result_before_matching.csv"))
 
+####################### OVERALL TABLE 1 BEFORE MATCHING OSTEO ONLY ################
+# instantiate conditions
+stem_table <- "rq3"
+conditions <- paste0(stem_table, "_conditions")
+medications <- paste0(stem_table, "_medications")
+cdm_char <-CDMConnector::cdm_from_con(
+  con = db,
+  cdm_schema = cdm_database_schema,
+  write_schema = results_database_schema
+)
+
+cdm_char[["table_one_cohort"]] <- newGeneratedCohortSet(cohortRef = cdm[["table_one_cohort"]],
+                                                        cohortSetRef = table_one_cohort_set,
+                                                        cohortCountRef = table_one_cohort_count,
+                                                        overwrite = T)
+
+cdm_char <- CDMConnector::cdmSubsetCohort(cdm_char, "table_one_cohort", verbose = T)
+
+info(logger, "INSTANTIATE CONDITIONS - BEFORE MATCHING")
+codelistConditionsOst <- codesFromConceptSet(here("1_InstantiateCohorts", "Conditions", "Osteoporosis"), cdm_char)
+cdm_char <- generateConceptCohortSet(cdm = cdm_char, name = conditions, conceptSet = codelistConditionsOst, overwrite = T)
+
+# create table summary
+info(logger, "CREATE SUMMARY - BEFORE MATCHING")
+result_before_matching2 <- cdm_char[["table_one_cohort"]] %>%
+  summariseCharacteristics(
+    cohortIntersect = list(
+      "Conditions" = list(
+        targetCohortTable = conditions, value = "flag", window = list(c(-Inf, -731), c(-730, -181), c(-180, 0))
+      )
+    )
+  )
+
+result_before_matching2_window1 <- result_before_matching2 %>% 
+  dplyr::filter(variable_level == "80502") %>% 
+  dplyr::filter(stringr::str_detect(variable, '-180 to 0')) %>% 
+  dplyr::mutate(variable_level = "f80502_1")
+
+result_before_matching2_window2 <- result_before_matching2 %>% 
+  dplyr::filter(variable_level == "80502") %>% 
+  dplyr::filter(stringr::str_detect(variable, '-730 to -181')) %>% 
+  dplyr::mutate(variable_level = "f80502_2")
+
+result_before_matching2_window3 <- result_before_matching2 %>% 
+  dplyr::filter(variable_level == "80502") %>% 
+  dplyr::filter(stringr::str_detect(variable, '-731')) %>% 
+  dplyr::mutate(variable_level = "f80502_3")
+
+result_before_matching_v2 <- rbind(
+  result_before_matching,
+  result_before_matching2_window1,
+  result_before_matching2_window2,
+  result_before_matching2_window3
+)
+
 for (i in (1:tot_periods_target)){
-  output<-reformat_table_one_rq3(result_before_matching, period = i, name1 = "target", name2 = "comparator 1", j = 1, k = 2) %>% 
+  output<-reformat_table_one_rq3(result_before_matching_v2, period = i, name1 = "target", name2 = "comparator 1", j = 1, k = 2) %>% 
     dplyr::filter(!Characteristic %in% c("Fractures, n(%)", "Malignant neoplastic disease, n(%)"))
   write_csv(output, here(t1_sub_output_folder, paste0("target_c1_", i, "_before_matching.csv")))
 }
 
 for (i in (1:tot_periods_c1)){
-  output<-reformat_table_one_rq3(result_before_matching, period = i, name1 = "comparator 1", name2 = "comparator 2", j = 2, k = 3) %>% 
+  output<-reformat_table_one_rq3(result_before_matching_v2, period = i, name1 = "comparator 1", name2 = "comparator 2", j = 2, k = 3) %>% 
     dplyr::filter(!Characteristic %in% c("Fractures, n(%)", "Malignant neoplastic disease, n(%)"))
   write_csv(output, here(t1_sub_output_folder, paste0("c1_c2_", i, "_before_matching.csv")))
 }
 
-################################ after matching #################################
+################################ after matching 01 #################################
 ##01
 info(logger, "START TO CREATE THE SUMMARY - AFTER MATCHING 01")
 print(paste0("Creating after matching cohorts T-C1 at ", Sys.time()))
@@ -223,36 +281,37 @@ after_matching_01_cohort_count <- cdm[["after_matching_tc"]] %>%
     overwrite = TRUE
   )
 
+########################## AFTER MATCHING 01 OVERALL TABLE 1####################
 print(paste0("Creating table1 for after matching cohorts T-C1 at ", Sys.time()))
 stem_table <- "rq3"
 conditions <- paste0(stem_table, "_conditions")
 medications <- paste0(stem_table, "_medications")
-cdm_char2 <-CDMConnector::cdm_from_con(
+cdm_char <-CDMConnector::cdm_from_con(
   con = db,
   cdm_schema = cdm_database_schema,
   write_schema = results_database_schema
 )
 
-cdm_char2[["after_matching_01_cohort"]] <- newGeneratedCohortSet(cohortRef = cdm[["after_matching_01_cohort"]],
+cdm_char[["after_matching_01_cohort"]] <- newGeneratedCohortSet(cohortRef = cdm[["after_matching_01_cohort"]],
                                                         cohortSetRef = after_matching_01_cohort_set,
                                                         cohortCountRef = after_matching_01_cohort_count,
                                                         overwrite = T)
 
-cdm_char2 <- CDMConnector::cdmSubsetCohort(cdm_char2, "after_matching_01_cohort", verbose = T)
+cdm_char <- CDMConnector::cdmSubsetCohort(cdm_char, "after_matching_01_cohort", verbose = T)
 
 # instantiate medications
 info(logger, "INSTANTIATE MEDICATIONS - BEFORE MATCHING")
-codelistMedications <- codesFromConceptSet(here("1_InstantiateCohorts", "Medications"), cdm_char2)
-cdm_char2 <- generateDrugUtilisationCohortSet(cdm = cdm_char2, name = medications, conceptSet = codelistMedications)
+codelistMedications <- codesFromConceptSet(here("1_InstantiateCohorts", "Medications"), cdm_char)
+cdm_char <- generateDrugUtilisationCohortSet(cdm = cdm_char, name = medications, conceptSet = codelistMedications)
 
 # instantiate conditions
 info(logger, "INSTANTIATE CONDITIONS - BEFORE MATCHING")
-codelistConditions <- codesFromConceptSet(here("1_InstantiateCohorts", "Conditions"), cdm_char2)
-cdm_char2 <- generateConceptCohortSet(cdm = cdm_char2, name = conditions, conceptSet = codelistConditions, overwrite = T)
+codelistConditions <- codesFromConceptSet(here("1_InstantiateCohorts", "Conditions"), cdm_char)
+cdm_char <- generateConceptCohortSet(cdm = cdm_char, name = conditions, conceptSet = codelistConditions, overwrite = T)
 
 # create table summary
 info(logger, "CREATE SUMMARY - BEFORE MATCHING")
-result_after_matching01 <- cdm_char2[["after_matching_01_cohort"]] %>%
+result_after_matching01 <- cdm_char[["after_matching_01_cohort"]] %>%
   summariseCharacteristics(
     ageGroup = list(c(50, 59), c(60, 69), c(70, 79), c(80, 89), c(90, 99), c(100,150)),
     tableIntersect = list(
@@ -273,6 +332,73 @@ result_after_matching01 <- cdm_char2[["after_matching_01_cohort"]] %>%
     )
   )
 write_csv(result_after_matching01, here(t1_sub_output_folder, "result_after_matching01.csv"))
+
+############################### OST TABLE 1 01###############################
+# instantiate conditions
+stem_table <- "rq3"
+conditions <- paste0(stem_table, "_conditions")
+medications <- paste0(stem_table, "_medications")
+cdm_char <-CDMConnector::cdm_from_con(
+  con = db,
+  cdm_schema = cdm_database_schema,
+  write_schema = results_database_schema
+)
+
+cdm_char[["after_matching_01_cohort"]] <- newGeneratedCohortSet(cohortRef = cdm[["after_matching_01_cohort"]],
+                                                                 cohortSetRef = after_matching_01_cohort_set,
+                                                                 cohortCountRef = after_matching_01_cohort_count,
+                                                                 overwrite = T)
+
+cdm_char <- CDMConnector::cdmSubsetCohort(cdm_char, "after_matching_01_cohort", verbose = T)
+
+info(logger, "INSTANTIATE CONDITIONS - BEFORE MATCHING")
+codelistConditionsOst <- codesFromConceptSet(here("1_InstantiateCohorts", "Conditions", "Osteoporosis"), cdm_char)
+cdm_char <- generateConceptCohortSet(cdm = cdm_char, name = conditions, conceptSet = codelistConditionsOst, overwrite = T)
+
+# create table summary
+info(logger, "CREATE SUMMARY - BEFORE MATCHING")
+result_after_matching01_2 <- cdm_char[["after_matching_01_cohort"]] %>%
+  summariseCharacteristics(
+    cohortIntersect = list(
+      "Conditions" = list(
+        targetCohortTable = conditions, value = "flag", window = list(c(-Inf, -731), c(-730, -181), c(-180, 0))
+      )
+    )
+  )
+
+result_after_matching01_window1 <- result_after_matching01_2 %>% 
+  dplyr::filter(variable_level == "80502") %>% 
+  dplyr::filter(stringr::str_detect(variable, '-180 to 0')) %>% 
+  dplyr::mutate(variable_level = "f80502_1")
+
+result_after_matching01_window2 <- result_after_matching01_2 %>% 
+  dplyr::filter(variable_level == "80502") %>% 
+  dplyr::filter(stringr::str_detect(variable, '-730 to -181')) %>% 
+  dplyr::mutate(variable_level = "f80502_2")
+
+result_after_matching01_window3 <- result_after_matching01_2 %>% 
+  dplyr::filter(variable_level == "80502") %>% 
+  dplyr::filter(stringr::str_detect(variable, '-731')) %>% 
+  dplyr::mutate(variable_level = "f80502_3")
+
+result_before_matching_v2 <- rbind(
+  result_before_matching,
+  result_before_matching2_window1,
+  result_before_matching2_window2,
+  result_before_matching2_window3
+)
+
+for (i in (1:tot_periods_target)){
+  output<-reformat_table_one_rq3(result_before_matching_v2, period = i, name1 = "target", name2 = "comparator 1", j = 1, k = 2) %>% 
+    dplyr::filter(!Characteristic %in% c("Fractures, n(%)", "Malignant neoplastic disease, n(%)"))
+  write_csv(output, here(t1_sub_output_folder, paste0("target_c1_", i, "_before_matching.csv")))
+}
+
+for (i in (1:tot_periods_c1)){
+  output<-reformat_table_one_rq3(result_before_matching_v2, period = i, name1 = "comparator 1", name2 = "comparator 2", j = 2, k = 3) %>% 
+    dplyr::filter(!Characteristic %in% c("Fractures, n(%)", "Malignant neoplastic disease, n(%)"))
+  write_csv(output, here(t1_sub_output_folder, paste0("c1_c2_", i, "_before_matching.csv")))
+}
 
 for (i in (1:tot_periods_target)){
   output<-reformat_table_one_rq3_01(result_after_matching01, period = i, name1 = "target", name2 = "comparator 1") %>% 
@@ -361,32 +487,32 @@ print(paste0("Creating table1 for after matching cohorts C1-C2 at ", Sys.time())
 stem_table <- "rq3"
 conditions <- paste0(stem_table, "_conditions")
 medications <- paste0(stem_table, "_medications")
-cdm_char2 <-CDMConnector::cdm_from_con(
+cdm_char <-CDMConnector::cdm_from_con(
   con = db,
   cdm_schema = cdm_database_schema,
   write_schema = results_database_schema
 )
 
-cdm_char2[["after_matching_12_cohort"]] <- newGeneratedCohortSet(cohortRef = cdm[["after_matching_12_cohort"]],
+cdm_char[["after_matching_12_cohort"]] <- newGeneratedCohortSet(cohortRef = cdm[["after_matching_12_cohort"]],
                                                                  cohortSetRef = after_matching_12_cohort_set,
                                                                  cohortCountRef = after_matching_12_cohort_count,
                                                                  overwrite = T)
 
-cdm_char2 <- CDMConnector::cdmSubsetCohort(cdm_char2, "after_matching_12_cohort", verbose = T)
+cdm_char <- CDMConnector::cdmSubsetCohort(cdm_char, "after_matching_12_cohort", verbose = T)
 
 # instantiate medications
 info(logger, "INSTANTIATE MEDICATIONS - BEFORE MATCHING")
-codelistMedications <- codesFromConceptSet(here("1_InstantiateCohorts", "Medications"), cdm_char2)
-cdm_char2 <- generateDrugUtilisationCohortSet(cdm = cdm_char2, name = medications, conceptSet = codelistMedications)
+codelistMedications <- codesFromConceptSet(here("1_InstantiateCohorts", "Medications"), cdm_char)
+cdm_char <- generateDrugUtilisationCohortSet(cdm = cdm_char, name = medications, conceptSet = codelistMedications)
 
 # instantiate conditions
 info(logger, "INSTANTIATE CONDITIONS - BEFORE MATCHING")
-codelistConditions <- codesFromConceptSet(here("1_InstantiateCohorts", "Conditions"), cdm_char2)
-cdm_char2 <- generateConceptCohortSet(cdm = cdm_char2, name = conditions, conceptSet = codelistConditions, overwrite = T)
+codelistConditions <- codesFromConceptSet(here("1_InstantiateCohorts", "Conditions"), cdm_char)
+cdm_char <- generateConceptCohortSet(cdm = cdm_char, name = conditions, conceptSet = codelistConditions, overwrite = T)
 
 # create table summary
 info(logger, "CREATE SUMMARY - BEFORE MATCHING")
-result_after_matching12 <- cdm_char2[["after_matching_12_cohort"]] %>%
+result_after_matching12 <- cdm_char[["after_matching_12_cohort"]] %>%
   summariseCharacteristics(
     ageGroup = list(c(50, 59), c(60, 69), c(70, 79), c(80, 89), c(90, 99), c(100,150)),
     tableIntersect = list(
@@ -608,32 +734,32 @@ print(paste0("Creating table1 for after matching cohorts T-C1 at ", Sys.time()))
 stem_table <- "rq3"
 conditions <- paste0(stem_table, "_conditions")
 medications <- paste0(stem_table, "_medications")
-cdm_char2 <-CDMConnector::cdm_from_con(
+cdm_char <-CDMConnector::cdm_from_con(
   con = db,
   cdm_schema = cdm_database_schema,
   write_schema = results_database_schema
 )
 
-cdm_char2[["after_matching_01_cohort2"]] <- newGeneratedCohortSet(cohortRef = cdm[["after_matching_01_cohort2"]],
+cdm_char[["after_matching_01_cohort2"]] <- newGeneratedCohortSet(cohortRef = cdm[["after_matching_01_cohort2"]],
                                                                  cohortSetRef = after_matching_01_cohort2_set,
                                                                  cohortCountRef = after_matching_01_cohort2_count,
                                                                  overwrite = T)
 
-cdm_char2 <- CDMConnector::cdmSubsetCohort(cdm_char2, "after_matching_01_cohort2", verbose = T)
+cdm_char <- CDMConnector::cdmSubsetCohort(cdm_char, "after_matching_01_cohort2", verbose = T)
 
 # instantiate medications
 info(logger, "INSTANTIATE MEDICATIONS - BEFORE MATCHING")
-codelistMedications <- codesFromConceptSet(here("1_InstantiateCohorts", "Medications"), cdm_char2)
-cdm_char2 <- generateDrugUtilisationCohortSet(cdm = cdm_char2, name = medications, conceptSet = codelistMedications)
+codelistMedications <- codesFromConceptSet(here("1_InstantiateCohorts", "Medications"), cdm_char)
+cdm_char <- generateDrugUtilisationCohortSet(cdm = cdm_char, name = medications, conceptSet = codelistMedications)
 
 # instantiate conditions
 info(logger, "INSTANTIATE CONDITIONS - BEFORE MATCHING")
-codelistConditions <- codesFromConceptSet(here("1_InstantiateCohorts", "Conditions"), cdm_char2)
-cdm_char2 <- generateConceptCohortSet(cdm = cdm_char2, name = conditions, conceptSet = codelistConditions, overwrite = T)
+codelistConditions <- codesFromConceptSet(here("1_InstantiateCohorts", "Conditions"), cdm_char)
+cdm_char <- generateConceptCohortSet(cdm = cdm_char, name = conditions, conceptSet = codelistConditions, overwrite = T)
 
 # create table summary
 info(logger, "CREATE SUMMARY - BEFORE MATCHING")
-result_after_matching01_2 <- cdm_char2[["after_matching_01_cohort2"]] %>%
+result_after_matching01 <- cdm_char[["after_matching_01_cohort2"]] %>%
   summariseCharacteristics(
     ageGroup = list(c(50, 59), c(60, 69), c(70, 79), c(80, 89), c(90, 99), c(100,150)),
     tableIntersect = list(
@@ -655,6 +781,7 @@ result_after_matching01_2 <- cdm_char2[["after_matching_01_cohort2"]] %>%
   )
 write_csv(result_after_matching01_2, here(t1_sub_output_folder, "result_after_matching01_2.csv"))
 
+####################################################################################
 ##12
 info(logger, "START TO CREATE THE SUMMARY - AFTER MATCHING 12")
 print(paste0("Creating after matching cohorts C1-C2 at ", Sys.time()))
@@ -734,32 +861,32 @@ print(paste0("Creating table1 for after matching cohorts C1-C2 at ", Sys.time())
 stem_table <- "rq3"
 conditions <- paste0(stem_table, "_conditions")
 medications <- paste0(stem_table, "_medications")
-cdm_char2 <-CDMConnector::cdm_from_con(
+cdm_char <-CDMConnector::cdm_from_con(
   con = db,
   cdm_schema = cdm_database_schema,
   write_schema = results_database_schema
 )
 
-cdm_char2[["after_matching_12_cohort2"]] <- newGeneratedCohortSet(cohortRef = cdm[["after_matching_12_cohort2"]],
+cdm_char[["after_matching_12_cohort2"]] <- newGeneratedCohortSet(cohortRef = cdm[["after_matching_12_cohort2"]],
                                                                   cohortSetRef = after_matching_12_cohort2_set,
                                                                   cohortCountRef = after_matching_12_cohort2_count,
                                                                   overwrite = T)
 
-cdm_char2 <- CDMConnector::cdmSubsetCohort(cdm_char2, "after_matching_12_cohort2", verbose = T)
+cdm_char <- CDMConnector::cdmSubsetCohort(cdm_char, "after_matching_12_cohort2", verbose = T)
 
 # instantiate medications
 info(logger, "INSTANTIATE MEDICATIONS - BEFORE MATCHING")
-codelistMedications <- codesFromConceptSet(here("1_InstantiateCohorts", "Medications"), cdm_char2)
-cdm_char2 <- generateDrugUtilisationCohortSet(cdm = cdm_char2, name = medications, conceptSet = codelistMedications)
+codelistMedications <- codesFromConceptSet(here("1_InstantiateCohorts", "Medications"), cdm_char)
+cdm_char <- generateDrugUtilisationCohortSet(cdm = cdm_char, name = medications, conceptSet = codelistMedications)
 
 # instantiate conditions
 info(logger, "INSTANTIATE CONDITIONS - BEFORE MATCHING")
-codelistConditions <- codesFromConceptSet(here("1_InstantiateCohorts", "Conditions"), cdm_char2)
-cdm_char2 <- generateConceptCohortSet(cdm = cdm_char2, name = conditions, conceptSet = codelistConditions, overwrite = T)
+codelistConditions <- codesFromConceptSet(here("1_InstantiateCohorts", "Conditions"), cdm_char)
+cdm_char <- generateConceptCohortSet(cdm = cdm_char, name = conditions, conceptSet = codelistConditions, overwrite = T)
 
 # create table summary
 info(logger, "CREATE SUMMARY - BEFORE MATCHING")
-result_after_matching12_2 <- cdm_char2[["after_matching_12_cohort2"]] %>%
+result_after_matching12_2 <- cdm_char[["after_matching_12_cohort2"]] %>%
   summariseCharacteristics(
     ageGroup = list(c(50, 59), c(60, 69), c(70, 79), c(80, 89), c(90, 99), c(100,150)),
     tableIntersect = list(
