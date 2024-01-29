@@ -689,6 +689,7 @@ result_before_matching2_v2 <- rbind(
   result_before_matching2_window2,
   result_before_matching2_window3
 )
+write_csv(result_before_matching2_v2, here(t1_sub_output_folder, paste0("result_before_matching2_v2.csv")))
 
 ####################### after matching ###########################
 ##01
@@ -855,7 +856,7 @@ result_after_matching01_2_v2 <- rbind(
   result_after_matching01_2_window2,
   result_after_matching01_2_window3
 )
-
+write_csv(result_after_matching01_2_v2, here(t1_sub_output_folder, paste0("result_after_matching01_2_v2.csv")))
 ####################################################################################
 ##12
 info(logger, "START TO CREATE THE SUMMARY - AFTER MATCHING 12")
@@ -1022,19 +1023,21 @@ result_after_matching12_2_v2 <- rbind(
   result_after_matching12_2_window3
 )
 
+write_csv(result_after_matching12_2_v2, here(t1_sub_output_folder, paste0("result_after_matching12_2_v2.csv")))
+
 ##### Compiling 
-output<-reformat_table_one_rq3_across(result_before_matching2_v2, name1 = "Target", name2 = "Cohort1") %>% 
-  dplyr::filter(!Characteristic %in% c("Fractures, n(%)", "Malignant neoplastic disease, n(%)"))
-write_csv(output, here(t1_sub_output_folder, paste0("t_c1_before_matching.csv")))
-
-output<-reformat_table_one_rq3_across(result_before_matching2_v2, name1 = "Cohort1", name2 = "Cohort2") %>% 
-  dplyr::filter(!Characteristic %in% c("Fractures, n(%)", "Malignant neoplastic disease, n(%)"))
-write_csv(output, here(t1_sub_output_folder, paste0("c1_c2_before_matching.csv")))
-
-output<-reformat_table_one_rq3_across(result_after_matching12_2_v2, name1 = "Target", name2 = "Comparator 1") %>% 
-  dplyr::filter(!Characteristic %in% c("Fractures, n(%)", "Malignant neoplastic disease, n(%)"))
-write_csv(output, here(t1_sub_output_folder, paste0("t_c1_after_matching.csv")))
-
-output<-reformat_table_one_rq3_across(result_after_matching12_2_v2, name1 = "Comparator 1", name2 = "Comparator 2") %>% 
-  dplyr::filter(!Characteristic %in% c("Fractures, n(%)", "Malignant neoplastic disease, n(%)"))
-write_csv(output, here(t1_sub_output_folder, paste0("c1_c2_after_matching.csv")))
+# output<-reformat_table_one_rq3_across(result_before_matching2_v2, name1 = "Target", name2 = "Cohort1") %>% 
+#   dplyr::filter(!Characteristic %in% c("Fractures, n(%)", "Malignant neoplastic disease, n(%)"))
+# write_csv(output, here(t1_sub_output_folder, paste0("t_c1_before_matching.csv")))
+# 
+# output<-reformat_table_one_rq3_across(result_before_matching2_v2, name1 = "Cohort1", name2 = "Cohort2") %>% 
+#   dplyr::filter(!Characteristic %in% c("Fractures, n(%)", "Malignant neoplastic disease, n(%)"))
+# write_csv(output, here(t1_sub_output_folder, paste0("c1_c2_before_matching.csv")))
+# 
+# output<-reformat_table_one_rq3_across(result_after_matching12_2_v2, name1 = "Target", name2 = "Comparator 1") %>% 
+#   dplyr::filter(!Characteristic %in% c("Fractures, n(%)", "Malignant neoplastic disease, n(%)"))
+# write_csv(output, here(t1_sub_output_folder, paste0("t_c1_after_matching.csv")))
+# 
+# output<-reformat_table_one_rq3_across(result_after_matching12_2_v2, name1 = "Comparator 1", name2 = "Comparator 2") %>% 
+#   dplyr::filter(!Characteristic %in% c("Fractures, n(%)", "Malignant neoplastic disease, n(%)"))
+# write_csv(output, here(t1_sub_output_folder, paste0("c1_c2_after_matching.csv")))
