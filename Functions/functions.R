@@ -832,10 +832,10 @@ reformat_table_one_rq3_01<- function(table_one, period, name1, name2){
                                                       " (",
                                                       round(as.numeric(table_one_2 %>% dplyr::filter(variable == cont_var[[i]]) %>% dplyr::filter(estimate_type == "sd") %>% dplyr::pull(estimate)), digits = 1),
                                                       ")"),
-                                           mean1 = table_one_1 %>% dplyr::filter(variable == cont_var[[i]]) %>% dplyr::filter(estimate_type == "mean") %>% dplyr::pull(estimate),
-                                           sd1 = table_one_1 %>% dplyr::filter(variable == cont_var[[i]]) %>% dplyr::filter(estimate_type == "sd") %>% dplyr::pull(estimate),
-                                           mean2 = table_one_2 %>% dplyr::filter(variable == cont_var[[i]]) %>% dplyr::filter(estimate_type == "mean") %>% dplyr::pull(estimate),
-                                           sd2 = table_one_2 %>% dplyr::filter(variable == cont_var[[i]]) %>% dplyr::filter(estimate_type == "sd") %>% dplyr::pull(estimate)
+                                           mean1 = round(as.numeric(table_one_1 %>% dplyr::filter(variable == cont_var[[i]]) %>% dplyr::filter(estimate_type == "mean") %>% dplyr::pull(estimate)), digits = 8),
+                                           sd1 = round(as.numeric(table_one_1 %>% dplyr::filter(variable == cont_var[[i]]) %>% dplyr::filter(estimate_type == "sd") %>% dplyr::pull(estimate)), digits = 8), 
+                                           mean2 = round(as.numeric(table_one_2 %>% dplyr::filter(variable == cont_var[[i]]) %>% dplyr::filter(estimate_type == "mean") %>% dplyr::pull(estimate)), digits = 8),
+                                           sd2 = round(as.numeric(table_one_2 %>% dplyr::filter(variable == cont_var[[i]]) %>% dplyr::filter(estimate_type == "sd") %>% dplyr::pull(estimate)), digits = 8)
                                 )
     )
   }
@@ -919,10 +919,10 @@ reformat_table_one_rq3_12<- function(table_one, period, name1, name2){
                                                       " (",
                                                       round(as.numeric(table_one_2 %>% dplyr::filter(variable == cont_var[[i]]) %>% dplyr::filter(estimate_type == "sd") %>% dplyr::pull(estimate)), digits = 1),
                                                       ")"),
-                                           mean1 = table_one_1 %>% dplyr::filter(variable == cont_var[[i]]) %>% dplyr::filter(estimate_type == "mean") %>% dplyr::pull(estimate),
-                                           sd1 = table_one_1 %>% dplyr::filter(variable == cont_var[[i]]) %>% dplyr::filter(estimate_type == "sd") %>% dplyr::pull(estimate),
-                                           mean2 = table_one_2 %>% dplyr::filter(variable == cont_var[[i]]) %>% dplyr::filter(estimate_type == "mean") %>% dplyr::pull(estimate),
-                                           sd2 = table_one_2 %>% dplyr::filter(variable == cont_var[[i]]) %>% dplyr::filter(estimate_type == "sd") %>% dplyr::pull(estimate)
+                                           mean1 = round(as.numeric(table_one_1 %>% dplyr::filter(variable == cont_var[[i]]) %>% dplyr::filter(estimate_type == "mean") %>% dplyr::pull(estimate)), digits = 8),
+                                           sd1 = round(as.numeric(table_one_1 %>% dplyr::filter(variable == cont_var[[i]]) %>% dplyr::filter(estimate_type == "sd") %>% dplyr::pull(estimate)), digits = 8), 
+                                           mean2 = round(as.numeric(table_one_2 %>% dplyr::filter(variable == cont_var[[i]]) %>% dplyr::filter(estimate_type == "mean") %>% dplyr::pull(estimate)), digits = 8),
+                                           sd2 = round(as.numeric(table_one_2 %>% dplyr::filter(variable == cont_var[[i]]) %>% dplyr::filter(estimate_type == "sd") %>% dplyr::pull(estimate)), digits = 8)
                                 )
     )
   }
