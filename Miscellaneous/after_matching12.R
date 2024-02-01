@@ -172,13 +172,13 @@ result_after_matching12_v2 <- rbind(
 )
 write_csv(result_after_matching12_v2, here(t1_sub_output_folder, "result_after_matching12_v2.csv"))
 
-print(paste0("Nicer Table1 for before matching at ", Sys.time()))
+#print(paste0("Nicer Table1 for before matching at ", Sys.time()))
 
-for (i in (1:tot_periods_target)){
-  output<-reformat_table_one_rq3_12(result_after_matching12_v2, period = i, name1 = "comparator 1", name2 = "comparator 2") %>% 
-    dplyr::filter(!Characteristic %in% c("Fractures, n(%)", "Malignant neoplastic disease, n(%)"))
-  write_csv(output, here(t1_sub_output_folder, paste0("c1_c2_", i, "_after_matching.csv")))
-}
+# for (i in (1:tot_periods_target)){
+#   output<-reformat_table_one_rq3_12(result_after_matching12_v2, period = i, name1 = "comparator 1", name2 = "comparator 2") %>% 
+#     dplyr::filter(!Characteristic %in% c("Fractures, n(%)", "Malignant neoplastic disease, n(%)"))
+#   write_csv(output, here(t1_sub_output_folder, paste0("c1_c2_", i, "_after_matching.csv")))
+# }
 
 suppressWarnings(
   rm(fullName,

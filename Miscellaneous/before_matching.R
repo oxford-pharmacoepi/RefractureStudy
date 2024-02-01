@@ -169,18 +169,18 @@ result_before_matching_v2 <- rbind(
 )
 write_csv(result_before_matching_v2, here(t1_sub_output_folder, "result_before_matching_v2.csv"))
 
-print(paste0("Nicer Table1 for before matching at ", Sys.time()))
-for (i in (1:tot_periods_target)){
-  output<-reformat_table_one_rq3(result_before_matching_v2, period = i, name1 = "target", name2 = "comparator 1", j = 1, k = 2) %>% 
-    dplyr::filter(!Characteristic %in% c("Fractures, n(%)", "Malignant neoplastic disease, n(%)"))
-  write_csv(output, here(t1_sub_output_folder, paste0("target_c1_", i, "_before_matching.csv")))
-}
+# print(paste0("Nicer Table1 for before matching at ", Sys.time()))
+# for (i in (1:tot_periods_target)){
+#   output<-reformat_table_one_rq3(result_before_matching_v2, period = i, name1 = "target", name2 = "comparator 1", j = 1, k = 2) %>% 
+#     dplyr::filter(!Characteristic %in% c("Fractures, n(%)", "Malignant neoplastic disease, n(%)"))
+#   write_csv(output, here(t1_sub_output_folder, paste0("target_c1_", i, "_before_matching.csv")))
+# }
 
-for (i in (1:tot_periods_c1)){
-  output<-reformat_table_one_rq3(result_before_matching_v2, period = i, name1 = "comparator 1", name2 = "comparator 2", j = 2, k = 3) %>% 
-    dplyr::filter(!Characteristic %in% c("Fractures, n(%)", "Malignant neoplastic disease, n(%)"))
-  write_csv(output, here(t1_sub_output_folder, paste0("c1_c2_", i, "_before_matching.csv")))
-}
+# for (i in (1:tot_periods_c1)){
+#   output<-reformat_table_one_rq3(result_before_matching_v2, period = i, name1 = "comparator 1", name2 = "comparator 2", j = 2, k = 3) %>% 
+#     dplyr::filter(!Characteristic %in% c("Fractures, n(%)", "Malignant neoplastic disease, n(%)"))
+#   write_csv(output, here(t1_sub_output_folder, paste0("c1_c2_", i, "_before_matching.csv")))
+# }
 
 suppressWarnings(
   rm(fullName,
