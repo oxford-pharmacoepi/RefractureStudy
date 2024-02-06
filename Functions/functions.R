@@ -1337,6 +1337,8 @@ visit_summary <- function(cohort_freq, table_name){
   non_user <- freq_visit_occurrence_tbl %>% 
     dplyr::filter(is.na(visit_concept_id))
   
+  non_user_count_2 <- non_user %>% dplyr::tally() %>% dplyr::rename("non_user_count" = "n")
+  
   user <- freq_visit_occurrence_tbl %>% 
     dplyr::filter(!is.na(visit_concept_id)) %>% 
     dplyr::filter(visit_start_date >=index_date & visit_start_date <= follow_up_end) %>%
@@ -1408,6 +1410,7 @@ visit_summary <- function(cohort_freq, table_name){
   
   return(list(summary_hos_per_pers_yr_all = summary_hospitalisation_per_person_per_year_all,
               summary_hos_per_pers_yr_user = summary_hospitalisation_per_person_per_year_user,
+              non_user_count = non_user_count_2,
               summary_LoS_per_hos = summary_LoS_per_person_per_hosp,
               summary_LoS_per_epi = summary_LoS_per_person_per_episode))
 }
@@ -1689,6 +1692,8 @@ visit_summary_sidiap <- function(cohort_freq, table_name){
   non_user <- freq_visit_occurrence_tbl %>% 
     dplyr::filter(is.na(visit_concept_id))
   
+  non_user_count_2 <- non_user %>% dplyr::tally() %>% dplyr::rename("non_user_count" = "n")
+  
   user <- freq_visit_occurrence_tbl %>% 
     dplyr::filter(!is.na(visit_concept_id)) %>% 
     dplyr::filter(visit_start_date >=index_date & visit_start_date <= follow_up_end) %>%
@@ -1743,5 +1748,6 @@ visit_summary_sidiap <- function(cohort_freq, table_name){
   
   return(list(summary_hos_per_pers_yr_all = summary_hospitalisation_per_person_per_year_all,
               summary_hos_per_pers_yr_user = summary_hospitalisation_per_person_per_year_user,
+              non_user_count = non_user_count_2,
               summary_LoS_per_hos = summary_LoS_per_person_per_hosp))
 }

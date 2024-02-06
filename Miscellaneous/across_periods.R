@@ -323,7 +323,7 @@ result_after_matching01_ap2_window3 <- result_after_matching01_ap_2 %>%
   dplyr::mutate(variable_level = "f80502_3")
 
 result_after_matching01_ap2_v2 <- rbind(
-  result_after_matching01_ap2,
+  result_after_matching01_ap_2,
   result_after_matching01_ap2_window1,
   result_after_matching01_ap2_window2,
   result_after_matching01_ap2_window3
