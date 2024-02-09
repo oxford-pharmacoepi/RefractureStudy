@@ -201,7 +201,7 @@ if (country_setting == "Netherlands") {
   cdm[["visit_data"]] <- joined_visit_provider_tables %>%
     dplyr::left_join(provider_cost_inputs, by = "visit_concept_id", copy=TRUE) %>%
     dplyr::filter(Include == "1") %>% # Filter for only meaningful types for primary care
-    dplyr::select(person_id, visit_start_date, visit_occurrence_id, visit_concept_id, unit_cost) %>%  
+    dplyr::select(person_id, visit_start_date, visit_occurrence_id, visit_concept_id) %>%  
     dplyr::filter(visit_start_date >= study_start_date & # include only visits in the study period
                     visit_start_date <= study_end_date) %>%
     dplyr::filter(visit_source_value != "Communication") %>% # here I remove communications
