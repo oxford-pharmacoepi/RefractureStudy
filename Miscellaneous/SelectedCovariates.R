@@ -1,4 +1,4 @@
-load(here(sub_output_folder, "tempData","selectedLassoFeatures01.RData"))
+load(here(psFolder,"selectedLassoFeatures01.RData"))
 
 selectedCovs01 <- list()
 for (i in (1:length(selectedLassoFeatures01))){
@@ -44,7 +44,7 @@ for (i in (1:length(selectedLassoFeatures01))){
 selected01 <- selected01 %>% dplyr::arrange(period)
 write.xlsx(selected01, file = here::here(sub_output_folder, "01selected.xlsx"))
 ###
-load(here(sub_output_folder, "tempData", "selectedLassoFeatures12.RData"))
+load(here(psFolder, "selectedLassoFeatures12.RData"))
 selectedCovs12 <- list()
 
 for (i in (1:length(selectedLassoFeatures12))){
@@ -92,8 +92,8 @@ selected12 <- selected12 %>% dplyr::arrange(period)
 write.xlsx(selected12, file = here::here(sub_output_folder, "12selected.xlsx"))
 
 ###coeff
-load(here(sub_output_folder, "tempData", "match_results_12.RData"))
-load(here(sub_output_folder, "tempData", "match_results_01.RData"))
+load(here(psFolder, "match_results_12.RData"))
+load(here(psFolder, "match_results_01.RData"))
 coefficients_ps_12 <- list()
 for (i in (1:length(match_results_12))){
   coefficients_ps_12[[i]] <- match_results_12[[i]]$model$coefficients %>% 
