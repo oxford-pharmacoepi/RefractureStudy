@@ -307,17 +307,22 @@ selectedLassoFeatures12 <- list()
 match_results_12 <- list()
 subclasses12 <- list()
 summary12 <- list()
+load(here(psFolder, "targetCohort.RData"))
+load(here(psFolder, "compCohort1.RData"))
+load(here(psFolder, "compCohort2.RData"))
 
 for (l in (1:length(compCohort1))){
   print(paste0("Starting matching C2-C1 for period ", l, " at ", Sys.time()))
   set.seed(12345)
   print(paste0("Pulling relevant subfeatures at ", Sys.time()))
-  load(here(psFolder, "subfeatures.RData"))
-  subfeatures_12 <- subfeatures %>% 
+  #load(here(psFolder, "subfeatures.RData"))
+  subfeatures_12 <- cdm[["subfeatures"]] %>% 
     dplyr::inner_join(rbind(compCohort1[[l]] %>% dplyr::select(subject_id, index_date, group), 
                      compCohort2[[l]] %>% dplyr::select(subject_id, index_date, group)),
-               by = c("subject_id", "index_date"))
-  rm(subfeatures)
+               by = c("subject_id", "index_date"),
+               copy = T) %>% 
+    dplyr::collect()
+  # rm(subfeatures)
   
   subfeatures_12 <- lowerBoundLasso12(subfeatures_12, 50)
   
