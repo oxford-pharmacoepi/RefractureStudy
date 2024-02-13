@@ -85,7 +85,7 @@ cdm[["features"]] <- cdm$condition_occurrence_2 %>%
   dplyr::select("subject_id", "follow_up_end", "index_date", "feature") %>%
   dplyr::distinct() %>%
   union_all(
-    cdm$drug_era_2 %>%
+    cdm$drug_era %>%
       dplyr::filter(drug_concept_id != 0) %>% 
       dplyr::inner_join(allSubjects, by = c("person_id" = "subject_id"), copy = T) %>%
       dplyr::select(
@@ -105,7 +105,7 @@ cdm[["features"]] <- cdm$condition_occurrence_2 %>%
       dplyr::distinct()
   ) %>%
   union_all(
-    cdm$procedure_occurrence_2 %>%
+    cdm$procedure_occurrence %>%
       dplyr::filter(procedure_concept_id != 0) %>% 
       dplyr::inner_join(allSubjects, by = c("person_id" = "subject_id"), copy = T) %>%
       dplyr::select(
@@ -125,7 +125,7 @@ cdm[["features"]] <- cdm$condition_occurrence_2 %>%
       dplyr::distinct()
   ) %>%
   union_all(
-    cdm$measurement_2 %>%
+    cdm$measurement %>%
       dplyr::filter(measurement_concept_id != 0) %>% 
       dplyr::inner_join(allSubjects, by = c("person_id" = "subject_id"), copy = T) %>%
       dplyr::select(
