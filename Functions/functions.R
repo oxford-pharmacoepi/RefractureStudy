@@ -760,10 +760,11 @@ reformat_table_one_rq3<- function(table_one, period, name1, name2, j, k){
   #variables assembled by percentage
   cont_var <- table_one_1 %>% 
     dplyr::filter(estimate_type == "percentage") %>% 
-    filter(!variable == "Sex") %>% 
+    dplyr::filter(!variable == "Sex") %>% 
     dplyr::select(variable_level) %>% 
     dplyr::distinct() %>% 
-    dplyr::pull(variable_level)  
+    dplyr::filter(!is.na(variable_level)) %>% 
+    dplyr::pull(variable_level) 
   
   reformatted_table1_2<-data.frame(x = NA, y= NA, z= NA, percentage1 = NA, percentage2 = NA)
   for (i in (1:length(cont_var))){
@@ -831,10 +832,10 @@ reformat_table_one_rq3_01<- function(table_one, period, name1, name2){
                                                       " (",
                                                       round(as.numeric(table_one_2 %>% dplyr::filter(variable == cont_var[[i]]) %>% dplyr::filter(estimate_type == "sd") %>% dplyr::pull(estimate)), digits = 1),
                                                       ")"),
-                                           mean1 = table_one_1 %>% dplyr::filter(variable == cont_var[[i]]) %>% dplyr::filter(estimate_type == "mean") %>% dplyr::pull(estimate),
-                                           sd1 = table_one_1 %>% dplyr::filter(variable == cont_var[[i]]) %>% dplyr::filter(estimate_type == "sd") %>% dplyr::pull(estimate),
-                                           mean2 = table_one_2 %>% dplyr::filter(variable == cont_var[[i]]) %>% dplyr::filter(estimate_type == "mean") %>% dplyr::pull(estimate),
-                                           sd2 = table_one_2 %>% dplyr::filter(variable == cont_var[[i]]) %>% dplyr::filter(estimate_type == "sd") %>% dplyr::pull(estimate)
+                                           mean1 = round(as.numeric(table_one_1 %>% dplyr::filter(variable == cont_var[[i]]) %>% dplyr::filter(estimate_type == "mean") %>% dplyr::pull(estimate)), digits = 8),
+                                           sd1 = round(as.numeric(table_one_1 %>% dplyr::filter(variable == cont_var[[i]]) %>% dplyr::filter(estimate_type == "sd") %>% dplyr::pull(estimate)), digits = 8), 
+                                           mean2 = round(as.numeric(table_one_2 %>% dplyr::filter(variable == cont_var[[i]]) %>% dplyr::filter(estimate_type == "mean") %>% dplyr::pull(estimate)), digits = 8),
+                                           sd2 = round(as.numeric(table_one_2 %>% dplyr::filter(variable == cont_var[[i]]) %>% dplyr::filter(estimate_type == "sd") %>% dplyr::pull(estimate)), digits = 8)
                                 )
     )
   }
@@ -918,10 +919,10 @@ reformat_table_one_rq3_12<- function(table_one, period, name1, name2){
                                                       " (",
                                                       round(as.numeric(table_one_2 %>% dplyr::filter(variable == cont_var[[i]]) %>% dplyr::filter(estimate_type == "sd") %>% dplyr::pull(estimate)), digits = 1),
                                                       ")"),
-                                           mean1 = table_one_1 %>% dplyr::filter(variable == cont_var[[i]]) %>% dplyr::filter(estimate_type == "mean") %>% dplyr::pull(estimate),
-                                           sd1 = table_one_1 %>% dplyr::filter(variable == cont_var[[i]]) %>% dplyr::filter(estimate_type == "sd") %>% dplyr::pull(estimate),
-                                           mean2 = table_one_2 %>% dplyr::filter(variable == cont_var[[i]]) %>% dplyr::filter(estimate_type == "mean") %>% dplyr::pull(estimate),
-                                           sd2 = table_one_2 %>% dplyr::filter(variable == cont_var[[i]]) %>% dplyr::filter(estimate_type == "sd") %>% dplyr::pull(estimate)
+                                           mean1 = round(as.numeric(table_one_1 %>% dplyr::filter(variable == cont_var[[i]]) %>% dplyr::filter(estimate_type == "mean") %>% dplyr::pull(estimate)), digits = 8),
+                                           sd1 = round(as.numeric(table_one_1 %>% dplyr::filter(variable == cont_var[[i]]) %>% dplyr::filter(estimate_type == "sd") %>% dplyr::pull(estimate)), digits = 8), 
+                                           mean2 = round(as.numeric(table_one_2 %>% dplyr::filter(variable == cont_var[[i]]) %>% dplyr::filter(estimate_type == "mean") %>% dplyr::pull(estimate)), digits = 8),
+                                           sd2 = round(as.numeric(table_one_2 %>% dplyr::filter(variable == cont_var[[i]]) %>% dplyr::filter(estimate_type == "sd") %>% dplyr::pull(estimate)), digits = 8)
                                 )
     )
   }
@@ -1336,6 +1337,8 @@ visit_summary <- function(cohort_freq, table_name){
   non_user <- freq_visit_occurrence_tbl %>% 
     dplyr::filter(is.na(visit_concept_id))
   
+  non_user_count_2 <- non_user %>% dplyr::tally() %>% dplyr::rename("non_user_count" = "n")
+  
   user <- freq_visit_occurrence_tbl %>% 
     dplyr::filter(!is.na(visit_concept_id)) %>% 
     dplyr::filter(visit_start_date >=index_date & visit_start_date <= follow_up_end) %>%
@@ -1407,6 +1410,7 @@ visit_summary <- function(cohort_freq, table_name){
   
   return(list(summary_hos_per_pers_yr_all = summary_hospitalisation_per_person_per_year_all,
               summary_hos_per_pers_yr_user = summary_hospitalisation_per_person_per_year_user,
+              non_user_count = non_user_count_2,
               summary_LoS_per_hos = summary_LoS_per_person_per_hosp,
               summary_LoS_per_epi = summary_LoS_per_person_per_episode))
 }
@@ -1688,6 +1692,8 @@ visit_summary_sidiap <- function(cohort_freq, table_name){
   non_user <- freq_visit_occurrence_tbl %>% 
     dplyr::filter(is.na(visit_concept_id))
   
+  non_user_count_2 <- non_user %>% dplyr::tally() %>% dplyr::rename("non_user_count" = "n")
+  
   user <- freq_visit_occurrence_tbl %>% 
     dplyr::filter(!is.na(visit_concept_id)) %>% 
     dplyr::filter(visit_start_date >=index_date & visit_start_date <= follow_up_end) %>%
@@ -1742,6 +1748,6 @@ visit_summary_sidiap <- function(cohort_freq, table_name){
   
   return(list(summary_hos_per_pers_yr_all = summary_hospitalisation_per_person_per_year_all,
               summary_hos_per_pers_yr_user = summary_hospitalisation_per_person_per_year_user,
+              non_user_count = non_user_count_2,
               summary_LoS_per_hos = summary_LoS_per_person_per_hosp))
 }
-

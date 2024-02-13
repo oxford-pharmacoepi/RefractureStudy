@@ -30,9 +30,9 @@ for (i in (1:length(targetCohort))){
   compCohort1[[i]] <- compCohort1[[i]] %>% dplyr::mutate(group = "comparator 1", period = i)
   compCohort2[[i]] <- compCohort2[[i]] %>% dplyr::mutate(group = "comparator 2", period = i)
 }
-save(targetCohort, file = here(sub_output_folder, "tempData", "targetCohort.RData"))
-save(compCohort1, file = here(sub_output_folder, "tempData", "compCohort1.RData"))
-save(compCohort2, file = here(sub_output_folder, "tempData", "compCohort2.RData"))
+save(targetCohort, file = here(psFolder, "targetCohort.RData"))
+save(compCohort1, file = here(psFolder, "compCohort1.RData"))
+save(compCohort2, file = here(psFolder, "compCohort2.RData"))
 
 for (i in (1:length(targetCohort))){
   allSubjects <- rbind(allSubjects,
@@ -41,11 +41,35 @@ for (i in (1:length(targetCohort))){
                        compCohort2[[i]] %>% dplyr::select(subject_id, index_date, follow_up_end, group, period) %>% dplyr::distinct())
 }
 
-cdm[["condition_occurrence_2"]] <- cdm[["condition_occurrence"]] %>% 
-  dplyr::filter(!(condition_concept_id %in% any_fracture_id)) %>% 
+# feature_remove <- read_excel(here("FracturesCandidateCodes", "feature_remove.xlsx"))
+# feature_remove_condition <- feature_remove %>% dplyr::filter(domain_id == "Condition") %>% dplyr::mutate(selected_covariates = as.integer(selected_covariates))
+# feature_remove_procedure <- feature_remove %>% dplyr::filter(domain_id == "Procedure") %>% dplyr::mutate(selected_covariates = as.integer(selected_covariates))
+# feature_remove_measurement <- feature_remove %>% dplyr::filter(domain_id == "Measurement") %>% dplyr::mutate(selected_covariates = as.integer(selected_covariates))
+# feature_remove_drug <- feature_remove %>% dplyr::filter(domain_id == "Drug") %>% dplyr::mutate(selected_covariates = as.integer(selected_covariates))
+
+# cdm[["condition_occurrence_2"]] <- cdm[["condition_occurrence"]] %>% 
+#   dplyr::filter(!(condition_concept_id %in% any_fracture_id)) %>%
+#   dplyr::anti_join(feature_remove_condition, by = c("condition_concept_id" = "selected_covariates"), copy = T) %>% 
+#   CDMConnector::computeQuery()
+#   
+# cdm[["procedure_occurrence_2"]] <- cdm[["procedure_occurrence"]] %>% 
+#   dplyr::anti_join(feature_remove_procedure, by = c("procedure_concept_id" = "selected_covariates"), copy = T) %>% 
+#   CDMConnector::computeQuery()
+# 
+# cdm[["drug_era_2"]] <- cdm[["drug_era"]] %>% 
+#   dplyr::anti_join(feature_remove_drug, by = c("drug_concept_id" = "selected_covariates"), copy = T) %>% 
+#   CDMConnector::computeQuery()
+# 
+# cdm[["measurement_2"]] <- cdm[["measurement"]] %>% 
+#   dplyr::anti_join(feature_remove_measurement, by = c("measurement_concept_id" = "selected_covariates"), copy = T) %>% 
+#   CDMConnector::computeQuery()
+
+cdm[["condition_occurrence_2"]] <- cdm[["condition_occurrence"]] %>%
+  dplyr::filter(!(condition_concept_id %in% any_fracture_id)) %>%
   CDMConnector::computeQuery()
 
-features <- cdm$condition_occurrence_2 %>%
+cdm[["features"]] <- cdm$condition_occurrence_2 %>%
+  dplyr::filter(condition_concept_id != 0) %>% 
   dplyr::inner_join(allSubjects, by = c("person_id" = "subject_id"), copy = T) %>%
   dplyr::select(
     "subject_id" = "person_id",
@@ -62,6 +86,7 @@ features <- cdm$condition_occurrence_2 %>%
   dplyr::distinct() %>%
   union_all(
     cdm$drug_era %>%
+      dplyr::filter(drug_concept_id != 0) %>% 
       dplyr::inner_join(allSubjects, by = c("person_id" = "subject_id"), copy = T) %>%
       dplyr::select(
         "subject_id" = "person_id", 
@@ -81,6 +106,7 @@ features <- cdm$condition_occurrence_2 %>%
   ) %>%
   union_all(
     cdm$procedure_occurrence %>%
+      dplyr::filter(procedure_concept_id != 0) %>% 
       dplyr::inner_join(allSubjects, by = c("person_id" = "subject_id"), copy = T) %>%
       dplyr::select(
         "subject_id" = "person_id", 
@@ -100,6 +126,7 @@ features <- cdm$condition_occurrence_2 %>%
   ) %>%
   union_all(
     cdm$measurement %>%
+      dplyr::filter(measurement_concept_id != 0) %>% 
       dplyr::inner_join(allSubjects, by = c("person_id" = "subject_id"), copy = T) %>%
       dplyr::select(
         "subject_id" = "person_id", 
@@ -117,10 +144,10 @@ features <- cdm$condition_occurrence_2 %>%
       dplyr::select("subject_id", "follow_up_end", "index_date", "feature") %>%
       dplyr::distinct()
   ) %>%
-  dplyr::collect()
+  dplyr::compute()
 print(paste0("Finish extracting features at ", Sys.time()))
 
-features_count <- features %>% 
+features_count <- cdm[["features"]] %>% 
   dplyr::group_by(feature) %>%
   dplyr::tally()
 
@@ -128,20 +155,20 @@ features_count_threshold <- features_count %>%
   dplyr::filter(n<as.integer(denom_count)/200)
 
 print(paste0("Creating subfeatures at ", Sys.time()))
-subfeatures <- features %>% 
-  dplyr::filter(!subject_id == 0) %>% 
-  dplyr::anti_join(features_count_threshold, by = "feature")
+cdm[["subfeatures"]] <- cdm[["features"]] %>% 
+  dplyr::anti_join(features_count_threshold, by = "feature") %>% 
+  CDMConnector::computeQuery()
 
-counts <- subfeatures %>% dplyr::select(feature) %>% dplyr::distinct(feature) %>% tally()
+counts <- cdm[["subfeatures"]] %>% dplyr::select(feature) %>% dplyr::distinct(feature) %>% tally() %>% collect()
 counts <- counts %>% dplyr::rename(subfeatures_count = n)
 write.xlsx(counts, file = here(sub_output_folder, "counts_subfeatures.xlsx"))
 rm(counts)
 
-# save(features, file = here(sub_output_folder, "tempData", "features.RData"))
-save(subfeatures, file = here(sub_output_folder, "tempData", "subfeatures.RData"))
-rm(features)
-rm(subfeatures)
-rm(features_count, features_count_threshold)
+# save(features, file = here(psFolder, "features.RData"))
+# save(subfeatures, file = here(psFolder, "subfeatures.RData"))
+# rm(features)
+# rm(subfeatures)
+# rm(features_count, features_count_threshold)
 print(paste0("Finishing subfeatures at ", Sys.time()))
 info(logger, "FEATURE EXTRACTION IS DONE")
 
@@ -174,7 +201,7 @@ allSubjectsCohort <- allSubjectsCohort %>%
   ) %>%
   dplyr::collect()
 
-save(allSubjectsCohort, file = here(sub_output_folder, "tempData", "allSubjectsCohort.RData"))
+save(allSubjectsCohort, file = here(psFolder, "allSubjectsCohort.RData"))
 rm(allSubjectsCohort)
 info(logger, "COMPUTING OTHER DEMOGRAPHICS IS DONE")
 
@@ -187,20 +214,22 @@ selectedLassoFeatures01 <- list()
 match_results_01 <- list()
 subclasses01 <- list()
 summary01 <- list()
-load(here(sub_output_folder, "tempData", "targetCohort.RData"))
-load(here(sub_output_folder, "tempData", "compCohort1.RData"))
-load(here(sub_output_folder, "tempData", "compCohort2.RData"))
+load(here(psFolder, "targetCohort.RData"))
+load(here(psFolder, "compCohort1.RData"))
+load(here(psFolder, "compCohort2.RData"))
 
 for (l in (1:length(targetCohort))){
   print(paste0("Starting matching C1-T for period ", l, " at ", Sys.time()))
   set.seed(12345)
   print(paste0("Pulling the relevant subfeatures at ", Sys.time()))
-  load(here(sub_output_folder, "tempData", "subfeatures.RData"))
-  subfeatures_01 <- subfeatures %>% 
+  # load(here(psFolder, "subfeatures.RData"))
+  subfeatures_01 <- cdm[["subfeatures"]] %>% 
     dplyr::inner_join(rbind(targetCohort[[l]] %>% dplyr::select(subject_id, index_date, group), 
                      compCohort1[[l]] %>% dplyr::select(subject_id, index_date, group)),
-               by = c("subject_id", "index_date"))
-  rm(subfeatures)
+               by = c("subject_id", "index_date"),
+               copy = T) %>% 
+    dplyr::collect()
+  # rm(subfeatures)
   
   subfeatures_01 <- lowerBoundLasso01(subfeatures_01, 50)
   
@@ -210,7 +239,7 @@ for (l in (1:length(targetCohort))){
     pivot_wider(names_from = "feature", values_from =  "value", values_fill = 0)
   
   rm(subfeatures_01)
-  load(here(sub_output_folder, "tempData", "allSubjectsCohort.RData"))
+  load(here(psFolder, "allSubjectsCohort.RData"))
   
   features_lasso01 <- allSubjectsCohort %>% 
     dplyr::filter(period == l) %>%
@@ -256,15 +285,15 @@ for (l in (1:length(targetCohort))){
   rm(allSubjectsCohort, features_lasso01)
 }
 
-save(lasso_reg_01, file = here(sub_output_folder, "tempData", "lasso_reg_01.RData"))
+save(lasso_reg_01, file = here(psFolder, "lasso_reg_01.RData"))
 rm(lasso_reg_01)
-save(selectedLassoFeatures01, file = here(sub_output_folder, "tempData", "selectedLassoFeatures01.RData"))
+save(selectedLassoFeatures01, file = here(psFolder, "selectedLassoFeatures01.RData"))
 rm(selectedLassoFeatures01)
-save(match_results_01, file = here(sub_output_folder, "tempData", "match_results_01.RData"))
+save(match_results_01, file = here(psFolder, "match_results_01.RData"))
 rm(match_results_01)
-save(subclasses01, file = here(sub_output_folder, "tempData", "subclasses01.RData"))
+save(subclasses01, file = here(psFolder, "subclasses01.RData"))
 rm(subclasses01)
-save(summary01, file = here(sub_output_folder, "tempData", "summary01.RData"))
+save(summary01, file = here(psFolder, "summary01.RData"))
 rm(summary01)
 rm(coef.lasso_reg)
 gc()
@@ -278,17 +307,22 @@ selectedLassoFeatures12 <- list()
 match_results_12 <- list()
 subclasses12 <- list()
 summary12 <- list()
+load(here(psFolder, "targetCohort.RData"))
+load(here(psFolder, "compCohort1.RData"))
+load(here(psFolder, "compCohort2.RData"))
 
 for (l in (1:length(compCohort1))){
   print(paste0("Starting matching C2-C1 for period ", l, " at ", Sys.time()))
   set.seed(12345)
   print(paste0("Pulling relevant subfeatures at ", Sys.time()))
-  load(here(sub_output_folder, "tempData", "subfeatures.RData"))
-  subfeatures_12 <- subfeatures %>% 
+  #load(here(psFolder, "subfeatures.RData"))
+  subfeatures_12 <- cdm[["subfeatures"]] %>% 
     dplyr::inner_join(rbind(compCohort1[[l]] %>% dplyr::select(subject_id, index_date, group), 
                      compCohort2[[l]] %>% dplyr::select(subject_id, index_date, group)),
-               by = c("subject_id", "index_date"))
-  rm(subfeatures)
+               by = c("subject_id", "index_date"),
+               copy = T) %>% 
+    dplyr::collect()
+  # rm(subfeatures)
   
   subfeatures_12 <- lowerBoundLasso12(subfeatures_12, 50)
   
@@ -298,7 +332,7 @@ for (l in (1:length(compCohort1))){
     pivot_wider(names_from = "feature", values_from =  "value", values_fill = 0)
   
   rm(subfeatures_12)
-  load(here(sub_output_folder, "tempData", "allSubjectsCohort.RData"))
+  load(here(psFolder, "allSubjectsCohort.RData"))
   
   features_lasso12 <- allSubjectsCohort %>% 
     dplyr::filter(period == l) %>%
@@ -344,15 +378,15 @@ for (l in (1:length(compCohort1))){
   rm(allSubjectsCohort, features_lasso12)
 }
 
-save(lasso_reg_12, file = here(sub_output_folder, "tempData", "lasso_reg_12.RData"))
+save(lasso_reg_12, file = here(psFolder, "lasso_reg_12.RData"))
 rm(lasso_reg_12)
-save(selectedLassoFeatures12, file = here(sub_output_folder, "tempData", "selectedLassoFeatures12.RData"))
+save(selectedLassoFeatures12, file = here(psFolder, "selectedLassoFeatures12.RData"))
 rm(selectedLassoFeatures12)
-save(match_results_12, file = here(sub_output_folder, "tempData", "match_results_12.RData"))
+save(match_results_12, file = here(psFolder, "match_results_12.RData"))
 rm(match_results_12)
-save(subclasses12, file = here(sub_output_folder, "tempData", "subclasses12.RData"))
+save(subclasses12, file = here(psFolder, "subclasses12.RData"))
 rm(subclasses12)
-save(summary12, file = here(sub_output_folder, "tempData", "summary12.RData"))
+save(summary12, file = here(psFolder, "summary12.RData"))
 rm(summary12)
 rm(compCohort1, compCohort2, targetCohort, coef.lasso_reg)
 gc()

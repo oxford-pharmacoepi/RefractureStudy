@@ -269,15 +269,15 @@ if (country_setting == "UK"){
   write.xlsx(c1_comp2_condition, file = here(secondary_output, "c1_comp2_condition_all.xlsx"))
   write.xlsx(c2_condition, file = here(secondary_output, "c2_condition_all.xlsx"))
   
-  target_condition_primary <- condition_frequency_table_sidiap(cohort_freq = target_matched, table_name = "visit_occurrence_hes", primary = T)
-  c1_comp1_condition_primary <- condition_frequency_table_sidiap(cohort_freq = cohort1_matched_to, table_name = "visit_occurrence_hes", primary = T)
-  c1_comp2_condition_primary <- condition_frequency_table_sidiap(cohort_freq = cohort1_matched_from, table_name = "visit_occurrence_hes", primary = T)
-  c2_condition_primary <- condition_frequency_table_sidiap(cohort_freq = cohort2_matched, table_name = "visit_occurrence_hes", primary = T)
-  write.xlsx(target_condition_primary, file = here(secondary_output, "target_condition_primary_all.xlsx"))
-  write.xlsx(c1_comp1_condition_primary, file = here(secondary_output, "c1_comp1_condition_primary_all.xlsx"))
-  write.xlsx(c1_comp2_condition_primary, file = here(secondary_output, "c1_comp2_condition_primary_all.xlsx"))
-  write.xlsx(c2_condition_primary, file = here(secondary_output, "c2_condition_primary_all.xlsx"))
-  
+  # target_condition_primary <- condition_frequency_table_sidiap(cohort_freq = target_matched, table_name = "visit_occurrence_hes", primary = T)
+  # c1_comp1_condition_primary <- condition_frequency_table_sidiap(cohort_freq = cohort1_matched_to, table_name = "visit_occurrence_hes", primary = T)
+  # c1_comp2_condition_primary <- condition_frequency_table_sidiap(cohort_freq = cohort1_matched_from, table_name = "visit_occurrence_hes", primary = T)
+  # c2_condition_primary <- condition_frequency_table_sidiap(cohort_freq = cohort2_matched, table_name = "visit_occurrence_hes", primary = T)
+  # write.xlsx(target_condition_primary, file = here(secondary_output, "target_condition_primary_all.xlsx"))
+  # write.xlsx(c1_comp1_condition_primary, file = here(secondary_output, "c1_comp1_condition_primary_all.xlsx"))
+  # write.xlsx(c1_comp2_condition_primary, file = here(secondary_output, "c1_comp2_condition_primary_all.xlsx"))
+  # write.xlsx(c2_condition_primary, file = here(secondary_output, "c2_condition_primary_all.xlsx"))
+  # 
   ## matched condition - IC
   target_condition_ic <- condition_frequency_table_sidiap(cohort_freq = target_matched, table_name = "visit_occurrence_ic")
   c1_comp1_condition_ic <- condition_frequency_table_sidiap(cohort_freq = cohort1_matched_to, table_name = "visit_occurrence_ic")
@@ -288,15 +288,15 @@ if (country_setting == "UK"){
   write.xlsx(c1_comp2_condition_ic, file = here(secondary_output_ic, "c1_comp2_condition_ic.xlsx"))
   write.xlsx(c2_condition_ic, file = here(secondary_output_ic, "c2_condition_ic.xlsx"))
   
-  target_condition_ic_primary <- condition_frequency_table_sidiap(cohort_freq = target_matched, table_name = "visit_occurrence_ic", primary = T)
-  c1_comp1_condition_ic_primary <- condition_frequency_table_sidiap(cohort_freq = cohort1_matched_to, table_name = "visit_occurrence_ic", primary = T)
-  c1_comp2_condition_ic_primary <- condition_frequency_table_sidiap(cohort_freq = cohort1_matched_from, table_name = "visit_occurrence_ic", primary = T)
-  c2_condition_ic_primary <- condition_frequency_table_sidiap(cohort_freq = cohort2_matched, table_name = "visit_occurrence_ic", primary = T)
-  write.xlsx(target_condition_ic_primary, file = here(secondary_output_ic, "target_condition_primary_ic.xlsx"))
-  write.xlsx(c1_comp1_condition_ic_primary, file = here(secondary_output_ic, "c1_comp1_condition_primary_ic.xlsx"))
-  write.xlsx(c1_comp2_condition_ic_primary, file = here(secondary_output_ic, "c1_comp2_condition_primary_ic.xlsx"))
-  write.xlsx(c2_condition_ic_primary, file = here(secondary_output_ic, "c2_condition_primary_ic.xlsx"))
-  
+  # target_condition_ic_primary <- condition_frequency_table_sidiap(cohort_freq = target_matched, table_name = "visit_occurrence_ic", primary = T)
+  # c1_comp1_condition_ic_primary <- condition_frequency_table_sidiap(cohort_freq = cohort1_matched_to, table_name = "visit_occurrence_ic", primary = T)
+  # c1_comp2_condition_ic_primary <- condition_frequency_table_sidiap(cohort_freq = cohort1_matched_from, table_name = "visit_occurrence_ic", primary = T)
+  # c2_condition_ic_primary <- condition_frequency_table_sidiap(cohort_freq = cohort2_matched, table_name = "visit_occurrence_ic", primary = T)
+  # write.xlsx(target_condition_ic_primary, file = here(secondary_output_ic, "target_condition_primary_ic.xlsx"))
+  # write.xlsx(c1_comp1_condition_ic_primary, file = here(secondary_output_ic, "c1_comp1_condition_primary_ic.xlsx"))
+  # write.xlsx(c1_comp2_condition_ic_primary, file = here(secondary_output_ic, "c1_comp2_condition_primary_ic.xlsx"))
+  # write.xlsx(c2_condition_ic_primary, file = here(secondary_output_ic, "c2_condition_primary_ic.xlsx"))
+  # 
   ## matched condition - Inpatient
   target_condition_inpatient <- condition_frequency_table_sidiap(cohort_freq = target_matched, table_name = "visit_occurrence_inpatient")
   c1_comp1_condition_inpatient <- condition_frequency_table_sidiap(cohort_freq = cohort1_matched_to, table_name = "visit_occurrence_inpatient")
@@ -307,15 +307,15 @@ if (country_setting == "UK"){
   write.xlsx(c1_comp2_condition_inpatient, file = here(secondary_output_inpatient, "c1_comp2_condition_inpatient.xlsx"))
   write.xlsx(c2_condition_inpatient, file = here(secondary_output_inpatient, "c2_condition_inpatient.xlsx"))
   
-  target_condition_inpatient_primary <- condition_frequency_table_sidiap(cohort_freq = target_matched, table_name = "visit_occurrence_inpatient", primary = T)
-  c1_comp1_condition_inpatient_primary <- condition_frequency_table_sidiap(cohort_freq = cohort1_matched_to, table_name = "visit_occurrence_inpatient", primary = T)
-  c1_comp2_condition_inpatient_primary <- condition_frequency_table_sidiap(cohort_freq = cohort1_matched_from, table_name = "visit_occurrence_inpatient", primary = T)
-  c2_condition_inpatient_primary <- condition_frequency_table_sidiap(cohort_freq = cohort2_matched, table_name = "visit_occurrence_inpatient", primary = T)
-  write.xlsx(target_condition_inpatient_primary, file = here(secondary_output_inpatient, "target_condition_primary_inpatient.xlsx"))
-  write.xlsx(c1_comp1_condition_inpatient_primary, file = here(secondary_output_inpatient, "c1_comp1_condition_primary_inpatient.xlsx"))
-  write.xlsx(c1_comp2_condition_inpatient_primary, file = here(secondary_output_inpatient, "c1_comp2_condition_primary_inpatient.xlsx"))
-  write.xlsx(c2_condition_inpatient_primary, file = here(secondary_output_inpatient, "c2_condition_primary_inpatient.xlsx"))
-  
+  # target_condition_inpatient_primary <- condition_frequency_table_sidiap(cohort_freq = target_matched, table_name = "visit_occurrence_inpatient", primary = T)
+  # c1_comp1_condition_inpatient_primary <- condition_frequency_table_sidiap(cohort_freq = cohort1_matched_to, table_name = "visit_occurrence_inpatient", primary = T)
+  # c1_comp2_condition_inpatient_primary <- condition_frequency_table_sidiap(cohort_freq = cohort1_matched_from, table_name = "visit_occurrence_inpatient", primary = T)
+  # c2_condition_inpatient_primary <- condition_frequency_table_sidiap(cohort_freq = cohort2_matched, table_name = "visit_occurrence_inpatient", primary = T)
+  # write.xlsx(target_condition_inpatient_primary, file = here(secondary_output_inpatient, "target_condition_primary_inpatient.xlsx"))
+  # write.xlsx(c1_comp1_condition_inpatient_primary, file = here(secondary_output_inpatient, "c1_comp1_condition_primary_inpatient.xlsx"))
+  # write.xlsx(c1_comp2_condition_inpatient_primary, file = here(secondary_output_inpatient, "c1_comp2_condition_primary_inpatient.xlsx"))
+  # write.xlsx(c2_condition_inpatient_primary, file = here(secondary_output_inpatient, "c2_condition_primary_inpatient.xlsx"))
+  # 
   ## matched procedure - ALL
   target_procedure <- procedure_frequency_table_sidiap(cohort_freq = target_matched, table_name = "visit_occurrence_hes")
   c1_comp1_procedure <- procedure_frequency_table_sidiap(cohort_freq = cohort1_matched_to, table_name = "visit_occurrence_hes")
@@ -326,15 +326,15 @@ if (country_setting == "UK"){
   write.xlsx(c1_comp2_procedure, file = here(secondary_output, "c1_comp2_procedure_all.xlsx"))
   write.xlsx(c2_procedure, file = here(secondary_output, "c2_procedure_all.xlsx"))
   
-  target_procedure_primary <- procedure_frequency_table_sidiap(cohort_freq = target_matched, table_name = "visit_occurrence_hes", primary = T)
-  c1_comp1_procedure_primary <- procedure_frequency_table_sidiap(cohort_freq = cohort1_matched_to, table_name = "visit_occurrence_hes", primary = T)
-  c1_comp2_procedure_primary <- procedure_frequency_table_sidiap(cohort_freq = cohort1_matched_from, table_name = "visit_occurrence_hes", primary = T)
-  c2_procedure_primary <- procedure_frequency_table_sidiap(cohort_freq = cohort2_matched, table_name = "visit_occurrence_hes", primary = T)
-  write.xlsx(target_procedure_primary, file = here(secondary_output, "target_procedure_primary_all.xlsx"))
-  write.xlsx(c1_comp1_procedure_primary, file = here(secondary_output, "c1_comp1_procedure_primary_all.xlsx"))
-  write.xlsx(c1_comp2_procedure_primary, file = here(secondary_output, "c1_comp2_procedure_primary_all.xlsx"))
-  write.xlsx(c2_procedure_primary, file = here(secondary_output, "c2_procedure_primary_all.xlsx"))
-  
+  # target_procedure_primary <- procedure_frequency_table_sidiap(cohort_freq = target_matched, table_name = "visit_occurrence_hes", primary = T)
+  # c1_comp1_procedure_primary <- procedure_frequency_table_sidiap(cohort_freq = cohort1_matched_to, table_name = "visit_occurrence_hes", primary = T)
+  # c1_comp2_procedure_primary <- procedure_frequency_table_sidiap(cohort_freq = cohort1_matched_from, table_name = "visit_occurrence_hes", primary = T)
+  # c2_procedure_primary <- procedure_frequency_table_sidiap(cohort_freq = cohort2_matched, table_name = "visit_occurrence_hes", primary = T)
+  # write.xlsx(target_procedure_primary, file = here(secondary_output, "target_procedure_primary_all.xlsx"))
+  # write.xlsx(c1_comp1_procedure_primary, file = here(secondary_output, "c1_comp1_procedure_primary_all.xlsx"))
+  # write.xlsx(c1_comp2_procedure_primary, file = here(secondary_output, "c1_comp2_procedure_primary_all.xlsx"))
+  # write.xlsx(c2_procedure_primary, file = here(secondary_output, "c2_procedure_primary_all.xlsx"))
+  # 
   ## matched procedure - IC
   target_procedure_ic <- procedure_frequency_table_sidiap(cohort_freq = target_matched, table_name = "visit_occurrence_ic")
   c1_comp1_procedure_ic <- procedure_frequency_table_sidiap(cohort_freq = cohort1_matched_to, table_name = "visit_occurrence_ic")
@@ -345,15 +345,15 @@ if (country_setting == "UK"){
   write.xlsx(c1_comp2_procedure_ic, file = here(secondary_output_ic, "c1_comp2_procedure_ic.xlsx"))
   write.xlsx(c2_procedure_ic, file = here(secondary_output_ic, "c2_procedure_ic.xlsx"))
   
-  target_procedure_ic_primary <- procedure_frequency_table_sidiap(cohort_freq = target_matched, table_name = "visit_occurrence_ic", primary = T)
-  c1_comp1_procedure_ic_primary <- procedure_frequency_table_sidiap(cohort_freq = cohort1_matched_to, table_name = "visit_occurrence_ic", primary = T)
-  c1_comp2_procedure_ic_primary <- procedure_frequency_table_sidiap(cohort_freq = cohort1_matched_from, table_name = "visit_occurrence_ic", primary = T)
-  c2_procedure_ic_primary <- procedure_frequency_table_sidiap(cohort_freq = cohort2_matched, table_name = "visit_occurrence_ic", primary = T)
-  write.xlsx(target_procedure_ic_primary, file = here(secondary_output_ic, "target_procedure_primary_ic.xlsx"))
-  write.xlsx(c1_comp1_procedure_ic_primary, file = here(secondary_output_ic, "c1_comp1_procedure_primary_ic.xlsx"))
-  write.xlsx(c1_comp2_procedure_ic_primary, file = here(secondary_output_ic, "c1_comp2_procedure_primary_ic.xlsx"))
-  write.xlsx(c2_procedure_ic_primary, file = here(secondary_output_ic, "c2_procedure_primary_ic.xlsx"))
-  
+  # target_procedure_ic_primary <- procedure_frequency_table_sidiap(cohort_freq = target_matched, table_name = "visit_occurrence_ic", primary = T)
+  # c1_comp1_procedure_ic_primary <- procedure_frequency_table_sidiap(cohort_freq = cohort1_matched_to, table_name = "visit_occurrence_ic", primary = T)
+  # c1_comp2_procedure_ic_primary <- procedure_frequency_table_sidiap(cohort_freq = cohort1_matched_from, table_name = "visit_occurrence_ic", primary = T)
+  # c2_procedure_ic_primary <- procedure_frequency_table_sidiap(cohort_freq = cohort2_matched, table_name = "visit_occurrence_ic", primary = T)
+  # write.xlsx(target_procedure_ic_primary, file = here(secondary_output_ic, "target_procedure_primary_ic.xlsx"))
+  # write.xlsx(c1_comp1_procedure_ic_primary, file = here(secondary_output_ic, "c1_comp1_procedure_primary_ic.xlsx"))
+  # write.xlsx(c1_comp2_procedure_ic_primary, file = here(secondary_output_ic, "c1_comp2_procedure_primary_ic.xlsx"))
+  # write.xlsx(c2_procedure_ic_primary, file = here(secondary_output_ic, "c2_procedure_primary_ic.xlsx"))
+  # 
   ## matched procedure - Inpatient
   target_procedure_inpatient <- procedure_frequency_table_sidiap(cohort_freq = target_matched, table_name = "visit_occurrence_inpatient")
   c1_comp1_procedure_inpatient <- procedure_frequency_table_sidiap(cohort_freq = cohort1_matched_to, table_name = "visit_occurrence_inpatient")
@@ -364,15 +364,15 @@ if (country_setting == "UK"){
   write.xlsx(c1_comp2_procedure_inpatient, file = here(secondary_output_inpatient, "c1_comp2_procedure_inpatient.xlsx"))
   write.xlsx(c2_procedure_inpatient, file = here(secondary_output_inpatient, "c2_procedure_inpatient.xlsx"))
   
-  target_procedure_inpatient_primary <- procedure_frequency_table_sidiap(cohort_freq = target_matched, table_name = "visit_occurrence_inpatient", primary = T)
-  c1_comp1_procedure_inpatient_primary <- procedure_frequency_table_sidiap(cohort_freq = cohort1_matched_to, table_name = "visit_occurrence_inpatient", primary = T)
-  c1_comp2_procedure_inpatient_primary <- procedure_frequency_table_sidiap(cohort_freq = cohort1_matched_from, table_name = "visit_occurrence_inpatient", primary = T)
-  c2_procedure_inpatient_primary <- procedure_frequency_table_sidiap(cohort_freq = cohort2_matched, table_name = "visit_occurrence_inpatient", primary = T)
-  write.xlsx(target_procedure_inpatient_primary, file = here(secondary_output_inpatient, "target_procedure_primary_inpatient.xlsx"))
-  write.xlsx(c1_comp1_procedure_inpatient_primary, file = here(secondary_output_inpatient, "c1_comp1_procedure_primary_inpatient.xlsx"))
-  write.xlsx(c1_comp2_procedure_inpatient_primary, file = here(secondary_output_inpatient, "c1_comp2_procedure_primary_inpatient.xlsx"))
-  write.xlsx(c2_procedure_inpatient_primary, file = here(secondary_output_inpatient, "c2_procedure_primary_inpatient.xlsx"))
-  
+  # target_procedure_inpatient_primary <- procedure_frequency_table_sidiap(cohort_freq = target_matched, table_name = "visit_occurrence_inpatient", primary = T)
+  # c1_comp1_procedure_inpatient_primary <- procedure_frequency_table_sidiap(cohort_freq = cohort1_matched_to, table_name = "visit_occurrence_inpatient", primary = T)
+  # c1_comp2_procedure_inpatient_primary <- procedure_frequency_table_sidiap(cohort_freq = cohort1_matched_from, table_name = "visit_occurrence_inpatient", primary = T)
+  # c2_procedure_inpatient_primary <- procedure_frequency_table_sidiap(cohort_freq = cohort2_matched, table_name = "visit_occurrence_inpatient", primary = T)
+  # write.xlsx(target_procedure_inpatient_primary, file = here(secondary_output_inpatient, "target_procedure_primary_inpatient.xlsx"))
+  # write.xlsx(c1_comp1_procedure_inpatient_primary, file = here(secondary_output_inpatient, "c1_comp1_procedure_primary_inpatient.xlsx"))
+  # write.xlsx(c1_comp2_procedure_inpatient_primary, file = here(secondary_output_inpatient, "c1_comp2_procedure_primary_inpatient.xlsx"))
+  # write.xlsx(c2_procedure_inpatient_primary, file = here(secondary_output_inpatient, "c2_procedure_primary_inpatient.xlsx"))
+  # 
   ## matched visit - ALL
   target_visit <- visit_summary_sidiap(cohort_freq = target_matched, table_name = "visit_occurrence_hes")
   c1_comp1_visit <- visit_summary_sidiap(cohort_freq = cohort1_matched_to, table_name = "visit_occurrence_hes")
