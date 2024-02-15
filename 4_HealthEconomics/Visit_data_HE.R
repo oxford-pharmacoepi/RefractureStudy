@@ -214,49 +214,49 @@ if (country_setting == "Netherlands") {
       schema = attr(cdm, "write_schema"), 
       overwrite = TRUE
     )  
-  visits_check<-list()
-  target_matched_visit_check <- 
-    target_matched %>% 
-    dplyr::inner_join(cdm[["visit_occurrence"]], by = c("subject_id" = "person_id"), copy = T) %>% 
-    dplyr::filter(visit_start_date<=follow_up_end & visit_start_date >=index_date) %>% 
-    dplyr::left_join(cdm[["provider"]], by = c("provider_id"), copy = T) %>% 
-    dplyr::select(subject_id, index_date, follow_up_end, cohort, provider_id, specialty_concept_id, specialty_source_value) %>% 
-    dplyr::group_by(specialty_concept_id, specialty_source_value) %>% 
-    dplyr::tally()
-  
-  c1_matched_to_visit_check <- 
-    cohort1_matched_to %>% 
-    dplyr::inner_join(cdm[["visit_occurrence"]], by = c("subject_id" = "person_id"), copy = T) %>% 
-    dplyr::filter(visit_start_date<=follow_up_end & visit_start_date >=index_date) %>% 
-    dplyr::left_join(cdm[["provider"]], by = c("provider_id"), copy = T) %>% 
-    dplyr::select(subject_id, index_date, follow_up_end, cohort, provider_id, specialty_concept_id, specialty_source_value) %>% 
-    dplyr::group_by(specialty_concept_id, specialty_source_value) %>% 
-    dplyr::tally()
-  
-  c1_matched_from_visit_check <- 
-    cohort1_matched_from %>% 
-    dplyr::inner_join(cdm[["visit_occurrence"]], by = c("subject_id" = "person_id"), copy = T) %>% 
-    dplyr::filter(visit_start_date<=follow_up_end & visit_start_date >=index_date) %>% 
-    dplyr::left_join(cdm[["provider"]], by = c("provider_id"), copy = T) %>% 
-    dplyr::select(subject_id, index_date, follow_up_end, cohort, provider_id, specialty_concept_id, specialty_source_value) %>% 
-    dplyr::group_by(specialty_concept_id, specialty_source_value) %>% 
-    dplyr::tally()
-  
-  c2_matched_visit_check <- 
-    cohort2_matched %>% 
-    dplyr::inner_join(cdm[["visit_occurrence"]], by = c("subject_id" = "person_id"), copy = T) %>% 
-    dplyr::filter(visit_start_date<=follow_up_end & visit_start_date >=index_date) %>% 
-    dplyr::left_join(cdm[["provider"]], by = c("provider_id"), copy = T) %>% 
-    dplyr::select(subject_id, index_date, follow_up_end, cohort, provider_id, specialty_concept_id, specialty_source_value) %>% 
-    dplyr::group_by(specialty_concept_id, specialty_source_value) %>% 
-    dplyr::tally()
-  
-  visits_check[["target_matched_visit_check"]] <- target_matched_visit_check
-  visits_check[["c1_matched_to_visit_check"]] <- c1_matched_to_visit_check
-  visits_check[["c1_matched_from_visit_check"]] <- c1_matched_from_visit_check
-  visits_check[["c2_matched_visit_check"]] <- c2_matched_visit_check
-  
-  write.xlsx(visits_check, file = here(sub_output_folder, "visits_check.xlsx"))
+  # visits_check<-list()
+  # target_matched_visit_check <- 
+  #   target_matched %>% 
+  #   dplyr::inner_join(cdm[["visit_occurrence"]], by = c("subject_id" = "person_id"), copy = T) %>% 
+  #   dplyr::filter(visit_start_date<=follow_up_end & visit_start_date >=index_date) %>% 
+  #   dplyr::left_join(cdm[["provider"]], by = c("provider_id"), copy = T) %>% 
+  #   dplyr::select(subject_id, index_date, follow_up_end, cohort, provider_id, specialty_concept_id, specialty_source_value) %>% 
+  #   dplyr::group_by(specialty_concept_id, specialty_source_value) %>% 
+  #   dplyr::tally()
+  # 
+  # c1_matched_to_visit_check <- 
+  #   cohort1_matched_to %>% 
+  #   dplyr::inner_join(cdm[["visit_occurrence"]], by = c("subject_id" = "person_id"), copy = T) %>% 
+  #   dplyr::filter(visit_start_date<=follow_up_end & visit_start_date >=index_date) %>% 
+  #   dplyr::left_join(cdm[["provider"]], by = c("provider_id"), copy = T) %>% 
+  #   dplyr::select(subject_id, index_date, follow_up_end, cohort, provider_id, specialty_concept_id, specialty_source_value) %>% 
+  #   dplyr::group_by(specialty_concept_id, specialty_source_value) %>% 
+  #   dplyr::tally()
+  # 
+  # c1_matched_from_visit_check <- 
+  #   cohort1_matched_from %>% 
+  #   dplyr::inner_join(cdm[["visit_occurrence"]], by = c("subject_id" = "person_id"), copy = T) %>% 
+  #   dplyr::filter(visit_start_date<=follow_up_end & visit_start_date >=index_date) %>% 
+  #   dplyr::left_join(cdm[["provider"]], by = c("provider_id"), copy = T) %>% 
+  #   dplyr::select(subject_id, index_date, follow_up_end, cohort, provider_id, specialty_concept_id, specialty_source_value) %>% 
+  #   dplyr::group_by(specialty_concept_id, specialty_source_value) %>% 
+  #   dplyr::tally()
+  # 
+  # c2_matched_visit_check <- 
+  #   cohort2_matched %>% 
+  #   dplyr::inner_join(cdm[["visit_occurrence"]], by = c("subject_id" = "person_id"), copy = T) %>% 
+  #   dplyr::filter(visit_start_date<=follow_up_end & visit_start_date >=index_date) %>% 
+  #   dplyr::left_join(cdm[["provider"]], by = c("provider_id"), copy = T) %>% 
+  #   dplyr::select(subject_id, index_date, follow_up_end, cohort, provider_id, specialty_concept_id, specialty_source_value) %>% 
+  #   dplyr::group_by(specialty_concept_id, specialty_source_value) %>% 
+  #   dplyr::tally()
+  # 
+  # visits_check[["target_matched_visit_check"]] <- target_matched_visit_check
+  # visits_check[["c1_matched_to_visit_check"]] <- c1_matched_to_visit_check
+  # visits_check[["c1_matched_from_visit_check"]] <- c1_matched_from_visit_check
+  # visits_check[["c2_matched_visit_check"]] <- c2_matched_visit_check
+  # 
+  # write.xlsx(visits_check, file = here(sub_output_folder, "visits_check.xlsx"))
   
   info(logger, "PRODUCING VISIT DATA FOR NETHERLANDS IS DONE")
 }
