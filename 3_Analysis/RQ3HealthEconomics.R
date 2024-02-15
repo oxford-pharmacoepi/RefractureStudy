@@ -564,9 +564,11 @@ if (country_setting != "Netherlands") {
 write.xlsx(summary_cohort_comp1, file = here(sub_output_folder, "summary_cohort_comp1.xlsx"))
 write.xlsx(summary_cohort_comp2, file = here(sub_output_folder, "summary_cohort_comp2.xlsx"))
 
-#Other
-if (country_setting != "UK") {
+#Other 
+if (exists("check_dates")){
   write.xlsx(check_dates, file = here(sub_output_folder, "check_dates.xlsx"))
+}
+if (exists("visit_type_by_specialty")) {
   write.xlsx(visit_type_by_specialty, file = here(sub_output_folder, "visit_type_by_specialty.xlsx"))
 }
 

@@ -97,6 +97,11 @@ if (country_setting == "Germany") {
       overwrite = TRUE
     )
   
+  visit_type_by_specialty <- visit_data %>%
+    dplyr::group_by(specialty, visit_concept_id) %>%
+    dplyr::summarise(visit_count = n(), .groups = 'drop') %>%
+    dplyr::pivot_wider(names_from = visit_concept_id, values_from = visit_count, values_fill = list(visit_count = 0))
+  
   # In Germany we don't have the detail for concept_id, all visits are "office".
   info(logger, "PRODUCING VISIT DATA FOR GERMANY IS DONE")
 }
