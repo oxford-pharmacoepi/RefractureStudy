@@ -187,9 +187,9 @@ if (country_setting == "Netherlands") {
   info(logger, "PRODUCING VISIT DATA FOR NETHERLANDS")
   joined_visit_provider_tables <- cdm$visit_occurrence # we cannot link visits with provider in the Netherlands, visit_detail is also empty
   
-  ## I keep the name "joined" even if it is not
-  joined_visit_provider_tables <- cdm$visit_occurrence %>% 
-    dplyr::inner_join(cdm$provider)
+  ### I keep the name "joined" even if it is not
+  #joined_visit_provider_tables <- cdm$visit_occurrence %>% 
+  #  dplyr::inner_join(cdm$provider)
   
   ## check that visit_start_date and visit_end_date are the same
   check_dates <- joined_visit_provider_tables %>%
@@ -201,7 +201,7 @@ if (country_setting == "Netherlands") {
   cdm[["visit_data"]] <- joined_visit_provider_tables %>%
     dplyr::left_join(provider_cost_inputs, by = "visit_concept_id", copy=TRUE) %>%
     dplyr::filter(Include == "1") %>% # Filter for only meaningful types for primary care
-    dplyr::select(person_id, visit_start_date, visit_occurrence_id, visit_concept_id) %>%  
+    dplyr::select(person_id, visit_start_date, visit_occurrence_id, visit_concept_id, visit_source_value) %>%  
     dplyr::filter(visit_start_date >= study_start_date & # include only visits in the study period
                     visit_start_date <= study_end_date) %>%
     dplyr::filter(visit_source_value != "Communication") %>% # here I remove communications
