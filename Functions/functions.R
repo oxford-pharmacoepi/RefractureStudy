@@ -462,7 +462,7 @@ analyse_visits <- function(cohort_combined, visit_data) {
       dplyr::summarise(visit_count = n(), .groups = "drop") %>%
       dplyr::ungroup() %>% 
       CDMConnector::computeQuery()
-  } else if(country_setting = "Netherlands"){
+  } else if(country_setting == "Netherlands"){
     filtered_visits <- visit_data %>%
       dplyr::left_join(cohort_combined, by = "subject_id", relationship = "many-to-many", copy = T) %>%
       dplyr::filter(visit_start_date >= index_date & visit_detail_start_date <= follow_up_end) %>%
