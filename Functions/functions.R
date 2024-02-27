@@ -245,7 +245,7 @@ reformat_table_one <- function(result_imm, result_no_imm, result_frac){
   
   #condition variables
   condition_var <- table_one_frac %>% 
-    dplyr::filter(variable == "Conditions flag -inf to 0 days") %>%
+    dplyr::filter(variable == "Conditions flag from any time prior to 0") %>%
     dplyr::filter(!variable_level == "Malignant neoplastic disease") %>%
     dplyr::select(variable_level) %>%
     dplyr::distinct() %>%
@@ -269,25 +269,25 @@ reformat_table_one <- function(result_imm, result_no_imm, result_frac){
   
   #medication variables
   medication_var <- table_one_frac %>% 
-    dplyr::filter(stringr::str_detect(variable, 'medications')) %>%
+    dplyr::filter(stringr::str_detect(variable, 'Medications')) %>%
     dplyr::filter(!stringr::str_detect(variable, 'antineoplastic agents')) %>%
-    dplyr::select(variable) %>%
+    dplyr::select(variable_level) %>%
     dplyr::distinct() %>%
-    dplyr::pull(variable)
+    dplyr::pull(variable_level)
   
   for (i in (1:length(medication_var))){
     reformatted_table1 <- rbind(reformatted_table1, data.frame(x = paste0(medication_var[[i]], ", n(%)"),
-                                                               y = paste0(table_one_frac %>% dplyr::filter(variable == medication_var[[i]]) %>% dplyr::filter(estimate_type == "count") %>% dplyr::pull(estimate),
+                                                               y = paste0(table_one_frac %>% dplyr::filter(variable_level == medication_var[[i]]) %>% dplyr::filter(estimate_type == "count") %>% dplyr::pull(estimate),
                                                                           " (",
-                                                                          round(as.numeric(table_one_frac %>% dplyr::filter(variable == medication_var[[i]]) %>% dplyr::filter(estimate_type == "percentage") %>% dplyr::pull(estimate)), digits = 1),
+                                                                          round(as.numeric(table_one_frac %>% dplyr::filter(variable_level == medication_var[[i]]) %>% dplyr::filter(estimate_type == "percentage") %>% dplyr::pull(estimate)), digits = 1),
                                                                           ")"),
-                                                               z = paste0(table_one_imm %>% dplyr::filter(variable == medication_var[[i]]) %>% dplyr::filter(estimate_type == "count") %>% dplyr::pull(estimate),
+                                                               z = paste0(table_one_imm %>% dplyr::filter(variable_level == medication_var[[i]]) %>% dplyr::filter(estimate_type == "count") %>% dplyr::pull(estimate),
                                                                           " (",
-                                                                          round(as.numeric(table_one_imm %>% dplyr::filter(variable == medication_var[[i]]) %>% dplyr::filter(estimate_type == "percentage") %>% dplyr::pull(estimate)), digits = 1),
+                                                                          round(as.numeric(table_one_imm %>% dplyr::filter(variable_level == medication_var[[i]]) %>% dplyr::filter(estimate_type == "percentage") %>% dplyr::pull(estimate)), digits = 1),
                                                                           ")"),
-                                                               w = paste0(table_one_no_imm %>% dplyr::filter(variable == medication_var[[i]]) %>% dplyr::filter(estimate_type == "count") %>% dplyr::pull(estimate),
+                                                               w = paste0(table_one_no_imm %>% dplyr::filter(variable_level == medication_var[[i]]) %>% dplyr::filter(estimate_type == "count") %>% dplyr::pull(estimate),
                                                                           " (",
-                                                                          round(as.numeric(table_one_no_imm %>% dplyr::filter(variable == medication_var[[i]]) %>% dplyr::filter(estimate_type == "percentage") %>% dplyr::pull(estimate)), digits = 1),
+                                                                          round(as.numeric(table_one_no_imm %>% dplyr::filter(variable_level == medication_var[[i]]) %>% dplyr::filter(estimate_type == "percentage") %>% dplyr::pull(estimate)), digits = 1),
                                                                           ")")))
   }
   reformatted_table1 <- reformatted_table1 %>% dplyr::distinct()
