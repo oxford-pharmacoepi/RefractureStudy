@@ -98,16 +98,18 @@ AttritionReportRQ3T<- AttritionReportRQ3T %>%
     )
   ) 
 
-# No records of death on the index date
+# No records of death on the index date or before
 fracture_table_rq3_imminent <- fracture_table_rq3_imminent %>% 
-  dplyr::anti_join(cdm[["death"]], by = c("subject_id" = "person_id", "condition_start_date" = "death_date"), copy = T)
+  dplyr::left_join(cdm[["death"]], by = c("subject_id" = "person_id"), copy = T) %>% 
+  dplyr::filter(is.na(death_date)| death_date > condition_start_date) %>% 
+  dplyr::select("subject_id", "cohort_start_date", "cohort_end_date", "condition_concept_id", "condition_start_date", "fracture_site")
 
 AttritionReportRQ3T<- AttritionReportRQ3T %>% 
   union_all(  
     tibble(
       number_records = fracture_table_rq3_imminent %>% dplyr::tally() %>% dplyr::pull(),
       number_subjects = fracture_table_rq3_imminent %>% distinct(subject_id) %>% dplyr::tally() %>% dplyr::pull(),
-      reason = "Excluding records on the same day as death"
+      reason = "Excluding records on the same day as death or after"
     )
   ) 
 
