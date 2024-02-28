@@ -61,10 +61,12 @@ AttritionReportRQ2<- AttritionReportRQ2 %>%
   ) 
 
 # No records of death on the index date
-info(logger, "EXCLUDING RECORDS OF FRACTURE THAT HAPPENED ON THE SAME DAY AS DEATH")
+info(logger, "EXCLUDING RECORDS OF FRACTURE THAT HAPPENED ON THE SAME DAY AS DEATH OR AFTER DEATH")
 print(paste0("Exclusion based on death at ", Sys.time()))
 fracture_table_rq2_index <- fracture_table_rq2_index %>% 
-  dplyr::anti_join(cdm[["death"]], by = c("subject_id" = "person_id", "condition_start_date" = "death_date"), copy = T)
+  dplyr::left_join(cdm[["death"]], by = c("subject_id" = "person_id"), copy = T) %>% 
+  dplyr::filter(is.na(death_date)| death_date > condition_start_date) %>% 
+  dplyr::select("subject_id", "cohort_start_date", "cohort_end_date", "condition_concept_id", "condition_start_date", "fracture_site")
 
 AttritionReportRQ2<- AttritionReportRQ2 %>% 
   union_all(  
@@ -72,7 +74,7 @@ AttritionReportRQ2<- AttritionReportRQ2 %>%
       cohort_definition_id = as.integer(1),
       number_records = fracture_table_rq2_index %>% dplyr::tally() %>% dplyr::pull(),
       number_subjects = fracture_table_rq2_index %>% dplyr::distinct(subject_id) %>% dplyr::tally() %>% dplyr::pull(),
-      reason = "Excluding records on the same day as death"
+      reason = "Excluding records on the same day as death or after death"
     )
   ) 
 
