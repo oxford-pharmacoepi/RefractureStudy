@@ -465,7 +465,7 @@ analyse_visits <- function(cohort_combined, visit_data) {
   } else if(country_setting == "Netherlands"){
     filtered_visits <- visit_data %>%
       dplyr::left_join(cohort_combined, by = "subject_id", relationship = "many-to-many", copy = T) %>%
-      dplyr::filter(visit_start_date >= index_date & visit_detail_start_date <= follow_up_end) %>%
+      dplyr::filter(visit_start_date >= index_date & visit_start_date <= follow_up_end) %>%
       dplyr::group_by(subject_id, index_date, type) %>% # we group by index date to ensure each visit is associated with an entry
       dplyr::summarise(visit_count = n(), .groups = "drop") %>%
       dplyr::ungroup() %>% 
@@ -473,7 +473,7 @@ analyse_visits <- function(cohort_combined, visit_data) {
   } else {
     filtered_visits <- visit_data %>%
       dplyr::left_join(cohort_combined, by = "subject_id", relationship = "many-to-many", copy = T) %>%
-      dplyr::filter(visit_start_date >= index_date & visit_detail_start_date <= follow_up_end) %>%
+      dplyr::filter(visit_start_date >= index_date & visit_start_date <= follow_up_end) %>%
       dplyr::group_by(subject_id, index_date, specialty) %>% # we group by index date to ensure each visit is associated with an entry
       dplyr::summarise(visit_count = n(), .groups = "drop") %>%
       dplyr::ungroup() %>% 
@@ -602,14 +602,24 @@ analyse_visits <- function(cohort_combined, visit_data) {
 analyse_visits_cost <- function(cohort_combined, visit_data) {
   
   ### Filtering visits based on the cohort_combined
-  filtered_visits <- visit_data %>%
-    dplyr::left_join(cohort_combined, by = "subject_id", relationship = "many-to-many", copy = T) %>%
-    dplyr::filter(visit_detail_start_date >= index_date & visit_detail_start_date <= follow_up_end) %>%
-    dplyr::group_by(subject_id, index_date, specialty, unit_cost) %>% # we group by index date to ensure each visit is associated with an entry
-    dplyr::summarise(visit_count = n(), .groups = "drop") %>%
-    dplyr::ungroup() %>% 
-    CDMConnector::computeQuery()
-  
+  if (country_setting == "UK"){
+    filtered_visits <- visit_data %>%
+      dplyr::left_join(cohort_combined, by = "subject_id", relationship = "many-to-many", copy = T) %>%
+      dplyr::filter(visit_detail_start_date >= index_date & visit_detail_start_date <= follow_up_end) %>%
+      dplyr::group_by(subject_id, index_date, specialty, unit_cost) %>% # we group by index date to ensure each visit is associated with an entry
+      dplyr::summarise(visit_count = n(), .groups = "drop") %>%
+      dplyr::ungroup() %>% 
+      CDMConnector::computeQuery()
+  } else {
+    filtered_visits <- visit_data %>%
+      dplyr::left_join(cohort_combined, by = "subject_id", relationship = "many-to-many", copy = T) %>%
+      dplyr::filter(visit_start_date >= index_date & visit_start_date <= follow_up_end) %>%
+      dplyr::group_by(subject_id, index_date, specialty, unit_cost) %>% # we group by index date to ensure each visit is associated with an entry
+      dplyr::summarise(visit_count = n(), .groups = "drop") %>%
+      dplyr::ungroup() %>% 
+      CDMConnector::computeQuery()
+  }
+
   # create a new dataframe from excel
   
   provider_cost_inputs_2 <- provider_cost_inputs 
