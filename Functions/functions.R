@@ -490,6 +490,7 @@ analyse_visits <- function(cohort_combined, visit_data) {
       dplyr::select(specialty, description_athena)
     # Join and create new names for specialties
     filtered_visits <- filtered_visits %>%
+      dplyr::rename(specialty = type) %>%
       dplyr::left_join(provider_cost_inputs_2, by = "specialty", copy = T) %>%
       dplyr::mutate(specialty_temp = ifelse(is.na(description_athena), specialty, description_athena)) %>%
       dplyr::select(-description_athena, -specialty) %>% 
