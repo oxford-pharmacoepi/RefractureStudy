@@ -490,7 +490,7 @@ analyse_visits <- function(cohort_combined, visit_data) {
       dplyr::select(specialty, description_athena)
     # Join and create new names for specialties
     filtered_visits <- filtered_visits %>%
-      dplyr::left_join(provider_cost_inputs_2, by = "specialty") %>%
+      dplyr::left_join(provider_cost_inputs_2, by = "specialty", copy = T) %>%
       dplyr::mutate(specialty_temp = ifelse(is.na(description_athena), specialty, description_athena)) %>%
       dplyr::select(-description_athena, -specialty) %>% 
       dplyr::rename(specialty = specialty_temp) %>% 
@@ -500,7 +500,7 @@ analyse_visits <- function(cohort_combined, visit_data) {
       dplyr::rename(specialty = specialty_concept_id)
     # Join and create new names for specialties
     filtered_visits <- filtered_visits %>%
-      dplyr::left_join(provider_cost_inputs_2, by = "specialty") %>%
+      dplyr::left_join(provider_cost_inputs_2, by = "specialty", copy = T) %>%
       dplyr::mutate(specialty_temp = ifelse(is.na(description_athena), specialty, description_athena)) %>%
       dplyr::select(-description_athena, -specialty) %>% 
       dplyr::rename(specialty = specialty_temp)
@@ -630,7 +630,7 @@ analyse_visits_cost <- function(cohort_combined, visit_data) {
       dplyr::rename(specialty = specialty_concept_id)
     # Join and create new names for specialties
     filtered_visits <- filtered_visits %>%
-      dplyr::left_join(provider_cost_inputs_2, by = "specialty") %>%
+      dplyr::left_join(provider_cost_inputs_2, by = "specialty", copy = T) %>%
       dplyr::mutate(specialty_temp = ifelse(is.na(description_athena), specialty, description_athena)) %>%
       dplyr::select(-description_athena, -specialty) %>% 
       dplyr::rename(specialty = specialty_temp)
