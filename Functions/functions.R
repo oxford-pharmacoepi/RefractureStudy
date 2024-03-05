@@ -492,7 +492,8 @@ analyse_visits <- function(cohort_combined, visit_data) {
     filtered_visits <- filtered_visits %>%
       dplyr::rename(specialty = type) %>%
       dplyr::left_join(provider_cost_inputs_2, by = "specialty", copy = T) %>%
-      dplyr::mutate(specialty_temp = ifelse(is.na(description_athena), specialty, description_athena)) %>%
+      dplyr::mutate(specialty = as.character(specialty),
+                    specialty_temp = ifelse(is.na(description_athena), specialty, description_athena)) %>%
       dplyr::select(-description_athena, -specialty) %>% 
       dplyr::rename(specialty = specialty_temp) %>% 
       CDMConnector::computeQuery()
@@ -502,11 +503,11 @@ analyse_visits <- function(cohort_combined, visit_data) {
     # Join and create new names for specialties
     filtered_visits <- filtered_visits %>%
       dplyr::left_join(provider_cost_inputs_2, by = "specialty", copy = T) %>%
-      dplyr::mutate(specialty_temp = ifelse(is.na(description_athena), specialty, description_athena)) %>%
+      dplyr::mutate(specialty = as.character(specialty),
+                    specialty_temp = ifelse(is.na(description_athena), specialty, description_athena)) %>%
       dplyr::select(-description_athena, -specialty) %>% 
       dplyr::rename(specialty = specialty_temp)
   }
-
   # Remove provider_cost_inputs_2 
   rm(provider_cost_inputs_2)
   
@@ -632,7 +633,8 @@ analyse_visits_cost <- function(cohort_combined, visit_data) {
     # Join and create new names for specialties
     filtered_visits <- filtered_visits %>%
       dplyr::left_join(provider_cost_inputs_2, by = "specialty", copy = T) %>%
-      dplyr::mutate(specialty_temp = ifelse(is.na(description_athena), specialty, description_athena)) %>%
+      dplyr::mutate(specialty = as.character(specialty),
+                    specialty_temp = ifelse(is.na(description_athena), specialty, description_athena))%>%
       dplyr::select(-description_athena, -specialty) %>% 
       dplyr::rename(specialty = specialty_temp)
   }
