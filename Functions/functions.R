@@ -1553,7 +1553,7 @@ condition_frequency_table_sidiap <- function(cohort_freq, table_name, primary = 
       dplyr::mutate(percentage = round(percentage*100, digits = 2),
                     mean_los = round(mean_los, digits = 2)) 
     
-    summary_LoS <- tibble(mean_length_of_stay_per_condition=as.integer(sum(freq_procedure_tbl$LoS))/tot_hospitalisations,
+    summary_LoS <- tibble(mean_length_of_stay_per_condition=as.integer(sum(freq_condition_tbl$LoS))/tot_hospitalisations,
                           min_length_of_stay_per_condition = min(freq_condition$mean_los),
                           max_length_of_stay_per_condition = max(freq_condition$mean_los),
                           sd_length_of_stay_per_condition = round(sd(freq_condition$mean_los), 2),
