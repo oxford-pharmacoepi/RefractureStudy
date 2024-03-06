@@ -17,9 +17,9 @@ provider_cost_inputs <- read_excel(file_path, sheet = sheet_name)
 if(country_setting %in% c("UK", "Italy")){
   specialty_names <- provider_cost_inputs %>% dplyr::filter(Include == 1) %>% dplyr::pull(specialty_source_value)
 } else if(country_setting %in% c("Spain", "Germany", "France")){
-  specialty_names <- provider_cost_inputs %>% dplyr::filter(Include == 1) %>% dplyr::pull(specialty_concept_id)
+  specialty_names <- provider_cost_inputs %>% dplyr::filter(Include == 1) %>% dplyr::pull(description_athena)
 } else {
-  specialty_names <- provider_cost_inputs %>% dplyr::filter(Include == 1) %>% dplyr::pull(visit_concept_id)
+  specialty_names <- provider_cost_inputs %>% dplyr::filter(Include == 1) %>% dplyr::pull(descriptin_athena)
 }
 
 # VISIT DATA ----
