@@ -20,6 +20,7 @@ if(country_setting %in% c("UK", "Italy")){
   specialty_names <- provider_cost_inputs %>% dplyr::filter(Include == 1) %>% dplyr::pull(description_athena)
 } else {
   specialty_names <- provider_cost_inputs %>% dplyr::filter(Include == 1) %>% dplyr::pull(description_athena)
+
 }
 
 # VISIT DATA ----
