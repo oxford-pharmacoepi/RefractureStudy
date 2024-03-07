@@ -25,18 +25,18 @@ noDeathOnOrAfterIndex <- function(fractureTable){
 noCancerPriorOrOnIndex <- function (fractureTable){
   fractureTable %>% 
     dplyr::anti_join(fractureTable %>% 
-                dplyr::select(-cohort_start_date, -cohort_end_date) %>%
-                dplyr::inner_join(cdm[["cancer"]], by = "subject_id", copy = T, relationship = "many-to-many") %>%
-                dplyr::filter(cancer_date<=index_date), by = "subject_id")
+                       dplyr::select(-cohort_start_date, -cohort_end_date) %>%
+                       dplyr::inner_join(cdm[["cancer"]], by = "subject_id", copy = T, relationship = "many-to-many") %>%
+                       dplyr::filter(cancer_date<=index_date), by = "subject_id")
 }
 
 # for a fracture table, removing individuals with bone disease before or on the same day as the index fracture
 noBoneDiseasePriorOrOnIndex <- function (fractureTable){
   fractureTable %>% 
     dplyr::anti_join(fractureTable %>% 
-    dplyr::select(-cohort_start_date, -cohort_end_date) %>%
-    dplyr::inner_join(cdm[["mbd"]], by = "subject_id", copy = T, relationship = "many-to-many") %>%
-    dplyr::filter(cohort_start_date<=index_date), by = "subject_id")
+                       dplyr::select(-cohort_start_date, -cohort_end_date) %>%
+                       dplyr::inner_join(cdm[["mbd"]], by = "subject_id", copy = T, relationship = "many-to-many") %>%
+                       dplyr::filter(cohort_start_date<=index_date), by = "subject_id")
 }
 
 # add an extra variable after_index which is two years after the index date
@@ -55,31 +55,31 @@ addInObsEndDate <- function (fractureTable){
 # add in a column indicating the date of cancer after the index date
 addInCancerPostIndex <- function (fractureTable){
   fractureTable %>% dplyr::left_join(fractureTable %>% 
-                                dplyr::inner_join(cdm[["cancer"]] %>% rename(cancer_concept_id = condition_concept_id), 
-                                           by = c("subject_id", "cohort_start_date", "cohort_end_date"), 
-                                           copy = T, 
-                                           relationship = "many-to-many") %>%
-                                dplyr::filter(index_date < cancer_date) %>%   
-                                dplyr::group_by(subject_id, cohort_start_date, cohort_end_date, condition_concept_id, condition_start_date, fracture_site, class, index_date, observation_period_end_date) %>%
-                                dplyr::arrange(cancer_date) %>%
-                                dplyr::filter(row_number()==1) %>%
-                                dplyr::ungroup(), by = c("subject_id", "cohort_start_date", "cohort_end_date", "condition_concept_id", "condition_start_date", "fracture_site", "class", "index_date", "after_index", "observation_period_end_date")) %>%
+                                       dplyr::inner_join(cdm[["cancer"]] %>% rename(cancer_concept_id = condition_concept_id), 
+                                                         by = c("subject_id", "cohort_start_date", "cohort_end_date"), 
+                                                         copy = T, 
+                                                         relationship = "many-to-many") %>%
+                                       dplyr::filter(index_date < cancer_date) %>%   
+                                       dplyr::group_by(subject_id, cohort_start_date, cohort_end_date, condition_concept_id, condition_start_date, fracture_site, class, index_date, observation_period_end_date) %>%
+                                       dplyr::arrange(cancer_date) %>%
+                                       dplyr::filter(row_number()==1) %>%
+                                       dplyr::ungroup(), by = c("subject_id", "cohort_start_date", "cohort_end_date", "condition_concept_id", "condition_start_date", "fracture_site", "class", "index_date", "after_index", "observation_period_end_date")) %>%
     dplyr::select(-cancer_concept_id) 
 }
 
 # add in a column indicating the date of bone disease after the index date (has to be done after the cancer one)
 addInBoneDiseasePostIndex <- function (fractureTable){
   fractureTable %>% dplyr::left_join(fractureTable %>% 
-                                dplyr::inner_join(cdm[["mbd"]] %>%
-                                             rename(bone_disease_concept_id = condition_concept_id), 
-                                           by = c("subject_id", "cohort_start_date", "cohort_end_date"),
-                                           copy = T, 
-                                           relationship = "many-to-many") %>%
-                                dplyr::filter(index_date < mbd_date) %>%   
-                                dplyr::group_by(subject_id, cohort_start_date, cohort_end_date, condition_concept_id, condition_start_date, fracture_site, class, index_date, observation_period_end_date) %>%
-                                dplyr::arrange(mbd_date) %>%
-                                dplyr::filter(row_number()==1) %>%
-                                dplyr::ungroup(), by = c("subject_id", "cohort_start_date", "cohort_end_date", "condition_concept_id", "condition_start_date", "fracture_site", "class", "index_date", "after_index", "observation_period_end_date", "cancer_date")) %>%
+                                       dplyr::inner_join(cdm[["mbd"]] %>%
+                                                           rename(bone_disease_concept_id = condition_concept_id), 
+                                                         by = c("subject_id", "cohort_start_date", "cohort_end_date"),
+                                                         copy = T, 
+                                                         relationship = "many-to-many") %>%
+                                       dplyr::filter(index_date < mbd_date) %>%   
+                                       dplyr::group_by(subject_id, cohort_start_date, cohort_end_date, condition_concept_id, condition_start_date, fracture_site, class, index_date, observation_period_end_date) %>%
+                                       dplyr::arrange(mbd_date) %>%
+                                       dplyr::filter(row_number()==1) %>%
+                                       dplyr::ungroup(), by = c("subject_id", "cohort_start_date", "cohort_end_date", "condition_concept_id", "condition_start_date", "fracture_site", "class", "index_date", "after_index", "observation_period_end_date", "cancer_date")) %>%
     dplyr::select(-bone_disease_concept_id) 
 }
 
@@ -87,10 +87,10 @@ addInBoneDiseasePostIndex <- function (fractureTable){
 addInNextFracture <- function(fractureTable){
   fractureTable %>% 
     dplyr::left_join(fractureTable %>% 
-    dplyr::filter(condition_start_date> index_date) %>% 
-    dplyr::group_by(subject_id) %>% 
-    dplyr::summarise(fracture_after_index = min(condition_start_date, na.rm =  T)),
-              by = "subject_id")
+                       dplyr::filter(condition_start_date> index_date) %>% 
+                       dplyr::group_by(subject_id) %>% 
+                       dplyr::summarise(fracture_after_index = min(condition_start_date, na.rm =  T)),
+                     by = "subject_id")
 }
 
 # add a column of death record date after the index date
@@ -479,8 +479,7 @@ analyse_visits <- function(cohort_combined, visit_data) {
       dplyr::ungroup() %>% 
       CDMConnector::computeQuery()
   }
-
-
+  
   # Initialize provider_cost_inputs_2
   provider_cost_inputs_2 <- provider_cost_inputs
   
@@ -490,8 +489,10 @@ analyse_visits <- function(cohort_combined, visit_data) {
       dplyr::select(specialty, description_athena)
     # Join and create new names for specialties
     filtered_visits <- filtered_visits %>%
-      dplyr::left_join(provider_cost_inputs_2, by = "specialty") %>%
-      dplyr::mutate(specialty_temp = ifelse(is.na(description_athena), specialty, description_athena)) %>%
+      dplyr::rename(specialty = type) %>%
+      dplyr::left_join(provider_cost_inputs_2, by = "specialty", copy = T) %>%
+      dplyr::mutate(specialty = as.character(specialty),
+                    specialty_temp = ifelse(is.na(description_athena), specialty, description_athena)) %>%
       dplyr::select(-description_athena, -specialty) %>% 
       dplyr::rename(specialty = specialty_temp) %>% 
       CDMConnector::computeQuery()
@@ -500,12 +501,12 @@ analyse_visits <- function(cohort_combined, visit_data) {
       dplyr::rename(specialty = specialty_concept_id)
     # Join and create new names for specialties
     filtered_visits <- filtered_visits %>%
-      dplyr::left_join(provider_cost_inputs_2, by = "specialty") %>%
-      dplyr::mutate(specialty_temp = ifelse(is.na(description_athena), specialty, description_athena)) %>%
+      dplyr::left_join(provider_cost_inputs_2, by = "specialty", copy = T) %>%
+      dplyr::mutate(specialty = as.character(specialty),
+                    specialty_temp = ifelse(is.na(description_athena), specialty, description_athena)) %>%
       dplyr::select(-description_athena, -specialty) %>% 
       dplyr::rename(specialty = specialty_temp)
   }
-
   # Remove provider_cost_inputs_2 
   rm(provider_cost_inputs_2)
   
@@ -518,10 +519,9 @@ analyse_visits <- function(cohort_combined, visit_data) {
   visits_count_wide <- cohort_combined %>% 
     dplyr::left_join(visits_count_wide, by = c("subject_id", "index_date"), copy = T) %>% 
     CDMConnector::computeQuery()
-  #%>%   mutate(total_visits = rowSums(select(., 8:ncol(.)), na.rm = TRUE)) # specialties start from 8th column - remember to change if needed
-  
+
   ### summary for user only (subjects/visit= NA, not counted)
-  not_in <- colnames(visits_count_wide)[(colnames(visits_count_wide)%in% specialty_names)]
+  included_cols <- colnames(visits_count_wide)[(colnames(visits_count_wide)%in% specialty_names)]
   tot_exposed_yrs_all <- visits_count_wide %>%
     dplyr::mutate(exposed_yrs = as.numeric(follow_up_end - index_date)/ 365.25) %>% 
     dplyr::summarise(tot_exposed_yrs = sum(exposed_yrs)) %>% 
@@ -529,7 +529,7 @@ analyse_visits <- function(cohort_combined, visit_data) {
   
   tot_exposed_yrs_user <- visits_count_wide %>%
     dplyr::mutate(exposed_yrs = as.numeric(follow_up_end - index_date)/ 365.25) %>% 
-    pivot_longer(all_of(not_in), names_to = "specialty", values_to = "visits") %>% 
+    pivot_longer(all_of(included_cols), names_to = "specialty", values_to = "visits") %>% 
     dplyr::mutate(visits_per_year = visits / exposed_yrs) %>%
     dplyr::filter(visits > 0) %>% 
     dplyr::group_by(subject_id, index_date) %>% 
@@ -537,10 +537,10 @@ analyse_visits <- function(cohort_combined, visit_data) {
     dplyr::ungroup() %>% 
     dplyr::summarise(tot_exposed_yrs = sum(exposed_yrs)) %>% 
     dplyr::pull(tot_exposed_yrs)
-    
+  
   user_only_summary <- visits_count_wide %>%
     dplyr::mutate(exposed_yrs = as.numeric(follow_up_end - index_date)/ 365.25) %>% 
-    pivot_longer(all_of(not_in), names_to = "specialty", values_to = "visits") %>% 
+    pivot_longer(all_of(included_cols), names_to = "specialty", values_to = "visits") %>% 
     dplyr::mutate(visits_per_year = visits / exposed_yrs) %>%
     dplyr::filter(visits > 0) %>%
     dplyr::group_by(specialty) %>%
@@ -559,7 +559,7 @@ analyse_visits <- function(cohort_combined, visit_data) {
   ### summary for all subjects (subjects/visits = NA, treated as zero)
   all_summary <- visits_count_wide %>%
     dplyr::mutate(exposed_yrs = as.numeric(follow_up_end - index_date)/ 365.25) %>% 
-    pivot_longer(all_of(not_in), names_to = "specialty", values_to = "visits") %>% 
+    pivot_longer(all_of(included_cols), names_to = "specialty", values_to = "visits") %>% 
     tidyr::complete(subject_id, specialty, fill = list(visits = 0)) %>% # filling missing visits with 0
     dplyr::mutate(visits_per_year = visits / exposed_yrs) %>%
     dplyr::group_by(specialty) %>%
@@ -587,11 +587,11 @@ analyse_visits <- function(cohort_combined, visit_data) {
   # Adding this so to rename specialty into type for Netherlands
   
   if (country_setting == "Netherlands") {
-      user_only_summary <- user_only_summary %>% 
-        rename (type = specialty)
-      
-      all_summary <- all_summary %>% 
-        rename (type = specialty)
+    user_only_summary <- user_only_summary %>% 
+      rename (type = specialty)
+    
+    all_summary <- all_summary %>% 
+      rename (type = specialty)
   }
   
   return(list(user_only_summary = user_only_summary, all_summary = all_summary, non_service_users=non_service_users, visits_count_wide=visits_count_wide, tot_exposed_yrs_all=tot_exposed_yrs_all, tot_exposed_yrs_user = tot_exposed_yrs_user))
@@ -619,7 +619,7 @@ analyse_visits_cost <- function(cohort_combined, visit_data) {
       dplyr::ungroup() %>% 
       CDMConnector::computeQuery()
   }
-
+  
   # create a new dataframe from excel
   
   provider_cost_inputs_2 <- provider_cost_inputs 
@@ -630,12 +630,13 @@ analyse_visits_cost <- function(cohort_combined, visit_data) {
       dplyr::rename(specialty = specialty_concept_id)
     # Join and create new names for specialties
     filtered_visits <- filtered_visits %>%
-      dplyr::left_join(provider_cost_inputs_2, by = "specialty") %>%
-      dplyr::mutate(specialty_temp = ifelse(is.na(description_athena), specialty, description_athena)) %>%
+      dplyr::left_join(provider_cost_inputs_2, by = "specialty", copy = T) %>%
+      dplyr::mutate(specialty = as.character(specialty),
+                    specialty_temp = ifelse(is.na(description_athena), specialty, description_athena))%>%
       dplyr::select(-description_athena, -specialty) %>% 
       dplyr::rename(specialty = specialty_temp)
   }
-
+  
   ### Compute costs visits
   filtered_visits <- filtered_visits %>%  
     dplyr::mutate (visit_cost = visit_count * unit_cost) %>% 
@@ -653,7 +654,7 @@ analyse_visits_cost <- function(cohort_combined, visit_data) {
     CDMConnector::computeQuery()
   
   ### summary for user only (subjects/visit= NA, not counted)
-  not_in <- colnames(visits_cost_wide)[(colnames(visits_cost_wide)%in% specialty_names)]
+  included_cols <- colnames(visits_cost_wide)[(colnames(visits_cost_wide)%in% specialty_names)]
   tot_exposed_yrs_all <- visits_cost_wide %>%
     dplyr::mutate(exposed_yrs = as.numeric(follow_up_end - index_date)/ 365.25) %>% 
     dplyr::summarise(tot_exposed_yrs = sum(exposed_yrs)) %>% 
@@ -661,7 +662,7 @@ analyse_visits_cost <- function(cohort_combined, visit_data) {
   
   tot_exposed_yrs_user <- visits_cost_wide %>%
     dplyr::mutate(exposed_yrs = as.numeric(follow_up_end - index_date)/ 365.25) %>% 
-    pivot_longer(all_of(not_in), names_to = "specialty", values_to = "visits") %>% 
+    pivot_longer(all_of(included_cols), names_to = "specialty", values_to = "visits") %>% 
     dplyr::mutate(visits_per_year = visits / exposed_yrs) %>%
     dplyr::filter(visits > 0) %>% 
     dplyr::group_by(subject_id, index_date) %>% 
@@ -672,7 +673,7 @@ analyse_visits_cost <- function(cohort_combined, visit_data) {
   
   user_only_cost_summary <- visits_cost_wide %>%
     dplyr::mutate(exposed_yrs = as.numeric(follow_up_end - index_date)/ 365.25) %>% 
-    pivot_longer(all_of(not_in), names_to = "specialty", values_to = "visits_costs") %>% 
+    pivot_longer(all_of(included_cols), names_to = "specialty", values_to = "visits_costs") %>% 
     dplyr::mutate(visits_costs_per_year = visits_costs / exposed_yrs) %>%
     dplyr::filter(visits_costs > 0) %>%
     dplyr::group_by(specialty) %>%
@@ -691,7 +692,7 @@ analyse_visits_cost <- function(cohort_combined, visit_data) {
   ### summary for all subjects (subjects/visits = NA, treated as zero)
   all_cost_summary <-  visits_cost_wide %>%
     dplyr::mutate(exposed_yrs = as.numeric(follow_up_end - index_date)/ 365.25) %>% 
-    pivot_longer(all_of(not_in), names_to = "specialty", values_to = "visits_costs") %>% 
+    pivot_longer(all_of(included_cols), names_to = "specialty", values_to = "visits_costs") %>% 
     dplyr::mutate(visits_costs_per_year = visits_costs / exposed_yrs) %>%
     dplyr::group_by(specialty) %>%
     dplyr::mutate(visits_costs = signif(visits_costs, digits = 2)) %>% 
@@ -1150,13 +1151,13 @@ condition_frequency_table <- function(cohort_freq, table_name, primary = F){
                                                   median_condition_episode_per_person_per_year = round(quantile(episode_per_person$counts_per_yr, probs = (.5)), 2),
                                                   lower_q_condition_episode_per_person_per_year = round(quantile(episode_per_person$counts_per_yr, probs = (.25)), 2),
                                                   upper_q_condition_episode_per_person_per_year = round(quantile(episode_per_person$counts_per_yr, probs = (.75)), 2))
-  
+    
     
     freq_condition <- freq_condition %>% 
       dplyr::mutate(mean_los = ifelse((counts < 5 & counts > 0), paste0("<", minimum_counts), mean_los),
                     percentage = ifelse((counts < 5 & counts > 0), paste0("<", minimum_counts), percentage),
                     counts = ifelse((counts < 5 & counts > 0), paste0("<", minimum_counts), counts))
-    }
+  }
   
   else {
     freq_condition_tbl <- cohort_freq %>% 
@@ -1361,9 +1362,9 @@ procedure_frequency_table <- function(cohort_freq, table_name, primary = F){
 visit_summary <- function(cohort_freq, table_name){
   freq_visit_occurrence_tbl <- cohort_freq %>% 
     dplyr::left_join(cdm[["visit_occurrence_hes"]] %>% dplyr::select(person_id, visit_concept_id, visit_start_date, visit_end_date),
-                      by = c("subject_id" = "person_id"),
-                      copy = T,
-                      relationship = "many-to-many") 
+                     by = c("subject_id" = "person_id"),
+                     copy = T,
+                     relationship = "many-to-many") 
   
   non_user <- freq_visit_occurrence_tbl %>% 
     dplyr::filter(is.na(visit_concept_id))
@@ -1390,20 +1391,20 @@ visit_summary <- function(cohort_freq, table_name){
   tot_count_hos <- union_all(user_count, non_user_count)
   
   summary_hospitalisation_per_person_per_year_all <- tibble(mean_hospitalisation_per_person_per_year=(sum(tot_count_hos$counts)/sum(tot_count_hos$exposed_yrs)),
-                                            min_hospitalisation_per_person_per_year = min(tot_count_hos$counts_per_yr),
-                                            max_hospitalisation_per_person_per_year = max(tot_count_hos$counts_per_yr),
-                                            sd_hospitalisation_per_person_per_year = round(sd(tot_count_hos$counts_per_yr), 2),
-                                            median_hospitalisation_per_person_per_year = round(quantile(tot_count_hos$counts_per_yr, probs = (.5)), 2),
-                                            lower_q_hospitalisation_per_person_per_year = round(quantile(tot_count_hos$counts_per_yr, probs = (.25)), 2),
-                                            upper_q_hospitalisation_per_person_per_year = round(quantile(tot_count_hos$counts_per_yr, probs = (.75)), 2))
+                                                            min_hospitalisation_per_person_per_year = min(tot_count_hos$counts_per_yr),
+                                                            max_hospitalisation_per_person_per_year = max(tot_count_hos$counts_per_yr),
+                                                            sd_hospitalisation_per_person_per_year = round(sd(tot_count_hos$counts_per_yr), 2),
+                                                            median_hospitalisation_per_person_per_year = round(quantile(tot_count_hos$counts_per_yr, probs = (.5)), 2),
+                                                            lower_q_hospitalisation_per_person_per_year = round(quantile(tot_count_hos$counts_per_yr, probs = (.25)), 2),
+                                                            upper_q_hospitalisation_per_person_per_year = round(quantile(tot_count_hos$counts_per_yr, probs = (.75)), 2))
   
   summary_hospitalisation_per_person_per_year_user <- tibble(mean_hospitalisation_per_person_per_year=(sum(user_count$counts)/sum(user_count$exposed_yrs)),
-                                                            min_hospitalisation_per_person_per_year = min(user_count$counts_per_yr),
-                                                            max_hospitalisation_per_person_per_year = max(user_count$counts_per_yr),
-                                                            sd_hospitalisation_per_person_per_year = round(sd(user_count$counts_per_yr), 2),
-                                                            median_hospitalisation_per_person_per_year = round(quantile(user_count$counts_per_yr, probs = (.5)), 2),
-                                                            lower_q_hospitalisation_per_person_per_year = round(quantile(user_count$counts_per_yr, probs = (.25)), 2),
-                                                            upper_q_hospitalisation_per_person_per_year = round(quantile(user_count$counts_per_yr, probs = (.75)), 2))
+                                                             min_hospitalisation_per_person_per_year = min(user_count$counts_per_yr),
+                                                             max_hospitalisation_per_person_per_year = max(user_count$counts_per_yr),
+                                                             sd_hospitalisation_per_person_per_year = round(sd(user_count$counts_per_yr), 2),
+                                                             median_hospitalisation_per_person_per_year = round(quantile(user_count$counts_per_yr, probs = (.5)), 2),
+                                                             lower_q_hospitalisation_per_person_per_year = round(quantile(user_count$counts_per_yr, probs = (.25)), 2),
+                                                             upper_q_hospitalisation_per_person_per_year = round(quantile(user_count$counts_per_yr, probs = (.75)), 2))
   
   freq_visit_hosp <- cohort_freq %>% 
     dplyr::inner_join(cdm[["visit_occurrence_hes"]] %>% dplyr::select(person_id, visit_concept_id, visit_start_date, visit_end_date),
@@ -1415,12 +1416,12 @@ visit_summary <- function(cohort_freq, table_name){
     dplyr::mutate(length_of_stay = visit_end_date - visit_start_date+1)
   
   summary_LoS_per_person_per_hosp <- tibble(mean_LoS_per_hosp=(mean(freq_visit_hosp$length_of_stay)),
-                                                       min_LoS_per_hosp = min(freq_visit_hosp$length_of_stay),
-                                                       max_LoS_per_hosp = max(freq_visit_hosp$length_of_stay),
-                                                       sd_LoS_per_hosp = round(sd(freq_visit_hosp$length_of_stay), 2),
-                                                       median_LoS_per_hosp = round(quantile(freq_visit_hosp$length_of_stay, probs = (.5)), 2),
-                                                       lower_q_LoS_per_hosp = round(quantile(freq_visit_hosp$length_of_stay, probs = (.25)), 2),
-                                                       upper_q_LoS_per_hosp = round(quantile(freq_visit_hosp$length_of_stay, probs = (.75)), 2))
+                                            min_LoS_per_hosp = min(freq_visit_hosp$length_of_stay),
+                                            max_LoS_per_hosp = max(freq_visit_hosp$length_of_stay),
+                                            sd_LoS_per_hosp = round(sd(freq_visit_hosp$length_of_stay), 2),
+                                            median_LoS_per_hosp = round(quantile(freq_visit_hosp$length_of_stay, probs = (.5)), 2),
+                                            lower_q_LoS_per_hosp = round(quantile(freq_visit_hosp$length_of_stay, probs = (.25)), 2),
+                                            upper_q_LoS_per_hosp = round(quantile(freq_visit_hosp$length_of_stay, probs = (.75)), 2))
   
   freq_visit_epi <- cohort_freq %>% 
     dplyr::inner_join(cdm[[table_name]] %>% dplyr::select(person_id, visit_detail_concept_id, visit_detail_start_date, visit_detail_end_date),
@@ -1550,7 +1551,7 @@ condition_frequency_table_sidiap <- function(cohort_freq, table_name, primary = 
       dplyr::mutate(percentage = round(percentage*100, digits = 2),
                     mean_los = round(mean_los, digits = 2)) 
     
-    summary_LoS <- tibble(mean_length_of_stay_per_condition=as.integer(sum(freq_procedure_tbl$LoS))/tot_hospitalisations,
+    summary_LoS <- tibble(mean_length_of_stay_per_condition=as.integer(sum(freq_condition_tbl$LoS))/tot_hospitalisations,
                           min_length_of_stay_per_condition = min(freq_condition$mean_los),
                           max_length_of_stay_per_condition = max(freq_condition$mean_los),
                           sd_length_of_stay_per_condition = round(sd(freq_condition$mean_los), 2),
