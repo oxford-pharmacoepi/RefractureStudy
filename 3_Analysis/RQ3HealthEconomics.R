@@ -17,9 +17,9 @@ provider_cost_inputs <- read_excel(file_path, sheet = sheet_name)
 if(country_setting %in% c("UK", "Italy")){
   specialty_names <- provider_cost_inputs %>% dplyr::filter(Include == 1) %>% dplyr::pull(specialty_source_value)
 } else if(country_setting %in% c("Spain", "Germany", "France")){
-  specialty_names <- provider_cost_inputs %>% dplyr::filter(Include == 1) %>% dplyr::pull(specialty_concept_id)
+  specialty_names <- provider_cost_inputs %>% dplyr::filter(Include == 1) %>% dplyr::pull(description_athena)
 } else {
-  specialty_names <- provider_cost_inputs %>% dplyr::filter(Include == 1) %>% dplyr::pull(visit_concept_id)
+  specialty_names <- provider_cost_inputs %>% dplyr::filter(Include == 1) %>% dplyr::pull(description_athena)
 }
 
 # VISIT DATA ----
@@ -38,7 +38,7 @@ info(logger, "START ANALYSES FOR HEALTH ECONOMICS")
 ### Apply the (1) function - Analyse primary care visits
 info(logger, "START ANALYSE_VISITS FOR HEALTH ECONOMICS")
 # Comparison 1: Target versus Matched cohort 1 
-target_results <- analyse_visits(target_matched, cdm[["visit_data"]]) 
+target_results <- analyse_visits(cohort_combined = target_matched, visit_data = cdm[["visit_data"]]) 
 cohort1_comp1_results <- analyse_visits(cohort1_matched_to, cdm[["visit_data"]])
 # Comparison 2: cohort 1 versus matched cohort 2
 cohort1_comp2_results <- analyse_visits(cohort1_matched_from, cdm[["visit_data"]]) 
