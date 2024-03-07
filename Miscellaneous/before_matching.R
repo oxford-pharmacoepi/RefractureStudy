@@ -75,13 +75,20 @@ info(logger, "START TO CREATE THE SUMMARY - BEFORE MATCHING")
 cdm_char <-CDMConnector::cdm_from_con(
   con = db,
   cdm_schema = cdm_database_schema,
-  write_schema = results_database_schema
+  write_schema = c("schema" = results_database_schema, 
+                   "prefix" = "sebfo")
 )
 
 cdm_char[["table_one_cohort"]] <- newGeneratedCohortSet(cohortRef = cdm[["table_one_cohort"]],
                                                         cohortSetRef = table_one_cohort_set,
                                                         cohortCountRef = table_one_cohort_count,
                                                         overwrite = T)
+cdm_char <-CDMConnector::cdm_from_con(
+  con = db,
+  cdm_schema = cdm_database_schema,
+  write_schema = c("schema" = results_database_schema, 
+                   "prefix" = "gskhd")
+)
 
 cdm_char <- CDMConnector::cdmSubsetCohort(cdm_char, "table_one_cohort", verbose = T)
 
@@ -100,8 +107,17 @@ cdm_char <- generateConceptCohortSet(cdm = cdm_char, name = conditions, conceptS
 # create table summary
 info(logger, "CREATE SUMMARY - BEFORE MATCHING")
 print(paste0("Using PatientProfiles to create table one at ", Sys.time()))
+
+# cdm_char[["table_one_cohort"]] %>%
+#   addTableIntersectCount(
+#     "visit_occurrence", window = c(-365, 0)
+#   ) %>% 
+#   addAge() %>% 
+#   addPriorObservation() %>% 
+#   dplyr::compute()
+  
 result_before_matching <- cdm_char[["table_one_cohort"]] %>%
-  summariseCharacteristics(
+   summariseCharacteristics(
     ageGroup = list(c(50, 59), c(60, 69), c(70, 79), c(80, 89), c(90, 99), c(100,150)),
     tableIntersect = list(
       "Visits" = list(

@@ -79,7 +79,8 @@ print(paste0("Creating table1 for after matching cohorts C1-C2 at ", Sys.time())
 cdm_char <-CDMConnector::cdm_from_con(
   con = db,
   cdm_schema = cdm_database_schema,
-  write_schema = results_database_schema
+  write_schema = c("schema" = results_database_schema, 
+                   "prefix" = "sbogf")
 )
 
 cdm_char[["after_matching_12_cohort"]] <- newGeneratedCohortSet(cohortRef = cdm[["after_matching_12_cohort"]],

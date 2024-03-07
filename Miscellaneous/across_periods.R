@@ -71,7 +71,8 @@ cohort_before_match_ap_count <- cdm[["before_matching_ap"]] %>%
 cdm_char <-CDMConnector::cdm_from_con(
   con = db,
   cdm_schema = cdm_database_schema,
-  write_schema = results_database_schema
+  write_schema = c("schema" = results_database_schema, 
+                   "prefix" = "gsefh")
 )
 
 cdm_char[["cohort_before_match_ap"]] <- newGeneratedCohortSet(cohortRef = cdm[["cohort_before_match_ap"]],
@@ -241,7 +242,8 @@ print(paste0("Creating table1 for after matching cohorts T-C1 across periods at 
 cdm_char <-CDMConnector::cdm_from_con(
   con = db,
   cdm_schema = cdm_database_schema,
-  write_schema = results_database_schema
+  write_schema = c("schema" = results_database_schema, 
+                   "prefix" = "sofes")
 )
 
 cdm_char[["after_matching_01_cohort_ap"]] <- newGeneratedCohortSet(cohortRef = cdm[["after_matching_01_cohort_ap"]],
@@ -411,7 +413,8 @@ print(paste0("Creating table1 for after matching cohorts C1-C2 across periods at
 cdm_char <-CDMConnector::cdm_from_con(
   con = db,
   cdm_schema = cdm_database_schema,
-  write_schema = results_database_schema
+  write_schema = c("schema" = results_database_schema, 
+                   "prefix" = "sboff")
 )
 
 cdm_char[["after_matching_12_cohort_ap"]] <- newGeneratedCohortSet(cohortRef = cdm[["after_matching_12_cohort_ap"]],
