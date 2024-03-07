@@ -9,8 +9,7 @@ if (country_setting == "UK") {
   
   ## Sub-setting the visit data
   cdm[["visit_data"]] <- joined_visit_provider_tables %>%
-    dplyr::left_join(provider_cost_inputs, by = "specialty_source_value", copy=TRUE) %>%
-    dplyr::filter(Include == "1") %>% # Filter for only meaningful specialties
+    dplyr::inner_join(provider_cost_inputs %>% dplyr::filter(Include == "1"), by = "specialty_source_value", copy=TRUE) %>% # Filter for only meaningful specialties
     dplyr::select(person_id, provider_id, specialty_source_value, visit_detail_start_date, visit_detail_id, unit_cost) %>%
     dplyr::filter(visit_detail_start_date >= study_start_date & # include only visits in the study period
                    visit_detail_start_date <= study_end_date) %>%
@@ -202,10 +201,10 @@ if (country_setting == "Netherlands") {
     dplyr::tally() %>% 
     dplyr::collect()
   
+  
   ## Sub-setting the visit data
   cdm[["visit_data"]] <- joined_visit_provider_tables %>%
-    dplyr::left_join(provider_cost_inputs, by = "visit_concept_id", copy=TRUE) %>%
-    dplyr::filter(Include == "1") %>% # Filter for only meaningful types for primary care
+    dplyr::inner_join(provider_cost_inputs %>% dplyr::filter(Include == "1"), by = "visit_concept_id", copy=TRUE) %>%
     dplyr::select(person_id, visit_start_date, visit_occurrence_id, visit_concept_id, visit_source_value) %>%  
     dplyr::filter(visit_start_date >= study_start_date & # include only visits in the study period
                     visit_start_date <= study_end_date) %>%
