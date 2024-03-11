@@ -132,46 +132,46 @@ write_csv(result_after_matching01, here(t1_sub_output_folder, "result_after_matc
 #                              OSTEOPOROSIS                         #
 #                                                                   #
 #####################################################################
-# instantiate conditions
-info(logger, "INSTANTIATE OST CONDITIONS - AFTER MATCHING 01")
-print(paste0("Instantiating ost conditions at ", Sys.time()))
-codelistConditionsOst <- codesFromConceptSet(here("1_InstantiateCohorts", "Conditions", "Osteoporosis"), cdm_char)
-cdm_char <- generateConceptCohortSet(cdm = cdm_char, name = conditions, conceptSet = codelistConditionsOst, overwrite = T)
-
-# create table summary
-info(logger, "CREATE SUMMARY - AFTER MATCHING 01")
-print(paste0("Using PatientProfiles for OST table one at ", Sys.time()))
-result_after_matchingOST <- cdm_char[["after_matching_01_cohort"]] %>%
-  summariseCharacteristics(
-    cohortIntersect = list(
-      "Conditions" = list(
-        targetCohortTable = conditions, value = "flag", window = list(c(-Inf, -731), c(-730, -181), c(-180, 0))
-      )
-    )
-  )
-
-result_after_matching01_window1 <- result_after_matchingOST %>% 
-  dplyr::filter(variable_level == "80502") %>% 
-  dplyr::filter(stringr::str_detect(variable, '-180 to 0')) %>% 
-  dplyr::mutate(variable_level = "f80502_1")
-
-result_after_matching01_window2 <- result_after_matchingOST %>% 
-  dplyr::filter(variable_level == "80502") %>% 
-  dplyr::filter(stringr::str_detect(variable, '-730 to -181')) %>% 
-  dplyr::mutate(variable_level = "f80502_2")
-
-result_after_matching01_window3 <- result_after_matchingOST %>% 
-  dplyr::filter(variable_level == "80502") %>% 
-  dplyr::filter(stringr::str_detect(variable, '-731')) %>% 
-  dplyr::mutate(variable_level = "f80502_3")
-
-result_after_matching01_v2 <- rbind(
-  result_after_matching01,
-  result_after_matching01_window1,
-  result_after_matching01_window2,
-  result_after_matching01_window3
-)
-write_csv(result_after_matching01_v2, here(t1_sub_output_folder, "result_after_matching01_v2.csv"))
+# # instantiate conditions
+# info(logger, "INSTANTIATE OST CONDITIONS - AFTER MATCHING 01")
+# print(paste0("Instantiating ost conditions at ", Sys.time()))
+# codelistConditionsOst <- codesFromConceptSet(here("1_InstantiateCohorts", "Conditions", "Osteoporosis"), cdm_char)
+# cdm_char <- generateConceptCohortSet(cdm = cdm_char, name = conditions, conceptSet = codelistConditionsOst, overwrite = T)
+# 
+# # create table summary
+# info(logger, "CREATE SUMMARY - AFTER MATCHING 01")
+# print(paste0("Using PatientProfiles for OST table one at ", Sys.time()))
+# result_after_matchingOST <- cdm_char[["after_matching_01_cohort"]] %>%
+#   summariseCharacteristics(
+#     cohortIntersect = list(
+#       "Conditions" = list(
+#         targetCohortTable = conditions, value = "flag", window = list(c(-Inf, -731), c(-730, -181), c(-180, 0))
+#       )
+#     )
+#   )
+# 
+# result_after_matching01_window1 <- result_after_matchingOST %>% 
+#   dplyr::filter(variable_level == "80502") %>% 
+#   dplyr::filter(stringr::str_detect(variable, '-180 to 0')) %>% 
+#   dplyr::mutate(variable_level = "f80502_1")
+# 
+# result_after_matching01_window2 <- result_after_matchingOST %>% 
+#   dplyr::filter(variable_level == "80502") %>% 
+#   dplyr::filter(stringr::str_detect(variable, '-730 to -181')) %>% 
+#   dplyr::mutate(variable_level = "f80502_2")
+# 
+# result_after_matching01_window3 <- result_after_matchingOST %>% 
+#   dplyr::filter(variable_level == "80502") %>% 
+#   dplyr::filter(stringr::str_detect(variable, '-731')) %>% 
+#   dplyr::mutate(variable_level = "f80502_3")
+# 
+# result_after_matching01_v2 <- rbind(
+#   result_after_matching01,
+#   result_after_matching01_window1,
+#   result_after_matching01_window2,
+#   result_after_matching01_window3
+# )
+# write_csv(result_after_matching01_v2, here(t1_sub_output_folder, "result_after_matching01_v2.csv"))
 
 # print(paste0("Nicer Table1 for before matching at ", Sys.time()))
 # 

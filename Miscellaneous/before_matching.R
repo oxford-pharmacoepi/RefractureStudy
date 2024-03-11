@@ -83,12 +83,12 @@ cdm_char[["table_one_cohort"]] <- newGeneratedCohortSet(cohortRef = cdm[["table_
                                                         cohortSetRef = table_one_cohort_set,
                                                         cohortCountRef = table_one_cohort_count,
                                                         overwrite = T)
-cdm_char <-CDMConnector::cdm_from_con(
-  con = db,
-  cdm_schema = cdm_database_schema,
-  write_schema = c("schema" = results_database_schema, 
-                   "prefix" = "gskhd")
-)
+# cdm_char <-CDMConnector::cdm_from_con(
+#   con = db,
+#   cdm_schema = cdm_database_schema,
+#   write_schema = c("schema" = results_database_schema, 
+#                    "prefix" = "gskhd")
+# )
 
 cdm_char <- CDMConnector::cdmSubsetCohort(cdm_char, "table_one_cohort", verbose = T)
 
@@ -144,46 +144,46 @@ write_csv(result_before_matching, here(t1_sub_output_folder, "result_before_matc
 #                              OSTEOPOROSIS                         #
 #                                                                   #
 #####################################################################
-# instantiate conditions
-info(logger, "INSTANTIATE OST CONDITIONS - BEFORE MATCHING")
-print(paste0("Instantiating osteopororsis condition cohorts for before matching cohorts at ", Sys.time()))
-codelistConditionsOst <- codesFromConceptSet(here("1_InstantiateCohorts", "Conditions", "Osteoporosis"), cdm_char)
-cdm_char <- generateConceptCohortSet(cdm = cdm_char, name = conditions, conceptSet = codelistConditionsOst, overwrite = T)
-
-# create table summary
-info(logger, "CREATE SUMMARY OST - BEFORE MATCHING")
-print(paste0("Using PatientProfiles to create table one for osteoporosis at ", Sys.time()))
-result_before_matchingOST <- cdm_char[["table_one_cohort"]] %>%
-  summariseCharacteristics(
-    cohortIntersect = list(
-      "Conditions" = list(
-        targetCohortTable = conditions, value = "flag", window = list(c(-Inf, -731), c(-730, -181), c(-180, 0))
-      )
-    )
-  )
-
-result_before_matching2_window1 <- result_before_matchingOST %>% 
-  dplyr::filter(variable_level == "80502") %>% 
-  dplyr::filter(stringr::str_detect(variable, '-180 to 0')) %>% 
-  dplyr::mutate(variable_level = "f80502_1")
-
-result_before_matching2_window2 <- result_before_matchingOST %>% 
-  dplyr::filter(variable_level == "80502") %>% 
-  dplyr::filter(stringr::str_detect(variable, '-730 to -181')) %>% 
-  dplyr::mutate(variable_level = "f80502_2")
-
-result_before_matching2_window3 <- result_before_matchingOST %>% 
-  dplyr::filter(variable_level == "80502") %>% 
-  dplyr::filter(stringr::str_detect(variable, '-731')) %>% 
-  dplyr::mutate(variable_level = "f80502_3")
-
-result_before_matching_v2 <- rbind(
-  result_before_matching,
-  result_before_matching2_window1,
-  result_before_matching2_window2,
-  result_before_matching2_window3
-)
-write_csv(result_before_matching_v2, here(t1_sub_output_folder, "result_before_matching_v2.csv"))
+# # instantiate conditions
+# info(logger, "INSTANTIATE OST CONDITIONS - BEFORE MATCHING")
+# print(paste0("Instantiating osteopororsis condition cohorts for before matching cohorts at ", Sys.time()))
+# codelistConditionsOst <- codesFromConceptSet(here("1_InstantiateCohorts", "Conditions", "Osteoporosis"), cdm_char)
+# cdm_char <- generateConceptCohortSet(cdm = cdm_char, name = conditions, conceptSet = codelistConditionsOst, overwrite = T)
+# 
+# # create table summary
+# info(logger, "CREATE SUMMARY OST - BEFORE MATCHING")
+# print(paste0("Using PatientProfiles to create table one for osteoporosis at ", Sys.time()))
+# result_before_matchingOST <- cdm_char[["table_one_cohort"]] %>%
+#   summariseCharacteristics(
+#     cohortIntersect = list(
+#       "Conditions" = list(
+#         targetCohortTable = conditions, value = "flag", window = list(c(-Inf, -731), c(-730, -181), c(-180, 0))
+#       )
+#     )
+#   )
+# 
+# result_before_matching2_window1 <- result_before_matchingOST %>% 
+#   dplyr::filter(variable_level == "80502") %>% 
+#   dplyr::filter(stringr::str_detect(variable, '-180 to 0')) %>% 
+#   dplyr::mutate(variable_level = "f80502_1")
+# 
+# result_before_matching2_window2 <- result_before_matchingOST %>% 
+#   dplyr::filter(variable_level == "80502") %>% 
+#   dplyr::filter(stringr::str_detect(variable, '-730 to -181')) %>% 
+#   dplyr::mutate(variable_level = "f80502_2")
+# 
+# result_before_matching2_window3 <- result_before_matchingOST %>% 
+#   dplyr::filter(variable_level == "80502") %>% 
+#   dplyr::filter(stringr::str_detect(variable, '-731')) %>% 
+#   dplyr::mutate(variable_level = "f80502_3")
+# 
+# result_before_matching_v2 <- rbind(
+#   result_before_matching,
+#   result_before_matching2_window1,
+#   result_before_matching2_window2,
+#   result_before_matching2_window3
+# )
+# write_csv(result_before_matching_v2, here(t1_sub_output_folder, "result_before_matching_v2.csv"))
 
 # print(paste0("Nicer Table1 for before matching at ", Sys.time()))
 # for (i in (1:tot_periods_target)){
