@@ -83,12 +83,12 @@ cdm_char[["table_one_cohort"]] <- newGeneratedCohortSet(cohortRef = cdm[["table_
                                                         cohortSetRef = table_one_cohort_set,
                                                         cohortCountRef = table_one_cohort_count,
                                                         overwrite = T)
-cdm_char <-CDMConnector::cdm_from_con(
-  con = db,
-  cdm_schema = cdm_database_schema,
-  write_schema = c("schema" = results_database_schema, 
-                   "prefix" = "gskhd")
-)
+# cdm_char <-CDMConnector::cdm_from_con(
+#   con = db,
+#   cdm_schema = cdm_database_schema,
+#   write_schema = c("schema" = results_database_schema, 
+#                    "prefix" = "gskhd")
+# )
 
 cdm_char <- CDMConnector::cdmSubsetCohort(cdm_char, "table_one_cohort", verbose = T)
 
@@ -191,11 +191,11 @@ a2 <- a2 %>%
   dplyr::select(cdm_name, variable, variable_level, period, asmd_c1_c2, asmd_t_c1)
 smd_pre_match <- rbind(a1,a2)
 
-# #####################################################################
-# #                                                                   #
-# #                              OSTEOPOROSIS                         #
-# #                                                                   #
-# #####################################################################
+#####################################################################
+#                                                                   #
+#                              OSTEOPOROSIS                         #
+#                                                                   #
+#####################################################################
 # # instantiate conditions
 # info(logger, "INSTANTIATE OST CONDITIONS - BEFORE MATCHING")
 # print(paste0("Instantiating osteopororsis condition cohorts for before matching cohorts at ", Sys.time()))
@@ -236,6 +236,7 @@ smd_pre_match <- rbind(a1,a2)
 #   result_before_matching2_window3
 # )
 # write_csv(result_before_matching_v2, here(t1_sub_output_folder, "result_before_matching_v2.csv"))
+
 # 
 # # print(paste0("Nicer Table1 for before matching at ", Sys.time()))
 # # for (i in (1:tot_periods_target)){
@@ -249,6 +250,19 @@ smd_pre_match <- rbind(a1,a2)
 # #     dplyr::filter(!Characteristic %in% c("Fractures, n(%)", "Malignant neoplastic disease, n(%)"))
 # #   write_csv(output, here(t1_sub_output_folder, paste0("c1_c2_", i, "_before_matching.csv")))
 # # }
+
+# print(paste0("Nicer Table1 for before matching at ", Sys.time()))
+# for (i in (1:tot_periods_target)){
+#   output<-reformat_table_one_rq3(result_before_matching_v2, period = i, name1 = "target", name2 = "comparator 1", j = 1, k = 2) %>% 
+#     dplyr::filter(!Characteristic %in% c("Fractures, n(%)", "Malignant neoplastic disease, n(%)"))
+#   write_csv(output, here(t1_sub_output_folder, paste0("target_c1_", i, "_before_matching.csv")))
+# }
+
+# for (i in (1:tot_periods_c1)){
+#   output<-reformat_table_one_rq3(result_before_matching_v2, period = i, name1 = "comparator 1", name2 = "comparator 2", j = 2, k = 3) %>% 
+#     dplyr::filter(!Characteristic %in% c("Fractures, n(%)", "Malignant neoplastic disease, n(%)"))
+#   write_csv(output, here(t1_sub_output_folder, paste0("c1_c2_", i, "_before_matching.csv")))
+# }
 
 suppressWarnings(
   rm(fullName,

@@ -161,3 +161,30 @@ imbal_t_c1 <- smd_post_match_t_c1 %>%
   dplyr::select(variable_level)%>%
   unique()%>%
   mutate(variable_level = to_snake_case(variable_level))
+
+##table1 for RQ3- needs grouping by period and database
+packageurl <- "https://cran.r-project.org/src/contrib/Archive/PatientProfiles/PatientProfiles_0.5.1.tar.gz"
+install.packages(packageurl, repos=NULL, type="source")
+library(PatientProfiles)
+
+a_p1 <- a %>%
+  dplyr::filter(group_level %in% c("1 cohort1", "1 cohort2", "1 target"))
+
+a_p1 <- a_p1 %>% gtResult(
+  long = list(
+    "Variable" = c(level = "variable", "clean"),
+    "Level" = c(level = "variable_level"),
+    "Format" = c(level = "format", "separator-right")
+  ),
+  wide = list(
+    "Group" = c(level = c("group_level"),
+    "CDM Name" = c(level = "cdm_name"))
+  ),
+  format = c(`N (%)` = "count (percentage%)", "median [min; q25 - q75; max]",
+             "mean (sd)", "median [q25 - q75]", N = "count"),
+  keepNotFormatted = TRUE,
+  decimals = c(default = 0),
+  decimalMark = ".",
+  bigMark = ","
+)
+gt::gtsave(a_p1, filename = "gt.docx")
