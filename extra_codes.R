@@ -161,5 +161,3 @@ imbal_t_c1 <- smd_post_match_t_c1 %>%
   dplyr::select(variable_level)%>%
   unique()%>%
   mutate(variable_level = to_snake_case(variable_level))
-
-
