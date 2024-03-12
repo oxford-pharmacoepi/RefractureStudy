@@ -127,12 +127,120 @@ result_after_matching12 <- cdm_char[["after_matching_12_cohort"]] %>%
   )
 write_csv(result_after_matching12, here(t1_sub_output_folder, "result_after_matching12.csv"))
 
-#####################################################################
-#                                                                   #
-#                              OSTEOPOROSIS                         #
-#                                                                   #
-#####################################################################
-# instantiate conditions
+b <- result_after_matching12
+
+#create smd after matching c1-c2
+b <- b %>% 
+  dplyr::mutate(group_level = gsub("comparator ", "cohort", group_level)) %>%
+  dplyr::filter(!variable %in% c("Age group", "Sex", "Cohort start date", "Cohort end date", "Prior observation", "Future observation")) %>%
+  dplyr::mutate(period = as.numeric(gsub( " .*$", "", group_level)),
+                period = ifelse(period >16, period - 16, period),
+                group = gsub(".*? ", "", group_level)) 
+
+#Continuous variable
+b1 <- b %>%
+  dplyr::filter(estimate_type %in% c("mean", "sd")) %>%
+  dplyr::mutate(estimate = as.numeric(estimate)) %>%
+  pivot_wider(
+    names_from = estimate_type,
+    values_from = estimate
+  )%>%
+  dplyr::select(-group_level)%>%
+  pivot_wider(
+    names_from = group,
+    values_from = c(mean, sd)
+  )%>%
+  dplyr::mutate(smd1 = (mean_cohort1 - mean_cohort2)/(sqrt((1/2)*((sd_cohort1)^2+(sd_cohort2)^2))),
+                asmd_c1_c2 = round(abs(smd1), digits = 3))
+
+#Binary variable
+b2 <- b %>%
+  dplyr::filter(estimate_type == "percentage") %>%
+  dplyr::select(-group_level)%>%
+  pivot_wider(
+    names_from = group,
+    values_from = estimate
+  )%>%
+  dplyr::mutate(x1 = as.numeric(cohort1)/100,
+                x2 = as.numeric(cohort2)/100,
+                smd1 = (x1 - x2)/(sqrt((1/2)*(x1*(1-x1)+x2*(1-x2)))),
+                asmd_c1_c2 = round(abs(smd1), digits = 3))
+
+b1 <- b1 %>% 
+  dplyr::select(cdm_name, variable, variable_level, period, asmd_c1_c2)
+b2 <- b2 %>% 
+  dplyr::select(cdm_name, variable, variable_level, period, asmd_c1_c2)
+smd_post_match_c1_c2 <- rbind(b1,b2)
+
+exclude <- c("Fractures", "Hiv", "Hormonal contraceptives syst", "Malignant neoplastic disease", "Antineoplastic agents")
+imbal_c1_c2 <- smd_post_match_c1_c2 %>%
+  dplyr::filter(!(variable_level %in% exclude))%>%
+  dplyr::filter(variable!="Age") %>% #already age-matched and included in PS model
+  dplyr::filter(asmd_c1_c2 >0.1) %>%
+  dplyr::select(variable_level)%>%
+  unique()%>%
+  mutate(variable_level = to_snake_case(variable_level))
+
+#### glm
+imbal_c1_c2_nb <- imbal_c1_c2 %>% dplyr::filter(variable_level %in% non_binary_var) %>% dplyr::pull("variable_level")
+
+if ("visit_occurrence" %in% imbal_c1_c2_nb){
+  cdm_char[["after_matching_12_cohort"]] <- cdm_char[["after_matching_12_cohort"]] |>
+    PatientProfiles::addIntersect(
+      tableName = "visit_occurrence",
+      value = "count",
+      window = list(c(-365, 0)),
+      nameStyle = "number_visits_{window_name}"
+    ) %>% 
+    dplyr::compute()
+} 
+
+if ("drug_era" %in% imbal_c1_c2_nb){
+  cdm_char[["after_matching_12_cohort"]] <- cdm_char[["after_matching_12_cohort"]] |>
+    PatientProfiles::addIntersect(
+      tableName = "drug_era",
+      value = "count",
+      window = list(c(-365, 0)),
+      nameStyle = "number_drug_era_{window_name}"
+    ) %>% 
+    dplyr::compute()
+}
+
+imbal_c1_c2_nnb <- imbal_c1_c2 %>% dplyr::filter(!variable_level %in% non_binary_var) %>% dplyr::pull("variable_level")
+meds_glm_ids <- cohortSet(cdm_char[[medications]]) %>% 
+  dplyr::collect() %>% 
+  filter(cohort_name %in% imbal_c1_c2_nnb) %>% 
+  dplyr::select(cohort_definition_id) %>% 
+  dplyr::pull(cohort_definition_id)
+
+cdm_char[["after_matching_12_cohort"]] <- cdm_char[["after_matching_12_cohort"]] %>% 
+  PatientProfiles::addCohortIntersectFlag(
+    targetCohortTable = medications,
+    targetCohortId = meds_glm_ids,
+    window = list(c(-365, 0))
+  ) %>% 
+  dplyr::compute()
+
+conditions_glm_ids <- cohortSet(cdm_char[[conditions]]) %>% 
+  dplyr::collect() %>% 
+  filter(cohort_name %in% imbal_c1_c2_nnb) %>% 
+  dplyr::select(cohort_definition_id) %>% 
+  dplyr::pull(cohort_definition_id)
+
+cdm_char[["after_matching_12_cohort"]] <- cdm_char[["after_matching_12_cohort"]] %>% 
+  PatientProfiles::addCohortIntersectFlag(
+    targetCohortTable = conditions,
+    targetCohortId = conditions_glm_ids,
+    window = list(c(-Inf, 0))
+  ) %>% 
+  dplyr::compute()
+
+# #####################################################################
+# #                                                                   #
+# #                              OSTEOPOROSIS                         #
+# #                                                                   #
+# #####################################################################
+# # instantiate conditions
 # info(logger, "INSTANTIATE OST CONDITIONS - AFTER MATCHING 12")
 # print(paste0("Instantiating ost conditions at ", Sys.time()))
 # codelistConditionsOst <- codesFromConceptSet(here("1_InstantiateCohorts", "Conditions", "Osteoporosis"), cdm_char)
@@ -172,14 +280,14 @@ write_csv(result_after_matching12, here(t1_sub_output_folder, "result_after_matc
 #   result_after_matching12_window3
 # )
 # write_csv(result_after_matching12_v2, here(t1_sub_output_folder, "result_after_matching12_v2.csv"))
-
-#print(paste0("Nicer Table1 for before matching at ", Sys.time()))
-
-# for (i in (1:tot_periods_target)){
-#   output<-reformat_table_one_rq3_12(result_after_matching12_v2, period = i, name1 = "comparator 1", name2 = "comparator 2") %>% 
-#     dplyr::filter(!Characteristic %in% c("Fractures, n(%)", "Malignant neoplastic disease, n(%)"))
-#   write_csv(output, here(t1_sub_output_folder, paste0("c1_c2_", i, "_after_matching.csv")))
-# }
+# 
+# #print(paste0("Nicer Table1 for before matching at ", Sys.time()))
+# 
+# # for (i in (1:tot_periods_target)){
+# #   output<-reformat_table_one_rq3_12(result_after_matching12_v2, period = i, name1 = "comparator 1", name2 = "comparator 2") %>% 
+# #     dplyr::filter(!Characteristic %in% c("Fractures, n(%)", "Malignant neoplastic disease, n(%)"))
+# #   write_csv(output, here(t1_sub_output_folder, paste0("c1_c2_", i, "_after_matching.csv")))
+# # }
 
 suppressWarnings(
   rm(fullName,

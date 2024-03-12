@@ -188,5 +188,3 @@ a_p1 <- a_p1 %>% gtResult(
   bigMark = ","
 )
 gt::gtsave(a_p1, filename = "gt.docx")
-
-

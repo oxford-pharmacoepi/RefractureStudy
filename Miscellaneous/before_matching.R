@@ -139,6 +139,58 @@ result_before_matching <- cdm_char[["table_one_cohort"]] %>%
 
 write_csv(result_before_matching, here(t1_sub_output_folder, "result_before_matching.csv"))
 
+a <- result_before_matching
+
+#create smd before matching
+#unequal number of rows per period caused by small numbers in age group 100-150#
+a <- a %>%
+  dplyr::filter(!variable %in% c("Age group", "Sex", "Cohort start date", "Cohort end date", "Prior observation", "Future observation")) %>%
+  dplyr::mutate(period = as.numeric(gsub( " .*$", "", group_level)),
+                period = ifelse(period >16, period - 16, period),
+                group = gsub(".*? ", "", group_level)) 
+
+#Continuous variable
+a1 <- a %>%
+  dplyr::filter(estimate_type %in% c("mean", "sd")) %>%
+  dplyr::mutate(estimate = as.numeric(estimate)) %>%
+  pivot_wider(
+    names_from = estimate_type,
+    values_from = estimate
+  )%>%
+  dplyr::select(-group_level)%>%
+  pivot_wider(
+    names_from = group,
+    values_from = c(mean, sd)
+  )%>%
+  dplyr::mutate(smd1 = (mean_cohort1 - mean_cohort2)/(sqrt((1/2)*((sd_cohort1)^2+(sd_cohort2)^2))),
+                smd2 = (mean_target - mean_cohort1)/(sqrt((1/2)*((sd_target)^2+(sd_cohort1)^2))),
+                asmd_c1_c2 = round(abs(smd1), digits = 3),
+                asmd_t_c1 = round(abs(smd2), digits = 3))
+
+
+
+#Binary variable
+a2 <- a %>%
+  dplyr::filter(estimate_type == "percentage") %>%
+  dplyr::select(-group_level)%>%
+  pivot_wider(
+    names_from = group,
+    values_from = estimate
+  )%>%
+  dplyr::mutate(x1 = as.numeric(cohort1)/100,
+                x2 = as.numeric(cohort2)/100,
+                smd1 = (x1 - x2)/(sqrt((1/2)*(x1*(1-x1)+x2*(1-x2)))),
+                asmd_c1_c2 = round(abs(smd1), digits = 3),
+                x3 = as.numeric(target)/100,
+                smd2 = (x3 - x1)/(sqrt((1/2)*(x3*(1-x3)+x1*(1-x1)))),
+                asmd_t_c1 = round(abs(smd2), digits = 3))
+
+a1 <- a1 %>% 
+  dplyr::select(cdm_name, variable, variable_level, period, asmd_c1_c2, asmd_t_c1)
+a2 <- a2 %>% 
+  dplyr::select(cdm_name, variable, variable_level, period, asmd_c1_c2, asmd_t_c1)
+smd_pre_match <- rbind(a1,a2)
+
 #####################################################################
 #                                                                   #
 #                              OSTEOPOROSIS                         #
@@ -184,6 +236,20 @@ write_csv(result_before_matching, here(t1_sub_output_folder, "result_before_matc
 #   result_before_matching2_window3
 # )
 # write_csv(result_before_matching_v2, here(t1_sub_output_folder, "result_before_matching_v2.csv"))
+
+# 
+# # print(paste0("Nicer Table1 for before matching at ", Sys.time()))
+# # for (i in (1:tot_periods_target)){
+# #   output<-reformat_table_one_rq3(result_before_matching_v2, period = i, name1 = "target", name2 = "comparator 1", j = 1, k = 2) %>% 
+# #     dplyr::filter(!Characteristic %in% c("Fractures, n(%)", "Malignant neoplastic disease, n(%)"))
+# #   write_csv(output, here(t1_sub_output_folder, paste0("target_c1_", i, "_before_matching.csv")))
+# # }
+# 
+# # for (i in (1:tot_periods_c1)){
+# #   output<-reformat_table_one_rq3(result_before_matching_v2, period = i, name1 = "comparator 1", name2 = "comparator 2", j = 2, k = 3) %>% 
+# #     dplyr::filter(!Characteristic %in% c("Fractures, n(%)", "Malignant neoplastic disease, n(%)"))
+# #   write_csv(output, here(t1_sub_output_folder, paste0("c1_c2_", i, "_before_matching.csv")))
+# # }
 
 # print(paste0("Nicer Table1 for before matching at ", Sys.time()))
 # for (i in (1:tot_periods_target)){
