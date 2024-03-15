@@ -246,7 +246,7 @@ features_count_threshold <- features_count %>%
 
 print(paste0("Creating subfeatures at ", Sys.time()))
 cdm[["subfeatures"]] <- cdm[["features"]] %>% 
-  dplyr::anti_join(features_count_threshold, by = "feature") %>% 
+  dplyr::anti_join(features_count_threshold, by = "feature", copy = T) %>% 
   CDMConnector::computeQuery()
 
 rm(features_count, features_count_threshold, allSubjects)
