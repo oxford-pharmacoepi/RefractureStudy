@@ -152,7 +152,6 @@ lowerBoundLasso01 <- function(subfeatures_01, lower_bound){
     dplyr::pull(feature)
   
   comms <- intersect(subfeatures_01_0, subfeatures_01_1)
-  rm(subfeatures_01_0, subfeatures_01_1)
   subfeatures_01 <- subfeatures_01 %>%
     dplyr::filter(feature %in% comms)
   return(subfeatures_01)
@@ -176,7 +175,6 @@ lowerBoundLasso12 <- function(subfeatures_12, lower_bound){
     dplyr::pull(feature)
   
   comms <- intersect(subfeatures_12_1, subfeatures_12_2)
-  rm(subfeatures_12_1, subfeatures_12_2)
   subfeatures_12 <- subfeatures_12 %>%
     dplyr::filter(feature %in% comms)
   return(subfeatures_12)

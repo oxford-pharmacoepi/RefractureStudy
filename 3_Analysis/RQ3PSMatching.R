@@ -70,9 +70,11 @@ for (i in (1:length(targetCohort))){
 
 if (country_setting %in% c("France", "Germany", "Italy")){
   print(paste0("inserting table at ", Sys.time(), " for IQVIA"))
+  install.packages("omopgenerics")
   cdm <- insertTable2(cdm = cdm,
                       name = "all_subjects",
                       table = allSubjects)
+  remove.packages("omopgenerics")
   
   print(paste0("producing features at ", Sys.time()))
   cdm[["features"]] <- cdm$condition_occurrence_2 %>%
@@ -152,6 +154,7 @@ if (country_setting %in% c("France", "Germany", "Italy")){
         dplyr::distinct()
     ) %>%
     dplyr::compute()
+  
   print(paste0("Finish extracting features at ", Sys.time()))
 } else {
   cdm[["features"]] <- cdm$condition_occurrence_2 %>%
@@ -246,6 +249,8 @@ cdm[["subfeatures"]] <- cdm[["features"]] %>%
   dplyr::anti_join(features_count_threshold, by = "feature") %>% 
   CDMConnector::computeQuery()
 
+rm(features_count, features_count_threshold, allSubjects)
+
 counts <- cdm[["subfeatures"]] %>% dplyr::select(feature) %>% dplyr::distinct(feature) %>% tally() %>% collect()
 counts <- counts %>% dplyr::rename(subfeatures_count = n)
 write.xlsx(counts, file = here(sub_output_folder, "counts_subfeatures.xlsx"))
@@ -310,10 +315,12 @@ for (l in (1:length(targetCohort))){
   set.seed(12345)
   print(paste0("Pulling the relevant subfeatures at ", Sys.time()))
   # load(here(psFolder, "subfeatures.RData"))
+  df_to <- rbind(targetCohort[[l]] %>% dplyr::select(subject_id, index_date, group, follow_up_end), 
+                 compCohort1[[l]] %>% dplyr::select(subject_id, index_date, group, follow_up_end))
+  
   subfeatures_01 <- cdm[["subfeatures"]] %>% 
-    dplyr::inner_join(rbind(targetCohort[[l]] %>% dplyr::select(subject_id, index_date, group), 
-                     compCohort1[[l]] %>% dplyr::select(subject_id, index_date, group)),
-               by = c("subject_id", "index_date"),
+    dplyr::right_join(df_to,
+               by = c("subject_id", "index_date", "follow_up_end"),
                copy = T) %>% 
     dplyr::collect()
   # rm(subfeatures)
@@ -328,17 +335,19 @@ for (l in (1:length(targetCohort))){
   rm(subfeatures_01)
   load(here(psFolder, "allSubjectsCohort.RData"))
   
-  features_lasso01 <- allSubjectsCohort %>% 
-    dplyr::filter(period == l) %>%
-    dplyr::select(-"period") %>%
-    dplyr::filter(group %in% c("comparator 1", "target")) %>%
-    dplyr::inner_join(features_lasso01, by = c("subject_id", "group", "cohort_start_date"="index_date"), relationship = "many-to-many")
+  df_to <- df_to %>% dplyr::left_join(allSubjectsCohort %>% 
+                                        dplyr::filter(period == 1) %>% 
+                                        dplyr::filter(group %in% c("target", "comparator 1")) %>% 
+                                        dplyr::select(-cohort_definition_id, -cohort_end_date, -period), by = c("subject_id", "index_date" = "cohort_start_date", "group"))
   
+  to_match <- df_to %>% dplyr::left_join(features_lasso01,
+                             by = c("subject_id", "index_date", "follow_up_end", "group")) %>% 
+    dplyr::mutate(across(where(is.numeric), tidyr::replace_na, 0))
+  
+  features_lasso01 <- to_match
   features_lasso01$prior_observation <- as.double(features_lasso01$prior_observation)
   features_lasso01 <- features_lasso01 %>% 
-    dplyr::mutate(group = factor(group, c("comparator 1", "target"))) %>% 
-    dplyr::rename(index_date = cohort_start_date) %>% 
-    dplyr::select(-cohort_end_date, -cohort_definition_id)
+    dplyr::mutate(group = factor(group, c("comparator 1", "target")))
   
   print(paste0("Producing lasso_reg at ", Sys.time()))
   x <- data.matrix(features_lasso01 %>% dplyr::select(-c("group", "subject_id", "index_date", "follow_up_end")))
@@ -394,20 +403,22 @@ selectedLassoFeatures12 <- list()
 match_results_12 <- list()
 subclasses12 <- list()
 summary12 <- list()
-load(here(psFolder, "targetCohort.RData"))
-load(here(psFolder, "compCohort1.RData"))
-load(here(psFolder, "compCohort2.RData"))
+# load(here(psFolder, "targetCohort.RData"))
+# load(here(psFolder, "compCohort1.RData"))
+# load(here(psFolder, "compCohort2.RData"))
 
 for (l in (1:length(compCohort1))){
-  print(paste0("Starting matching C2-C1 for period ", l, " at ", Sys.time()))
+  print(paste0("Starting matching C1-C2 for period ", l, " at ", Sys.time()))
   set.seed(12345)
-  print(paste0("Pulling relevant subfeatures at ", Sys.time()))
-  #load(here(psFolder, "subfeatures.RData"))
+  print(paste0("Pulling the relevant subfeatures at ", Sys.time()))
+  # load(here(psFolder, "subfeatures.RData"))
+  df_to <- rbind(compCohort1[[l]] %>% dplyr::select(subject_id, index_date, group, follow_up_end), 
+                 compCohort2[[l]] %>% dplyr::select(subject_id, index_date, group, follow_up_end))
+  
   subfeatures_12 <- cdm[["subfeatures"]] %>% 
-    dplyr::inner_join(rbind(compCohort1[[l]] %>% dplyr::select(subject_id, index_date, group), 
-                     compCohort2[[l]] %>% dplyr::select(subject_id, index_date, group)),
-               by = c("subject_id", "index_date"),
-               copy = T) %>% 
+    dplyr::right_join(df_to,
+                      by = c("subject_id", "index_date", "follow_up_end"),
+                      copy = T) %>% 
     dplyr::collect()
   # rm(subfeatures)
   
@@ -421,17 +432,19 @@ for (l in (1:length(compCohort1))){
   rm(subfeatures_12)
   load(here(psFolder, "allSubjectsCohort.RData"))
   
-  features_lasso12 <- allSubjectsCohort %>% 
-    dplyr::filter(period == l) %>%
-    dplyr::select(-"period") %>%
-    dplyr::filter(group %in% c("comparator 2", "comparator 1")) %>%
-    dplyr::inner_join(features_lasso12, by = c("subject_id", "group", "cohort_start_date"="index_date"), relationship = "many-to-many")
+  df_to <- df_to %>% dplyr::left_join(allSubjectsCohort %>% 
+                                        dplyr::filter(period == 1) %>% 
+                                        dplyr::filter(group %in% c("comparator 1", "comparator 2")) %>% 
+                                        dplyr::select(-cohort_definition_id, -cohort_end_date, -period), by = c("subject_id", "index_date" = "cohort_start_date", "group"))
   
+  to_match <- df_to %>% dplyr::left_join(features_lasso12,
+                                         by = c("subject_id", "index_date", "follow_up_end", "group")) %>% 
+    dplyr::mutate(across(where(is.numeric), tidyr::replace_na, 0))
+  
+  features_lasso12 <- to_match
   features_lasso12$prior_observation <- as.double(features_lasso12$prior_observation)
   features_lasso12 <- features_lasso12 %>% 
-    dplyr::mutate(group = factor(group, c("comparator 2", "comparator 1"))) %>% 
-    dplyr::rename(index_date = cohort_start_date) %>% 
-    dplyr::select(-cohort_end_date, -cohort_definition_id)
+    dplyr::mutate(group = factor(group, c("comparator 2", "comparator 1")))
   
   print(paste0("Producing lasso_reg at ", Sys.time()))
   x <- data.matrix(features_lasso12 %>% dplyr::select(-c("group", "subject_id", "index_date", "follow_up_end")))
@@ -447,10 +460,10 @@ for (l in (1:length(compCohort1))){
   selectedLassoFeatures12[[l]] <- selectedLassoFeatures12[[l]][selectedLassoFeatures12[[l]] != "(Intercept)"]
   
   features_lasso12 <- features_lasso12 %>%
-    dplyr::select(all_of(c("subject_id", "group", "index_date", "follow_up_end", selectedLassoFeatures12[[l]])))
+    dplyr::select(all_of(c("subject_id", "group", "follow_up_end", "index_date", selectedLassoFeatures12[[l]])))
   
-  print(paste0("Producing match_results at ", Sys.time()))
-  match_results_12[[l]] <- matchit(group ~ .-subject_id -index_date -follow_up_end, 
+  print(paste0("Producing matched_results at ", Sys.time()))
+  match_results_12[[l]] <- matchit(group ~ . -subject_id -follow_up_end -index_date, 
                                    data=features_lasso12,
                                    antiexact = ~subject_id,
                                    method="nearest", 
