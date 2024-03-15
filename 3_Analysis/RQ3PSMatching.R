@@ -64,88 +64,175 @@ for (i in (1:length(targetCohort))){
 #   dplyr::anti_join(feature_remove_measurement, by = c("measurement_concept_id" = "selected_covariates"), copy = T) %>% 
 #   CDMConnector::computeQuery()
 
-cdm[["condition_occurrence_2"]] <- cdm[["condition_occurrence"]] %>%
-  dplyr::filter(!(condition_concept_id %in% any_fracture_id)) %>%
-  CDMConnector::computeQuery()
+  cdm[["condition_occurrence_2"]] <- cdm[["condition_occurrence"]] %>%
+    dplyr::filter(!(condition_concept_id %in% any_fracture_id)) %>%
+    CDMConnector::computeQuery()
 
-cdm[["features"]] <- cdm$condition_occurrence_2 %>%
-  dplyr::filter(condition_concept_id != 0) %>% 
-  dplyr::inner_join(allSubjects, by = c("person_id" = "subject_id"), copy = T) %>%
-  dplyr::select(
-    "subject_id" = "person_id",
-    "index_date",
-    "follow_up_end",
-    "concept_id" = "condition_concept_id", 
-    "date" = "condition_start_date"
-  ) %>%
-  dplyr::filter(date < index_date) %>%
-  dplyr::mutate(dif_time = !!datediff("index_date", "date")) %>%
-  dplyr::mutate(window = as.integer(if_else(dif_time >= -180, 1, if_else(dif_time >= -730, 2, 3)))) %>% # window 1: <180, 2: 180-730, 3: >730
-  dplyr::mutate(feature = paste0("f", concept_id, "_", window)) %>%
-  dplyr::select("subject_id", "follow_up_end", "index_date", "feature") %>%
-  dplyr::distinct() %>%
-  union_all(
-    cdm$drug_era %>%
-      dplyr::filter(drug_concept_id != 0) %>% 
-      dplyr::inner_join(allSubjects, by = c("person_id" = "subject_id"), copy = T) %>%
-      dplyr::select(
-        "subject_id" = "person_id", 
-        "index_date",
-        "follow_up_end",
-        "concept_id" = "drug_concept_id", 
-        "date" = "drug_era_start_date"
-      ) %>%
-      dplyr::mutate(date = as.Date(date)) %>%
-      dplyr::filter(date < index_date) %>%
-      dplyr::mutate(dif_time = !!datediff("index_date", "date")) %>%
-      dplyr::filter(dif_time >= -365) %>%
-      dplyr::mutate(window = as.integer(if_else(dif_time >= -180, 1, if_else(dif_time >= -730, 2, 3)))) %>%
-      dplyr::mutate(feature = paste0("f", concept_id, "_", window)) %>%
-      dplyr::select("subject_id", "follow_up_end", "index_date", "feature") %>%
-      dplyr::distinct()
-  ) %>%
-  union_all(
-    cdm$procedure_occurrence %>%
-      dplyr::filter(procedure_concept_id != 0) %>% 
-      dplyr::inner_join(allSubjects, by = c("person_id" = "subject_id"), copy = T) %>%
-      dplyr::select(
-        "subject_id" = "person_id", 
-        "index_date",
-        "follow_up_end",
-        "concept_id" = "procedure_concept_id", 
-        "date" = "procedure_date"
-      ) %>%
-      dplyr::mutate(date = as.Date(date)) %>%
-      dplyr::filter(date < index_date) %>%
-      dplyr::mutate(dif_time = !!datediff("index_date", "date")) %>%
-      dplyr::filter(dif_time >= -365) %>%
-      dplyr::mutate(window = as.integer(if_else(dif_time >= -180, 1, if_else(dif_time >= -730, 2, 3)))) %>%
-      dplyr::mutate(feature = paste0("f", concept_id, "_", window)) %>%
-      dplyr::select("subject_id", "follow_up_end", "index_date", "feature") %>%
-      dplyr::distinct()
-  ) %>%
-  union_all(
-    cdm$measurement %>%
-      dplyr::filter(measurement_concept_id != 0) %>% 
-      dplyr::inner_join(allSubjects, by = c("person_id" = "subject_id"), copy = T) %>%
-      dplyr::select(
-        "subject_id" = "person_id", 
-        "index_date",
-        "follow_up_end",
-        "concept_id" = "measurement_concept_id", 
-        "date" = "measurement_date"
-      ) %>%
-      dplyr::mutate(date = as.Date(date)) %>%
-      dplyr::filter(date < index_date) %>%
-      dplyr::mutate(dif_time = !!datediff("index_date", "date")) %>%
-      dplyr::filter(dif_time >= -365) %>%
-      dplyr::mutate(window = as.integer(if_else(dif_time >= -180, 1, if_else(dif_time >= -730, 2, 3)))) %>%
-      dplyr::mutate(feature = paste0("f", concept_id, "_", window)) %>%
-      dplyr::select("subject_id", "follow_up_end", "index_date", "feature") %>%
-      dplyr::distinct()
-  ) %>%
-  dplyr::compute()
-print(paste0("Finish extracting features at ", Sys.time()))
+if (country_setting %in% c("France", "Germany", "Italy")){
+  print(paste0("inserting table at ", Sys.time(), " for IQVIA"))
+  cdm <- insertTable2(cdm = cdm,
+                      name = "all_subjects",
+                      table = allSubjects)
+  
+  print(paste0("producing features at ", Sys.time()))
+  cdm[["features"]] <- cdm$condition_occurrence_2 %>%
+    dplyr::filter(condition_concept_id != 0) %>% 
+    dplyr::inner_join(cdm[["all_subjects"]], by = c("person_id" = "subject_id"), copy = T) %>%
+    dplyr::select(
+      "subject_id" = "person_id",
+      "index_date",
+      "follow_up_end",
+      "concept_id" = "condition_concept_id", 
+      "date" = "condition_start_date"
+    ) %>%
+    dplyr::filter(date < index_date) %>%
+    dplyr::mutate(dif_time = !!datediff("index_date", "date")) %>%
+    dplyr::mutate(window = as.integer(if_else(dif_time >= -180, 1, if_else(dif_time >= -730, 2, 3)))) %>% # window 1: <180, 2: 180-730, 3: >730
+    dplyr::mutate(feature = paste0("f", concept_id, "_", window)) %>%
+    dplyr::select("subject_id", "follow_up_end", "index_date", "feature") %>%
+    dplyr::distinct() %>%
+    union_all(
+      cdm$drug_era %>%
+        dplyr::filter(drug_concept_id != 0) %>% 
+        dplyr::inner_join(cdm[["all_subjects"]], by = c("person_id" = "subject_id"), copy = T) %>%
+        dplyr::select(
+          "subject_id" = "person_id", 
+          "index_date",
+          "follow_up_end",
+          "concept_id" = "drug_concept_id", 
+          "date" = "drug_era_start_date"
+        ) %>%
+        dplyr::mutate(date = as.Date(date)) %>%
+        dplyr::filter(date < index_date) %>%
+        dplyr::mutate(dif_time = !!datediff("index_date", "date")) %>%
+        dplyr::filter(dif_time >= -365) %>%
+        dplyr::mutate(window = as.integer(if_else(dif_time >= -180, 1, if_else(dif_time >= -730, 2, 3)))) %>%
+        dplyr::mutate(feature = paste0("f", concept_id, "_", window)) %>%
+        dplyr::select("subject_id", "follow_up_end", "index_date", "feature") %>%
+        dplyr::distinct()
+    ) %>%
+    union_all(
+      cdm$procedure_occurrence %>%
+        dplyr::filter(procedure_concept_id != 0) %>% 
+        dplyr::inner_join(cdm[["all_subjects"]], by = c("person_id" = "subject_id"), copy = T) %>%
+        dplyr::select(
+          "subject_id" = "person_id", 
+          "index_date",
+          "follow_up_end",
+          "concept_id" = "procedure_concept_id", 
+          "date" = "procedure_date"
+        ) %>%
+        dplyr::mutate(date = as.Date(date)) %>%
+        dplyr::filter(date < index_date) %>%
+        dplyr::mutate(dif_time = !!datediff("index_date", "date")) %>%
+        dplyr::filter(dif_time >= -365) %>%
+        dplyr::mutate(window = as.integer(if_else(dif_time >= -180, 1, if_else(dif_time >= -730, 2, 3)))) %>%
+        dplyr::mutate(feature = paste0("f", concept_id, "_", window)) %>%
+        dplyr::select("subject_id", "follow_up_end", "index_date", "feature") %>%
+        dplyr::distinct()
+    ) %>%
+    union_all(
+      cdm$measurement %>%
+        dplyr::filter(measurement_concept_id != 0) %>% 
+        dplyr::inner_join(cdm[["all_subjects"]], by = c("person_id" = "subject_id"), copy = T) %>%
+        dplyr::select(
+          "subject_id" = "person_id", 
+          "index_date",
+          "follow_up_end",
+          "concept_id" = "measurement_concept_id", 
+          "date" = "measurement_date"
+        ) %>%
+        dplyr::mutate(date = as.Date(date)) %>%
+        dplyr::filter(date < index_date) %>%
+        dplyr::mutate(dif_time = !!datediff("index_date", "date")) %>%
+        dplyr::filter(dif_time >= -365) %>%
+        dplyr::mutate(window = as.integer(if_else(dif_time >= -180, 1, if_else(dif_time >= -730, 2, 3)))) %>%
+        dplyr::mutate(feature = paste0("f", concept_id, "_", window)) %>%
+        dplyr::select("subject_id", "follow_up_end", "index_date", "feature") %>%
+        dplyr::distinct()
+    ) %>%
+    dplyr::compute()
+  print(paste0("Finish extracting features at ", Sys.time()))
+} else {
+  cdm[["features"]] <- cdm$condition_occurrence_2 %>%
+    dplyr::filter(condition_concept_id != 0) %>% 
+    dplyr::inner_join(allSubjects, by = c("person_id" = "subject_id"), copy = T) %>%
+    dplyr::select(
+      "subject_id" = "person_id",
+      "index_date",
+      "follow_up_end",
+      "concept_id" = "condition_concept_id", 
+      "date" = "condition_start_date"
+    ) %>%
+    dplyr::filter(date < index_date) %>%
+    dplyr::mutate(dif_time = !!datediff("index_date", "date")) %>%
+    dplyr::mutate(window = as.integer(if_else(dif_time >= -180, 1, if_else(dif_time >= -730, 2, 3)))) %>% # window 1: <180, 2: 180-730, 3: >730
+    dplyr::mutate(feature = paste0("f", concept_id, "_", window)) %>%
+    dplyr::select("subject_id", "follow_up_end", "index_date", "feature") %>%
+    dplyr::distinct() %>%
+    union_all(
+      cdm$drug_era %>%
+        dplyr::filter(drug_concept_id != 0) %>% 
+        dplyr::inner_join(allSubjects, by = c("person_id" = "subject_id"), copy = T) %>%
+        dplyr::select(
+          "subject_id" = "person_id", 
+          "index_date",
+          "follow_up_end",
+          "concept_id" = "drug_concept_id", 
+          "date" = "drug_era_start_date"
+        ) %>%
+        dplyr::mutate(date = as.Date(date)) %>%
+        dplyr::filter(date < index_date) %>%
+        dplyr::mutate(dif_time = !!datediff("index_date", "date")) %>%
+        dplyr::filter(dif_time >= -365) %>%
+        dplyr::mutate(window = as.integer(if_else(dif_time >= -180, 1, if_else(dif_time >= -730, 2, 3)))) %>%
+        dplyr::mutate(feature = paste0("f", concept_id, "_", window)) %>%
+        dplyr::select("subject_id", "follow_up_end", "index_date", "feature") %>%
+        dplyr::distinct()
+    ) %>%
+    union_all(
+      cdm$procedure_occurrence %>%
+        dplyr::filter(procedure_concept_id != 0) %>% 
+        dplyr::inner_join(allSubjects, by = c("person_id" = "subject_id"), copy = T) %>%
+        dplyr::select(
+          "subject_id" = "person_id", 
+          "index_date",
+          "follow_up_end",
+          "concept_id" = "procedure_concept_id", 
+          "date" = "procedure_date"
+        ) %>%
+        dplyr::mutate(date = as.Date(date)) %>%
+        dplyr::filter(date < index_date) %>%
+        dplyr::mutate(dif_time = !!datediff("index_date", "date")) %>%
+        dplyr::filter(dif_time >= -365) %>%
+        dplyr::mutate(window = as.integer(if_else(dif_time >= -180, 1, if_else(dif_time >= -730, 2, 3)))) %>%
+        dplyr::mutate(feature = paste0("f", concept_id, "_", window)) %>%
+        dplyr::select("subject_id", "follow_up_end", "index_date", "feature") %>%
+        dplyr::distinct()
+    ) %>%
+    union_all(
+      cdm$measurement %>%
+        dplyr::filter(measurement_concept_id != 0) %>% 
+        dplyr::inner_join(allSubjects, by = c("person_id" = "subject_id"), copy = T) %>%
+        dplyr::select(
+          "subject_id" = "person_id", 
+          "index_date",
+          "follow_up_end",
+          "concept_id" = "measurement_concept_id", 
+          "date" = "measurement_date"
+        ) %>%
+        dplyr::mutate(date = as.Date(date)) %>%
+        dplyr::filter(date < index_date) %>%
+        dplyr::mutate(dif_time = !!datediff("index_date", "date")) %>%
+        dplyr::filter(dif_time >= -365) %>%
+        dplyr::mutate(window = as.integer(if_else(dif_time >= -180, 1, if_else(dif_time >= -730, 2, 3)))) %>%
+        dplyr::mutate(feature = paste0("f", concept_id, "_", window)) %>%
+        dplyr::select("subject_id", "follow_up_end", "index_date", "feature") %>%
+        dplyr::distinct()
+    ) %>%
+    dplyr::compute()
+  print(paste0("Finish extracting features at ", Sys.time()))
+}
 
 features_count <- cdm[["features"]] %>% 
   dplyr::group_by(feature) %>%

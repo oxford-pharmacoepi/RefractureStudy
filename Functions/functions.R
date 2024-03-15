@@ -1783,3 +1783,29 @@ visit_summary_sidiap <- function(cohort_freq, table_name){
               non_user_count = non_user_count_2,
               summary_LoS_per_hos = summary_LoS_per_person_per_hosp))
 }
+
+
+######IQVIA fix
+insertTable2 <- function(cdm, name, table) {
+  nlim <- 1000000
+  if(nrow(table) > nlim) {
+    cohorts <- list()
+    # insert by part
+    for (k in (1:ceiling(nrow(table)/nlim))){
+      smalltable <- table %>% dplyr::slice((1+(k-1)*nlim):(nlim*k))
+      tmpname <- paste0("hahfe_temp_", k)
+      cdm <- omopgenerics::insertTable(cdm = cdm, name = tmpname, table = smalltable)
+      cohorts[[k]] <- cdm[[tmpname]]
+    }
+    # merge all of them and compute to name
+    cdm[[name]] <- Reduce(dplyr::union_all, cohorts) |>
+      compute(name = name, temporary = FALSE)
+    # drop the the temp tables
+    omopgenerics::dropTable(cdm = cdm, name = starts_with("hahfe_temp_"))
+    cdm <- cdm |> 
+      cdm_select_tbl(names(cdm)[!startsWith(names(cdm), prefix = "hahfe_temp_")])
+  } else {
+    cdm <- omopgenerics::insertTable(cdm = cdm, name = name, table = table)
+  }
+  return(cdm)
+}
