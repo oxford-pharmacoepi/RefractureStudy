@@ -575,6 +575,16 @@ if (exists("visit_type_by_specialty")) {
 
 #Secondary Care
 if (country_setting %in% c("Spain", "UK")){
+  info(logger, "Starting secondary care")
   source(here("4_HealthEconomics", "secondary_care.R"))
+  info(logger, "Finishing secondary care")
 }
+
+#GLM
+if (country_setting %in% c("Spain", "UK")){
+  info(logger, "Starting general linear model")
+  source(here("4_HealthEconomics", "glm.R"))
+  info(logger, "Finishing general linear model")
+}
+
 info(logger, "OUTPUT FOR HEALTH ECONOMICS IS DONE")
