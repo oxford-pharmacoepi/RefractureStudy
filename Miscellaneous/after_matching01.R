@@ -185,7 +185,6 @@ imbal_t_c1 <- smd_post_match_t_c1 %>%
 non_binary_var <- c("visit_occurrence", "drug_era")
 imbal_t_c1_nb <- imbal_t_c1 %>% dplyr::filter(variable_level %in% non_binary_var) %>% dplyr::pull("variable_level")
 
-
 if ("visit_occurrence" %in% imbal_t_c1_nb){
   cdm_char01[["after_matching_01_cohort"]] <- cdm_char01[["after_matching_01_cohort"]] |>
     PatientProfiles::addIntersect(
@@ -209,92 +208,33 @@ if ("drug_era" %in% imbal_t_c1_nb){
 }
 
 imbal_t_c1_nnb <- imbal_t_c1 %>% dplyr::filter(!variable_level %in% non_binary_var) %>% dplyr::pull("variable_level")
-meds_glm <- cohortSet(cdm_char01[[medications]]) %>% 
+meds_glm_ids <- cohortSet(cdm_char01[[medications]]) %>% 
   dplyr::collect() %>% 
   filter(cohort_name %in% imbal_t_c1_nnb) %>% 
-  dplyr::select(cohort_definition_id)
+  dplyr::select(cohort_definition_id) %>% 
+  dplyr::pull(cohort_definition_id)
 
-cdm_char01[["unbalanced_meds_cohort"]] <- cdm_char01[[medications]] %>% 
-  dplyr::inner_join(meds_glm, copy = T) %>% 
-  computeQuery(
-    name = "unbalanced_meds_cohort", 
-    temporary = FALSE, 
-    schema = attr(cdm, "write_schema"), 
-    overwrite = TRUE
-  )
+cdm_char01[["after_matching_01_cohort"]] <- cdm_char01[["after_matching_01_cohort"]] %>% 
+  PatientProfiles::addCohortIntersectFlag(
+    targetCohortTable = medications,
+    targetCohortId = meds_glm_ids,
+    window = list(c(-365, 0))
+  ) %>% 
+  dplyr::compute()
 
-unbalanced_meds_cohort_set <- cohortSet(cdm_char01[[medications]]) %>% 
-  dplyr::inner_join(meds_glm) %>% 
-  computeQuery(
-    name = "unbalanced_meds_cohort_set", 
-    temporary = FALSE, 
-    schema = attr(cdm, "write_schema"), 
-    overwrite = TRUE
-  )
-
-unbalanced_meds_cohort_count <- cdm_char01[[medications]] %>% 
-  dplyr::inner_join(meds_glm, copy = T) %>% 
-  dplyr::group_by(cohort_definition_id) %>%
-  dplyr::tally() %>%
-  dplyr::compute() %>%
-  dplyr::rename(number_records = n) %>%
-  dplyr::mutate(number_subjects = number_records) %>%
-  computeQuery(
-    name = "unbalanced_meds_cohort_count", 
-    temporary = FALSE, 
-    schema = attr(cdm, "write_schema"), 
-    overwrite = TRUE
-  )
-
-cdm_char01[["unbalanced_meds_cohort"]] <- CDMConnector::newGeneratedCohortSet(cohortRef = cdm_char01[["unbalanced_meds_cohort"]],
-                                                                            cohortSetRef = unbalanced_meds_cohort_set,
-                                                                            cohortCountRef = unbalanced_meds_cohort_count,
-                                                                            overwrite = T
-                                                                           )
-
-
-conditions_glm <- cohortSet(cdm_char01[[conditions]]) %>% 
+conditions_glm_ids <- cohortSet(cdm_char01[[conditions]]) %>% 
   dplyr::collect() %>% 
   filter(cohort_name %in% imbal_t_c1_nnb) %>% 
-  dplyr::select(cohort_definition_id)
+  dplyr::select(cohort_definition_id) %>% 
+  dplyr::pull(cohort_definition_id)
 
-cdm_char01[["unbalanced_conditions_cohort"]] <- cdm_char01[[conditions]] %>% 
-  dplyr::inner_join(conditions_glm, copy = T) %>% 
-  computeQuery(
-    name = "unbalanced_conditions_cohort", 
-    temporary = FALSE, 
-    schema = attr(cdm, "write_schema"), 
-    overwrite = TRUE
-  )
-
-unbalanced_conditions_cohort_set <- cohortSet(cdm_char01[[conditions]]) %>% 
-  dplyr::inner_join(conditions_glm) %>% 
-  computeQuery(
-    name = "unbalanced_conditions_cohort_set", 
-    temporary = FALSE, 
-    schema = attr(cdm, "write_schema"), 
-    overwrite = TRUE
-  )
-
-unbalanced_conditions_cohort_count <- cdm_char01[[conditions]] %>% 
-  dplyr::inner_join(conditions_glm, copy = T) %>% 
-  dplyr::group_by(cohort_definition_id) %>%
-  dplyr::tally() %>%
-  dplyr::compute() %>%
-  dplyr::rename(number_records = n) %>%
-  dplyr::mutate(number_subjects = number_records) %>%
-  computeQuery(
-    name = "unbalanced_conditions_cohort_count", 
-    temporary = FALSE, 
-    schema = attr(cdm, "write_schema"), 
-    overwrite = TRUE
-  )
-
-cdm_char01[["unbalanced_conditions_cohort"]] <- CDMConnector::newGeneratedCohortSet(cohortRef = cdm_char01[["unbalanced_conditions_cohort"]],
-                                                                            cohortSetRef = unbalanced_conditions_cohort_set,
-                                                                            cohortCountRef = unbalanced_conditions_cohort_count,
-                                                                            overwrite = T
-)
+cdm_char01[["after_matching_01_cohort"]] <- cdm_char01[["after_matching_01_cohort"]] %>% 
+  PatientProfiles::addCohortIntersectFlag(
+    targetCohortTable = conditions,
+    targetCohortId = conditions_glm_ids,
+    window = list(c(-Inf, 0))
+  ) %>% 
+  dplyr::compute()
 # #####################################################################
 # #                                                                   #
 # #                              OSTEOPOROSIS                         #
