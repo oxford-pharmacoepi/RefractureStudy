@@ -1,0 +1,113 @@
+if(country_setting == "Spain"){
+  
+  secondary_output <- here(output_folder, washout_period[[k]], "secondary_cost")
+  secondary_output_ic <- here(output_folder, washout_period[[k]], "secondary_ic_cost")
+  secondary_output_inpatient <- here(output_folder, washout_period[[k]], "secondary_inpatient_cost")
+  
+  if (!dir.exists(secondary_output)) {
+    dir.create(secondary_output)
+  }
+  
+  if (!dir.exists(secondary_output_ic)) {
+    dir.create(secondary_output_ic)
+  }
+  
+  if (!dir.exists(secondary_output_inpatient)) {
+    dir.create(secondary_output_inpatient)
+  }
+  
+  cdm[["visit_occurrence_hes"]] <- cdm[["visit_occurrence"]] %>%
+    dplyr::filter(visit_concept_id == 32037|visit_concept_id == 9201) %>%
+    CDMConnector::computeQuery(
+      name = "visit_occurrence_hes",
+      temporary = FALSE,
+      schema = attr(cdm, "write_schema"),
+      overwrite = TRUE
+    )
+  
+  cdm[["visit_occurrence_inpatient"]] <- cdm[["visit_occurrence"]] %>%
+    dplyr::filter(visit_concept_id == 9201) %>%
+    CDMConnector::computeQuery(
+      name = "visit_occurrence_inpatient",
+      temporary = FALSE,
+      schema = attr(cdm, "write_schema"),
+      overwrite = TRUE
+    )
+  
+  cdm[["visit_occurrence_ic"]] <- cdm[["visit_occurrence"]] %>%
+    dplyr::filter(visit_concept_id == 32037) %>%
+    CDMConnector::computeQuery(
+      name = "visit_occurrence_ic",
+      temporary = FALSE,
+      schema = attr(cdm, "write_schema"),
+      overwrite = TRUE
+    )
+  
+  ## secondary cost 
+  
+  target_secondary_cost_all <- secondary_cost_sidiap(cohort_freq = target_matched, table_name = "visit_occurrence_hes", cost_type = "all")
+  c1_comp1_secondary_cost_all <- secondary_cost_sidiap(cohort_freq = cohort1_matched_to, table_name = "visit_occurrence_hes", cost_type = "all")
+  c1_comp2_secondary_cost_all <- secondary_cost_sidiap(cohort_freq = cohort1_matched_from, table_name = "visit_occurrence_hes", cost_type = "all")
+  c2_secondary_cost_all <- secondary_cost_sidiap(cohort_freq = cohort2_matched, table_name = "visit_occurrence_hes", cost_type = "all")
+  write.xlsx(target_secondary_cost_all, file = here(secondary_output, "target_secondary_cost_all.xlsx"))
+  write.xlsx(c1_comp1_secondary_cost_all, file = here(secondary_output, "c1_comp1_secondary_cost_all.xlsx"))
+  write.xlsx(c1_comp2_secondary_cost_all, file = here(secondary_output, "c1_comp2_secondary_cost_all.xlsx"))
+  write.xlsx(c2_secondary_cost_all, file = here(secondary_output, "c2_secondary_cost_all.xlsx"))
+  
+  ## secondary cost fracture related 
+  
+  # target_secondary_cost_fx_related <- secondary_cost_sidiap(cohort_freq = target_matched, table_name = "visit_occurrence_hes", cost_type = "fx_related")
+  # c1_comp1_secondary_cost_fx_related <- secondary_cost_sidiap(cohort_freq = cohort1_matched_to, table_name = "visit_occurrence_hes", cost_type = "fx_related")
+  # c1_comp2_secondary_cost_fx_related <- secondary_cost_sidiap(cohort_freq = cohort1_matched_from, table_name = "visit_occurrence_hes", cost_type = "fx_related")
+  # c2_secondary_cost_fx_related <- secondary_cost_sidiap(cohort_freq = cohort2_matched, table_name = "visit_occurrence_hes", cost_type = "fx_related")
+  # write.xlsx(target_secondary_cost_fx_related, file = here(secondary_output, "target_secondary_cost_fx_related.xlsx"))
+  # write.xlsx(c1_comp1_secondary_cost_fx_related, file = here(secondary_output, "c1_comp1_secondary_cost_fx_related.xlsx"))
+  # write.xlsx(c1_comp2_secondary_cost_fx_related, file = here(secondary_output, "c1_comp2_secondary_cost_fx_related.xlsx"))
+  # write.xlsx(c2_secondary_cost_fx_related, file = here(secondary_output, "c2_secondary_cost_fx_related.xlsx"))
+  
+  ## secondary cost - Intensive Care 
+  
+  target_secondary_cost_all_ic <- secondary_cost_sidiap(cohort_freq = target_matched, table_name = "visit_occurrence_ic", cost_type = "all")
+  c1_comp1_secondary_cost_all_ic  <- secondary_cost_sidiap(cohort_freq = cohort1_matched_to, table_name = "visit_occurrence_ic", cost_type = "all")
+  c1_comp2_secondary_cost_all_ic  <- secondary_cost_sidiap(cohort_freq = cohort1_matched_from, table_name = "visit_occurrence_ic", cost_type = "all")
+  c2_secondary_cost_all_ic  <- secondary_cost_sidiap(cohort_freq = cohort2_matched, table_name = "visit_occurrence_ic", cost_type = "all")
+  write.xlsx(target_secondary_cost_all_ic , file = here(secondary_output_ic, "target_secondary_cost_all_ic .xlsx"))
+  write.xlsx(c1_comp1_secondary_cost_all_ic , file = here(secondary_output_ic, "c1_comp1_secondary_cost_all_ic .xlsx"))
+  write.xlsx(c1_comp2_secondary_cost_all_ic , file = here(secondary_output_ic, "c1_comp2_secondary_cost_all_ic .xlsx"))
+  write.xlsx(c2_secondary_cost_all_ic , file = here(secondary_output_ic, "c2_secondary_cost_all_ic .xlsx"))
+  
+  ## secondary cost fracture related - Intensive Care
+  
+  # target_secondary_cost_fx_related_ic  <- secondary_cost_sidiap(cohort_freq = target_matched, table_name = "visit_occurrence_ic", cost_type = "fx_related")
+  # c1_comp1_secondary_cost_fx_related_ic  <- secondary_cost_sidiap(cohort_freq = cohort1_matched_to, table_name = "visit_occurrence_ic", cost_type = "fx_related")
+  # c1_comp2_secondary_cost_fx_related_ic  <- secondary_cost_sidiap(cohort_freq = cohort1_matched_from, table_name = "visit_occurrence_ic", cost_type = "fx_related")
+  # c2_secondary_cost_fx_related_ic  <- secondary_cost_sidiap(cohort_freq = cohort2_matched, table_name = "visit_occurrence_ic", cost_type = "fx_related")
+  # write.xlsx(target_secondary_cost_fx_related_ic , file = here(secondary_output_ic, "target_secondary_cost_fx_related_ic .xlsx"))
+  # write.xlsx(c1_comp1_secondary_cost_fx_related_ic , file = here(secondary_output_ic, "c1_comp1_secondary_cost_fx_related_ic .xlsx"))
+  # write.xlsx(c1_comp2_secondary_cost_fx_related_ic , file = here(secondary_output_ic, "c1_comp2_secondary_cost_fx_related_ic .xlsx"))
+  # write.xlsx(c2_secondary_cost_fx_related_ic , file = here(secondary_output_ic, "c2_secondary_cost_fx_related_ic .xlsx"))
+  
+  ## secondary cost - Inpatient
+  
+  target_secondary_cost_all_inpatient <- secondary_cost_sidiap(cohort_freq = target_matched, table_name = "visit_occurrence_inpatient", cost_type = "all")
+  c1_comp1_secondary_cost_all_inpatient  <- secondary_cost_sidiap(cohort_freq = cohort1_matched_to, table_name = "visit_occurrence_inpatient", cost_type = "all")
+  c1_comp2_secondary_cost_all_inpatient  <- secondary_cost_sidiap(cohort_freq = cohort1_matched_from, table_name = "visit_occurrence_inpatient", cost_type = "all")
+  c2_secondary_cost_all_inpatient  <- secondary_cost_sidiap(cohort_freq = cohort2_matched, table_name = "visit_occurrence_inpatient", cost_type = "all")
+  write.xlsx(target_secondary_cost_all_inpatient , file = here(secondary_output_inpatient, "target_secondary_cost_all_inpatient .xlsx"))
+  write.xlsx(c1_comp1_secondary_cost_all_inpatient , file = here(secondary_output_inpatient, "c1_comp1_secondary_cost_all_inpatient .xlsx"))
+  write.xlsx(c1_comp2_secondary_cost_all_inpatient , file = here(secondary_output_inpatient, "c1_comp2_secondary_cost_all_inpatient .xlsx"))
+  write.xlsx(c2_secondary_cost_all_inpatient , file = here(secondary_output_inpatient, "c2_secondary_cost_all_inpatient .xlsx"))
+  
+  ## secondary cost fracture related - Inpatient
+  
+  # target_secondary_cost_fx_related_inpatient  <- secondary_cost_sidiap(cohort_freq = target_matched, table_name = "visit_occurrence_inpatient", cost_type = "fx_related")
+  # c1_comp1_secondary_cost_fx_related_inpatient  <- secondary_cost_sidiap(cohort_freq = cohort1_matched_to, table_name = "visit_occurrence_inpatient", cost_type = "fx_related")
+  # c1_comp2_secondary_cost_fx_related_inpatient  <- secondary_cost_sidiap(cohort_freq = cohort1_matched_from, table_name = "visit_occurrence_inpatient", cost_type = "fx_related")
+  # c2_secondary_cost_fx_related_inpatient  <- secondary_cost_sidiap(cohort_freq = cohort2_matched, table_name = "visit_occurrence_inpatient", cost_type = "fx_related")
+  # write.xlsx(target_secondary_cost_fx_related_inpatient , file = here(secondary_output_inpatient, "target_secondary_cost_fx_related_inpatient .xlsx"))
+  # write.xlsx(c1_comp1_secondary_cost_fx_related_inpatient , file = here(secondary_output_inpatient, "c1_comp1_secondary_cost_fx_related_inpatient .xlsx"))
+  # write.xlsx(c1_comp2_secondary_cost_fx_related_inpatient , file = here(secondary_output_inpatient, "c1_comp2_secondary_cost_fx_related_inpatient .xlsx"))
+  # write.xlsx(c2_secondary_cost_fx_related_inpatient , file = here(secondary_output_inpatient, "c2_secondary_cost_fx_related_inpatient .xlsx"))
+  
+  
+}

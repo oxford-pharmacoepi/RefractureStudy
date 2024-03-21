@@ -1807,3 +1807,116 @@ insertTable2 <- function(cdm, name, table) {
   }
   return(cdm)
 }
+
+#### secondary cost
+secondary_cost_sidiap <- function(cohort_freq, table_name, cost_type = "all"){
+  # Select the appropriate cost inputs based on cost_type
+  if(cost_type == "all"){
+    cost_inputs <- ccs_spain_cost_inputs # all costs
+  } else if (cost_type == "fx_related") {
+    cost_inputs <- ccs_spain_cost_inputs_fx # only fracture related
+  }
+  
+  freq_condition_tbl <- cohort_freq %>% 
+    dplyr::left_join(cdm[["table_name"]] %>% dplyr::select(person_id, visit_concept_id, visit_start_date, visit_end_date, visit_source_value, visit_occurrence_id),
+                     by = c("subject_id" = "person_id"),
+                     copy = T,
+                     relationship = "many-to-many") %>%   
+    dplyr::left_join(cdm[["condition_occurrence_hes"]] %>% dplyr::select(person_id, condition_source_value, condition_start_date), 
+                     by = c("subject_id" = "person_id"),
+                     copy = T,
+                     relationship = "many-to-many")
+  
+  # removing "." in icd.10 codes - in spain they have the "."
+  freq_condition_tbl$condition_source_value <- gsub("\\.", "", freq_condition_tbl$condition_source_value)
+  
+  # Joining costs based on the selected cost inputs
+  freq_condition_tbl_all <- freq_condition_tbl %>% 
+    dplyr::left_join(cost_inputs %>% dplyr::select(icd10cm_code, cost), 
+                     by = c("condition_source_value" = "icd10cm_code"))
+  
+  ### CHECK PART ###
+  
+  # 1. this is a CHECK of the ICD10 that do not get matched with a cost, just in case there are issues with num of digits or dots!
+  no_cost_conditions <- freq_condition_tbl_all %>%
+    dplyr::filter(is.na(cost))
+  
+  no_cost_conditions <- distinct(no_cost_conditions, condition_source_value)
+  
+  # 2. identifying if there are duplicate records (so two hospitalisations with same spell number, condition and by the same patient)
+  duplicates <- freq_condition_tbl %>%
+    dplyr::group_by(condition_source_value, subject_id, visit_source_value, visit_occurrence_id) %>%
+    dplyr::summarise(n = n(), .groups = 'drop') %>%
+    any(n > 1)
+  
+  # 3. Are there any conditions outside of the spell?
+  
+  cond_outside <- freq_condition_tbl %>% 
+    dplyr::filter(condition_start_date <visit_start_date & condition_start_date >visit_end_date) %>% 
+    tally()
+  
+  #### END of CHECKs ####
+  
+  
+  ## replacing cost with zeros for non-users
+  all_cost <- freq_condition_tbl_all %>%
+    dplyr::mutate(cost = case_when(
+      is.na(visit_concept_id) ~ 0, 
+      TRUE ~ cost
+    ))
+  
+  all_cost <- all_cost %>% 
+    dplyr::mutate(cost_per_person_year = cost/exposed_yrs) %>% 
+    ungroup()
+  
+  # just a count for the non_users
+  non_user <- all_cost %>% 
+    dplyr::filter(is.na(visit_concept_id))
+  
+  non_user_count_2 <- non_user %>% dplyr::tally() %>% dplyr::rename("non_user_count" = "n")
+  
+  # creating a separate dataframe for users
+  freq_condition_tbl_users <- freq_condition_tbl_all %>% 
+    dplyr::filter(!is.na(visit_concept_id)) %>% 
+    ## filtering so that to include only hospitalisaitons during entry
+    dplyr::filter(visit_start_date >=index_date & visit_start_date <= follow_up_end) %>% 
+    ## filtering so that conditions are within hospitalisations
+    dplyr::filter(condition_start_date >=visit_start_date & condition_start_date <= visit_end_date) %>%
+    dplyr::filter(condition_start_date >=index_date & condition_start_date <= follow_up_end) %>%
+    dplyr::distinct(visit_occurrence_id) # same as the check for duplicates above to deal with duplicated hospitalisations due to enter/leaves on the same day 
+  
+  user_cost <-freq_condition_tbl_users %>% 
+    dplyr::group_by(subject_id, index_date, exposed_yrs) %>% 
+    dplyr::mutate(cost_per_person_year = cost/exposed_yrs) %>% 
+    ungroup()
+  
+  
+  # Summary all
+  
+  summary_hospitalisation_per_person_per_year_all <- tibble(mean_hospitalisation_per_person_per_year=(sum(all_cost$cost)/sum(all_cost$exposed_yrs)),
+                                                            min_hospitalisation_per_person_per_year = min(all_cost$cost_per_person_year),
+                                                            max_hospitalisation_per_person_per_year = max(all_cost$cost_per_person_year),
+                                                            sd_hospitalisation_per_person_per_year = round(sd(all_cost$cost_per_person_year), 2),
+                                                            median_hospitalisation_per_person_per_year = round(quantile(all_cost$cost_per_person_year, probs = (.5)), 2),
+                                                            lower_q_hospitalisation_per_person_per_year = round(quantile(all_cost$cost_per_person_year, probs = (.25)), 2),
+                                                            upper_q_hospitalisation_per_person_per_year = round(quantile(all_cost$cost_per_person_year, probs = (.75)), 2))
+  
+  # Summary users
+  summary_hospitalisation_per_person_per_year_user <- tibble(mean_hospitalisation_per_person_per_year=(sum(user_cost$cost)/sum(user_cost$exposed_yrs)),
+                                                             min_hospitalisation_per_person_per_year = min(user_cost$cost_per_person_year),
+                                                             max_hospitalisation_per_person_per_year = max(user_cost$cost_per_person_year),
+                                                             sd_hospitalisation_per_person_per_year = round(sd(user_cost$cost_per_person_year), 2),
+                                                             median_hospitalisation_per_person_per_year = round(quantile(user_cost$cost_per_person_year, probs = (.5)), 2),
+                                                             lower_q_hospitalisation_per_person_per_year = round(quantile(user_cost$cost_per_person_year, probs = (.25)), 2),
+                                                             upper_q_hospitalisation_per_person_per_year = round(quantile(user_cost$cost_per_person_year, probs = (.75)), 2))
+  
+  return(list(# costs of all hospitalisations
+    summary_hos_per_pers_yr_all = summary_hospitalisation_per_person_per_year_all,
+    summary_hos_per_pers_yr_user = summary_hospitalisation_per_person_per_year_user,
+    non_user_count = non_user_count_2,
+    # check cost assignment
+    no_cost_conditions,
+    duplicates,
+    cond_outside
+  ))
+}
