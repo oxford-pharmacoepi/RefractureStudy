@@ -1,4 +1,6 @@
 if(country_setting == "Spain"){
+  file_path <- here("4_HealthEconomics", "Inputs", "icd_ccs_cost_secondary_care_Spain.xlsx")
+  css_spain <- read_excel(file_path)
   
   secondary_output <- here(output_folder, washout_period[[k]], "secondary_cost")
   secondary_output_ic <- here(output_folder, washout_period[[k]], "secondary_ic_cost")
