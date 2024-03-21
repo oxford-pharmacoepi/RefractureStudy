@@ -334,7 +334,7 @@ for (l in (1:length(targetCohort))){
   load(here(psFolder, "allSubjectsCohort.RData"))
   
   df_to <- df_to %>% dplyr::left_join(allSubjectsCohort %>% 
-                                        dplyr::filter(period == 1) %>% 
+                                        dplyr::filter(period == l) %>% 
                                         dplyr::filter(group %in% c("target", "comparator 1")) %>% 
                                         dplyr::select(-cohort_definition_id, -cohort_end_date, -period), by = c("subject_id", "index_date" = "cohort_start_date", "group"))
   
@@ -431,7 +431,7 @@ for (l in (1:length(compCohort1))){
   load(here(psFolder, "allSubjectsCohort.RData"))
   
   df_to <- df_to %>% dplyr::left_join(allSubjectsCohort %>% 
-                                        dplyr::filter(period == 1) %>% 
+                                        dplyr::filter(period == l) %>% 
                                         dplyr::filter(group %in% c("comparator 1", "comparator 2")) %>% 
                                         dplyr::select(-cohort_definition_id, -cohort_end_date, -period), by = c("subject_id", "index_date" = "cohort_start_date", "group"))
   
