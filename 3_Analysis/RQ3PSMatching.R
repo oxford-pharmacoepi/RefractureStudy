@@ -249,7 +249,7 @@ cdm[["subfeatures"]] <- cdm[["features"]] %>%
   dplyr::anti_join(features_count_threshold, by = "feature", copy = T) %>% 
   CDMConnector::computeQuery()
 
-rm(features_count, features_count_threshold, allSubjects)
+rm(features_count, features_count_threshold)
 
 counts <- cdm[["subfeatures"]] %>% dplyr::select(feature) %>% dplyr::distinct(feature) %>% tally() %>% collect()
 counts <- counts %>% dplyr::rename(subfeatures_count = n)
@@ -274,8 +274,6 @@ cdm[["all_subjects"]] <- cdm[["denominator"]] %>%
   dplyr::rename(cohort_start_date = index_date) %>%
   dplyr::mutate(cohort_end_date = cohort_start_date) %>%
   CDMConnector::computeQuery()
-
-rm(allSubjects)
 
 print(paste0("Extracting age and prior obs at ", Sys.time()))
 allSubjectsCohort <- 
