@@ -1,6 +1,7 @@
 if(country_setting == "Spain"){
   file_path <- here("4_HealthEconomics", "Inputs", "icd_ccs_cost_secondary_care_Spain.xlsx")
-  css_spain <- read_excel(file_path)
+  ccs_spain_cost_inputs <- read_excel(file_path)
+  ###TBD ccs_spain_cost_inputs_fx
   
   secondary_output <- here(output_folder, washout_period[[k]], "secondary_cost")
   secondary_output_ic <- here(output_folder, washout_period[[k]], "secondary_ic_cost")
@@ -42,6 +43,33 @@ if(country_setting == "Spain"){
       name = "visit_occurrence_ic",
       temporary = FALSE,
       schema = attr(cdm, "write_schema"),
+      overwrite = TRUE
+    )
+  
+  cdm[["visit_detail_hes"]] <- cdm[["visit_detail"]] %>%
+    dplyr::filter(visit_detail_concept_id == 32037|visit_detail_concept_id == 9201) %>%
+    CDMConnector::computeQuery(
+      name = "visit_detail_hes",
+      temporary = FALSE,
+      schema = attr(cdm, "write_schema"),
+      overwrite = TRUE
+    )
+  
+  cdm[["condition_occurrence_hes"]] <- cdm[["condition_occurrence"]] %>% 
+    dplyr::filter(condition_type_concept_id == 32829) %>% 
+    CDMConnector::computeQuery(
+      name = "condition_occurrence_hes", 
+      temporary = FALSE, 
+      schema = attr(cdm, "write_schema"), 
+      overwrite = TRUE
+    )
+  
+  cdm[["procedure_occurrence_hes"]] <- cdm[["procedure_occurrence"]] %>% 
+    dplyr::filter(procedure_type_concept_id == 32829) %>% 
+    CDMConnector::computeQuery(
+      name = "procedure_occurrence_hes", 
+      temporary = FALSE, 
+      schema = attr(cdm, "write_schema"), 
       overwrite = TRUE
     )
   

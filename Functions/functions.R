@@ -1818,14 +1818,17 @@ secondary_cost_sidiap <- function(cohort_freq, table_name, cost_type = "all"){
   }
   
   freq_condition_tbl <- cohort_freq %>% 
-    dplyr::left_join(cdm[["table_name"]] %>% dplyr::select(person_id, visit_concept_id, visit_start_date, visit_end_date, visit_source_value, visit_occurrence_id),
+    dplyr::left_join(cdm[[table_name]] %>% dplyr::select(person_id, visit_concept_id, visit_start_date, visit_end_date, visit_source_value, visit_occurrence_id),
                      by = c("subject_id" = "person_id"),
                      copy = T,
-                     relationship = "many-to-many") %>%   
-    dplyr::left_join(cdm[["condition_occurrence_hes"]] %>% dplyr::select(person_id, condition_source_value, condition_start_date), 
-                     by = c("subject_id" = "person_id"),
+                     relationship = "many-to-many") %>% 
+    dplyr::compute()
+  freq_condition_tbl <- freq_condition_tbl %>% 
+    dplyr::left_join(cdm[["condition_occurrence_hes"]] %>% dplyr::select(person_id, condition_source_value, condition_start_date, visit_occurrence_id), 
+                     by = c("subject_id" = "person_id", "visit_occurrence_id"),
                      copy = T,
-                     relationship = "many-to-many")
+                     relationship = "many-to-many") %>% 
+    dplyr::compute()
   
   # removing "." in icd.10 codes - in spain they have the "."
   freq_condition_tbl$condition_source_value <- gsub("\\.", "", freq_condition_tbl$condition_source_value)
@@ -1847,25 +1850,23 @@ secondary_cost_sidiap <- function(cohort_freq, table_name, cost_type = "all"){
   duplicates <- freq_condition_tbl %>%
     dplyr::group_by(condition_source_value, subject_id, visit_source_value, visit_occurrence_id) %>%
     dplyr::summarise(n = n(), .groups = 'drop') %>%
-    any(n > 1)
+    dplyr::filter(n>1) %>% 
+    dplyr::select(condition_source_value, n)
   
   # 3. Are there any conditions outside of the spell?
   
   cond_outside <- freq_condition_tbl %>% 
-    dplyr::filter(condition_start_date <visit_start_date & condition_start_date >visit_end_date) %>% 
+    dplyr::filter(condition_start_date <visit_start_date | condition_start_date >visit_end_date) %>% 
     tally()
   
   #### END of CHECKs ####
-  
   
   ## replacing cost with zeros for non-users
   all_cost <- freq_condition_tbl_all %>%
     dplyr::mutate(cost = case_when(
       is.na(visit_concept_id) ~ 0, 
       TRUE ~ cost
-    ))
-  
-  all_cost <- all_cost %>% 
+    )) %>% 
     dplyr::mutate(cost_per_person_year = cost/exposed_yrs) %>% 
     ungroup()
   
@@ -1883,16 +1884,15 @@ secondary_cost_sidiap <- function(cohort_freq, table_name, cost_type = "all"){
     ## filtering so that conditions are within hospitalisations
     dplyr::filter(condition_start_date >=visit_start_date & condition_start_date <= visit_end_date) %>%
     dplyr::filter(condition_start_date >=index_date & condition_start_date <= follow_up_end) %>%
-    dplyr::distinct(visit_occurrence_id) # same as the check for duplicates above to deal with duplicated hospitalisations due to enter/leaves on the same day 
+    dplyr::distinct() # same as the check for duplicates above to deal with duplicated hospitalisations due to enter/leaves on the same day 
   
   user_cost <-freq_condition_tbl_users %>% 
     dplyr::group_by(subject_id, index_date, exposed_yrs) %>% 
     dplyr::mutate(cost_per_person_year = cost/exposed_yrs) %>% 
-    ungroup()
+    dplyr::ungroup()
   
   
   # Summary all
-  
   summary_hospitalisation_per_person_per_year_all <- tibble(mean_hospitalisation_per_person_per_year=(sum(all_cost$cost)/sum(all_cost$exposed_yrs)),
                                                             min_hospitalisation_per_person_per_year = min(all_cost$cost_per_person_year),
                                                             max_hospitalisation_per_person_per_year = max(all_cost$cost_per_person_year),
