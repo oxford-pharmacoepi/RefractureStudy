@@ -48,7 +48,7 @@ c2_glm_01 <- cohort2_results_cost$visits_cost_wide %>%
 
 glm_bind <- rbind(c1_comparison2_glm_01, c2_glm_01)
 
-cdm_char12[["after_matching_12_cohort"]] <- cdm_char01[["after_matching_12_cohort"]] %>% 
+cdm_char12[["after_matching_12_cohort"]] <- cdm_char12[["after_matching_12_cohort"]] %>% 
   dplyr::left_join(glm_bind, by = c("subject_id", c("cohort_start_date" = "index_date")), copy = T) %>% 
   replace(is.na(.), 0) %>% 
   dplyr::compute()
