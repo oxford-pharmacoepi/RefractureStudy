@@ -579,8 +579,12 @@ if (country_setting %in% c("Spain", "UK")){
   info(logger, "Finishing secondary care")
 }
 
-#GLM
+#secondary care and glm
 if (country_setting %in% c("Spain", "UK")){
+  info(logger, "Starting secondary care cost")
+  source(here("4_HealthEconomics", "secondary_care_cost.R"))
+  info(logger, "Finishing secondary care cost")
+  
   info(logger, "Starting general linear model")
   source(here("4_HealthEconomics", "glm.R"))
   info(logger, "Finishing general linear model")
