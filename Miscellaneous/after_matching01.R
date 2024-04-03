@@ -80,7 +80,7 @@ cdm_char01 <-CDMConnector::cdm_from_con(
   con = db,
   cdm_schema = cdm_database_schema,
   write_schema = c("schema" = results_database_schema, 
-                   "prefix" = "ukfos")
+                   "prefix" = prefix)
 )
 
 cdm_char01[["after_matching_01_cohort"]] <- newGeneratedCohortSet(cohortRef = cdm[["after_matching_01_cohort"]],

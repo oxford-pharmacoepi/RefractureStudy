@@ -76,7 +76,7 @@ cdm_char <-CDMConnector::cdm_from_con(
   con = db,
   cdm_schema = cdm_database_schema,
   write_schema = c("schema" = results_database_schema, 
-                   "prefix" = "sebfo")
+                   "prefix" = prefix)
 )
 
 cdm_char[["table_one_cohort"]] <- newGeneratedCohortSet(cohortRef = cdm[["table_one_cohort"]],
