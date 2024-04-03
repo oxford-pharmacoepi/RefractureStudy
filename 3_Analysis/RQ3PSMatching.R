@@ -70,11 +70,11 @@ for (i in (1:length(targetCohort))){
 
 if (country_setting %in% c("France", "Germany", "Italy")){
   print(paste0("inserting table at ", Sys.time(), " for IQVIA"))
-  install.packages("omopgenerics")
   cdm <- insertTable2(cdm = cdm,
+                      con = db,
+                      writeSchema = "results",
                       name = "all_subjects",
                       table = allSubjects)
-  remove.packages("omopgenerics")
   
   print(paste0("producing features at ", Sys.time()))
   cdm[["features"]] <- cdm$condition_occurrence_2 %>%
