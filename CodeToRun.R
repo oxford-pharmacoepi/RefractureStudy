@@ -95,6 +95,8 @@ study_end_date <- as.Date("2018-03-31")
 # prior obs
 prior_observation <- 730
 
+prefix <- stri_rand_strings(n =1, length = 6, '[a-z]')
+
 # Country setting 
 # Has to be one of the following: UK, Germany, France, Italy, Spain and Netherlands
 country_setting <- "..."
@@ -103,7 +105,8 @@ country_setting <- "..."
 cdm <- CDMConnector::cdm_from_con(
   con = db,
   cdm_schema = cdm_database_schema,
-  write_schema = results_database_schema
+  write_schema = c("schema" = results_database_schema, 
+                   "prefix" = prefix)
 )
 # check database connection
 # running the next line should give you a count of your person table
