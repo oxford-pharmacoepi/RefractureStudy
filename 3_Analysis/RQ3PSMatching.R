@@ -70,9 +70,12 @@ for (i in (1:length(targetCohort))){
 
 if (country_setting %in% c("France", "Germany", "Italy")){
   print(paste0("inserting table at ", Sys.time(), " for IQVIA"))
+  con <- #connection - make sure this exists in R envionment
+  writeSchema <- #write_schema  - make sure this exists in R environment
+    
   cdm <- insertTable2(cdm = cdm,
-                      con = db,
-                      writeSchema = "results",
+                      con = con,
+                      writeSchema = writeSchema,
                       name = "all_subjects",
                       table = allSubjects)
   
