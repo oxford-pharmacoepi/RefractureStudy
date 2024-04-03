@@ -1784,26 +1784,32 @@ visit_summary_sidiap <- function(cohort_freq, table_name){
 
 
 ######IQVIA fix
-insertTable2 <- function(cdm, name, table) {
-  nlim <- 1000000
+insertTable2 <- function(cdm, con, writeSchema, name, table) {
+  nlim <- 100000
   if(nrow(table) > nlim) {
     cohorts <- list()
     # insert by part
     for (k in (1:ceiling(nrow(table)/nlim))){
       smalltable <- table %>% dplyr::slice((1+(k-1)*nlim):(nlim*k))
-      tmpname <- paste0("hahfe_temp_", k)
-      cdm <- omopgenerics::insertTable(cdm = cdm, name = tmpname, table = smalltable)
-      cohorts[[k]] <- cdm[[tmpname]]
+      tmpname <- inSchema(schema = writeSchema, table = paste0("snlds_temp_", k), dbms = dbms(con))
+      DBI::dbWriteTable(conn = con, name = tmpname, value = smalltable)
+      cdm[[paste0("snlds_temp_", k)]] <- dplyr::tbl(attr(cdm,"dbcon"), tmpname)
+      cohorts[[k]] <- cdm[[paste0("snlds_temp_", k)]]
     }
     # merge all of them and compute to name
-    cdm[[name]] <- Reduce(dplyr::union_all, cohorts) |>
-      compute(name = name, temporary = FALSE)
+    cdm[[name]] <- Reduce(dplyr::union_all, cohorts) |> 
+      compute()
     # drop the the temp tables
-    omopgenerics::dropTable(cdm = cdm, name = starts_with("hahfe_temp_"))
     cdm <- cdm |> 
-      cdm_select_tbl(names(cdm)[!startsWith(names(cdm), prefix = "hahfe_temp_")])
+      cdm_select_tbl(names(cdm)[!startsWith(names(cdm), prefix = "snlds_temp_")])
+    cdm <- CDMConnector::dropTable(cdm = cdm,
+                                   name = starts_with("snlds_temp_"))
   } else {
-    cdm <- omopgenerics::insertTable(cdm = cdm, name = name, table = table)
+    tmpname <- inSchema(schema = writeSchema, table = name, dbms = dbms(con))
+    
+    DBI::dbWriteTable(conn = con, name = tmpname, value = allSubjects_test)
+    
+    cdm[[name]] <- dplyr::tbl(attr(cdm,"dbcon"), tmpname)
   }
   return(cdm)
 }
