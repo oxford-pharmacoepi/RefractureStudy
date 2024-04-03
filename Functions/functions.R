@@ -1798,7 +1798,7 @@ insertTable2 <- function(cdm, con, writeSchema, name, table) {
     }
     # merge all of them and compute to name
     cdm[[name]] <- Reduce(dplyr::union_all, cohorts) |> 
-      compute()
+      dplyr::compute()
     # drop the the temp tables
     cdm <- cdm |> 
       cdm_select_tbl(names(cdm)[!startsWith(names(cdm), prefix = "snlds_temp_")])

@@ -72,7 +72,7 @@ cdm_char <-CDMConnector::cdm_from_con(
   con = db,
   cdm_schema = cdm_database_schema,
   write_schema = c("schema" = results_database_schema, 
-                   "prefix" = "gsefh")
+                   "prefix" = prefix)
 )
 
 cdm_char[["cohort_before_match_ap"]] <- newGeneratedCohortSet(cohortRef = cdm[["cohort_before_match_ap"]],
@@ -243,7 +243,7 @@ cdm_char <-CDMConnector::cdm_from_con(
   con = db,
   cdm_schema = cdm_database_schema,
   write_schema = c("schema" = results_database_schema, 
-                   "prefix" = "sofes")
+                   "prefix" = prefix)
 )
 
 cdm_char[["after_matching_01_cohort_ap"]] <- newGeneratedCohortSet(cohortRef = cdm[["after_matching_01_cohort_ap"]],
@@ -414,7 +414,7 @@ cdm_char <-CDMConnector::cdm_from_con(
   con = db,
   cdm_schema = cdm_database_schema,
   write_schema = c("schema" = results_database_schema, 
-                   "prefix" = "sboff")
+                   "prefix" = prefix)
 )
 
 cdm_char[["after_matching_12_cohort_ap"]] <- newGeneratedCohortSet(cohortRef = cdm[["after_matching_12_cohort_ap"]],
