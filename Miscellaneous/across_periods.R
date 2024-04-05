@@ -119,47 +119,47 @@ result_before_matching_ap <- cdm_char[["cohort_before_match_ap"]] %>%
   )
 write_csv(result_before_matching_ap, here(t1_sub_output_folder, "result_before_matching_ap.csv"))
 
-#################### OST TABLE 1 ACROSS BEFORE ######################
-# instantiate conditions
-info(logger, "INSTANTIATE CONDITIONS - AFTER MATCHING 12")
-print(paste0("Instantiating OST conditions for before matching cohorts across all periods at ", Sys.time()))
-codelistConditionsOst <- codesFromConceptSet(here("1_InstantiateCohorts", "Conditions", "Osteoporosis"), cdm_char)
-cdm_char <- generateConceptCohortSet(cdm = cdm_char, name = conditions, conceptSet = codelistConditionsOst, overwrite = T)
-
-# create table summary
-info(logger, "CREATE SUMMARY - AFTER MATCHING 12")
-print(paste0("Creating OST table 1 for before matching cohorts across all periods at ", Sys.time()))
-result_before_matching_apOST <- cdm_char[["cohort_before_match_ap"]] %>%
-  summariseCharacteristics(
-    cohortIntersect = list(
-      "Conditions" = list(
-        targetCohortTable = conditions, value = "flag", window = list(c(-Inf, -731), c(-730, -181), c(-180, 0))
-      )
-    )
-  )
-
-result_before_matching_ap_window1 <- result_before_matching_apOST %>% 
-  dplyr::filter(variable_level == "80502") %>% 
-  dplyr::filter(stringr::str_detect(variable, '-180 to 0')) %>% 
-  dplyr::mutate(variable_level = "f80502_1")
-
-result_before_matching_ap_window2 <- result_before_matching_apOST %>% 
-  dplyr::filter(variable_level == "80502") %>% 
-  dplyr::filter(stringr::str_detect(variable, '-730 to -181')) %>% 
-  dplyr::mutate(variable_level = "f80502_2")
-
-result_before_matching_ap_window3 <- result_before_matching_apOST %>% 
-  dplyr::filter(variable_level == "80502") %>% 
-  dplyr::filter(stringr::str_detect(variable, '-731')) %>% 
-  dplyr::mutate(variable_level = "f80502_3")
-
-result_before_matching_ap_v2 <- rbind(
-  result_before_matching_ap,
-  result_before_matching_ap_window1,
-  result_before_matching_ap_window2,
-  result_before_matching_ap_window3
-)
-write_csv(result_before_matching_ap_v2, here(t1_sub_output_folder, paste0("result_before_matching_ap_v2.csv")))
+# #################### OST TABLE 1 ACROSS BEFORE ######################
+# # instantiate conditions
+# info(logger, "INSTANTIATE CONDITIONS - AFTER MATCHING 12")
+# print(paste0("Instantiating OST conditions for before matching cohorts across all periods at ", Sys.time()))
+# codelistConditionsOst <- codesFromConceptSet(here("1_InstantiateCohorts", "Conditions", "Osteoporosis"), cdm_char)
+# cdm_char <- generateConceptCohortSet(cdm = cdm_char, name = conditions, conceptSet = codelistConditionsOst, overwrite = T)
+# 
+# # create table summary
+# info(logger, "CREATE SUMMARY - AFTER MATCHING 12")
+# print(paste0("Creating OST table 1 for before matching cohorts across all periods at ", Sys.time()))
+# result_before_matching_apOST <- cdm_char[["cohort_before_match_ap"]] %>%
+#   summariseCharacteristics(
+#     cohortIntersect = list(
+#       "Conditions" = list(
+#         targetCohortTable = conditions, value = "flag", window = list(c(-Inf, -731), c(-730, -181), c(-180, 0))
+#       )
+#     )
+#   )
+# 
+# result_before_matching_ap_window1 <- result_before_matching_apOST %>% 
+#   dplyr::filter(variable_level == "80502") %>% 
+#   dplyr::filter(stringr::str_detect(variable, '-180 to 0')) %>% 
+#   dplyr::mutate(variable_level = "f80502_1")
+# 
+# result_before_matching_ap_window2 <- result_before_matching_apOST %>% 
+#   dplyr::filter(variable_level == "80502") %>% 
+#   dplyr::filter(stringr::str_detect(variable, '-730 to -181')) %>% 
+#   dplyr::mutate(variable_level = "f80502_2")
+# 
+# result_before_matching_ap_window3 <- result_before_matching_apOST %>% 
+#   dplyr::filter(variable_level == "80502") %>% 
+#   dplyr::filter(stringr::str_detect(variable, '-731')) %>% 
+#   dplyr::mutate(variable_level = "f80502_3")
+# 
+# result_before_matching_ap_v2 <- rbind(
+#   result_before_matching_ap,
+#   result_before_matching_ap_window1,
+#   result_before_matching_ap_window2,
+#   result_before_matching_ap_window3
+# )
+# write_csv(result_before_matching_ap_v2, here(t1_sub_output_folder, paste0("result_before_matching_ap_v2.csv")))
 
 ##########################
 ############# after 01
@@ -290,47 +290,47 @@ result_after_matching01_ap <- cdm_char[["after_matching_01_cohort_ap"]] %>%
   )
 write_csv(result_after_matching01_ap, here(t1_sub_output_folder, "result_after_matching01_ap.csv"))
 
-#################### OST TABLE 1 ACROSS AFTER 01 ######################
-# instantiate conditions
-info(logger, "INSTANTIATE CONDITIONS - AFTER MATCHING 01")
-print(paste0("Instantiating conditions OST cohort at ", Sys.time()))
-codelistConditionsOst <- codesFromConceptSet(here("1_InstantiateCohorts", "Conditions", "Osteoporosis"), cdm_char)
-cdm_char <- generateConceptCohortSet(cdm = cdm_char, name = conditions, conceptSet = codelistConditionsOst, overwrite = T)
-
-# create table summary
-info(logger, "CREATE SUMMARY - AFTER MATCHING 01")
-print(paste0("Using PatientProfiles to create OST table 1 after matching across periods at ", Sys.time()))
-result_after_matching01_ap_2 <- cdm_char[["after_matching_01_cohort_ap"]] %>%
-  summariseCharacteristics(
-    cohortIntersect = list(
-      "Conditions" = list(
-        targetCohortTable = conditions, value = "flag", window = list(c(-Inf, -731), c(-730, -181), c(-180, 0))
-      )
-    )
-  )
-
-result_after_matching01_ap2_window1 <- result_after_matching01_ap_2 %>% 
-  dplyr::filter(variable_level == "80502") %>% 
-  dplyr::filter(stringr::str_detect(variable, '-180 to 0')) %>% 
-  dplyr::mutate(variable_level = "f80502_1")
-
-result_after_matching01_ap2_window2 <- result_after_matching01_ap_2 %>% 
-  dplyr::filter(variable_level == "80502") %>% 
-  dplyr::filter(stringr::str_detect(variable, '-730 to -181')) %>% 
-  dplyr::mutate(variable_level = "f80502_2")
-
-result_after_matching01_ap2_window3 <- result_after_matching01_ap_2 %>% 
-  dplyr::filter(variable_level == "80502") %>% 
-  dplyr::filter(stringr::str_detect(variable, '-731')) %>% 
-  dplyr::mutate(variable_level = "f80502_3")
-
-result_after_matching01_ap2_v2 <- rbind(
-  result_after_matching01_ap_2,
-  result_after_matching01_ap2_window1,
-  result_after_matching01_ap2_window2,
-  result_after_matching01_ap2_window3
-)
-write_csv(result_after_matching01_ap2_v2, here(t1_sub_output_folder, paste0("result_after_matching01_ap2_v2.csv")))
+# #################### OST TABLE 1 ACROSS AFTER 01 ######################
+# # instantiate conditions
+# info(logger, "INSTANTIATE CONDITIONS - AFTER MATCHING 01")
+# print(paste0("Instantiating conditions OST cohort at ", Sys.time()))
+# codelistConditionsOst <- codesFromConceptSet(here("1_InstantiateCohorts", "Conditions", "Osteoporosis"), cdm_char)
+# cdm_char <- generateConceptCohortSet(cdm = cdm_char, name = conditions, conceptSet = codelistConditionsOst, overwrite = T)
+# 
+# # create table summary
+# info(logger, "CREATE SUMMARY - AFTER MATCHING 01")
+# print(paste0("Using PatientProfiles to create OST table 1 after matching across periods at ", Sys.time()))
+# result_after_matching01_ap_2 <- cdm_char[["after_matching_01_cohort_ap"]] %>%
+#   summariseCharacteristics(
+#     cohortIntersect = list(
+#       "Conditions" = list(
+#         targetCohortTable = conditions, value = "flag", window = list(c(-Inf, -731), c(-730, -181), c(-180, 0))
+#       )
+#     )
+#   )
+# 
+# result_after_matching01_ap2_window1 <- result_after_matching01_ap_2 %>% 
+#   dplyr::filter(variable_level == "80502") %>% 
+#   dplyr::filter(stringr::str_detect(variable, '-180 to 0')) %>% 
+#   dplyr::mutate(variable_level = "f80502_1")
+# 
+# result_after_matching01_ap2_window2 <- result_after_matching01_ap_2 %>% 
+#   dplyr::filter(variable_level == "80502") %>% 
+#   dplyr::filter(stringr::str_detect(variable, '-730 to -181')) %>% 
+#   dplyr::mutate(variable_level = "f80502_2")
+# 
+# result_after_matching01_ap2_window3 <- result_after_matching01_ap_2 %>% 
+#   dplyr::filter(variable_level == "80502") %>% 
+#   dplyr::filter(stringr::str_detect(variable, '-731')) %>% 
+#   dplyr::mutate(variable_level = "f80502_3")
+# 
+# result_after_matching01_ap2_v2 <- rbind(
+#   result_after_matching01_ap_2,
+#   result_after_matching01_ap2_window1,
+#   result_after_matching01_ap2_window2,
+#   result_after_matching01_ap2_window3
+# )
+# write_csv(result_after_matching01_ap2_v2, here(t1_sub_output_folder, paste0("result_after_matching01_ap2_v2.csv")))
 
 #################################
 ##### after matching 12
@@ -460,47 +460,47 @@ result_after_matching12_ap <- cdm_char[["after_matching_12_cohort_ap"]] %>%
   )
 write_csv(result_after_matching12_ap, here(t1_sub_output_folder, "result_after_matching12_ap.csv"))
 
-#################### OST TABLE 1 ACROSS AFTER 12 ######################
-# instantiate conditions
-info(logger, "INSTANTIATE CONDITIONS - AFTER MATCHING 12 ACROSS PERIODS")
-print(paste0("Instantiating OST condition cohort at ", Sys.time()))
-codelistConditionsOst <- codesFromConceptSet(here("1_InstantiateCohorts", "Conditions", "Osteoporosis"), cdm_char)
-cdm_char <- generateConceptCohortSet(cdm = cdm_char, name = conditions, conceptSet = codelistConditionsOst, overwrite = T)
-
-# create table summary
-info(logger, "CREATE SUMMARY - AFTER MATCHING 12")
-result_after_matching12_ap_2 <- cdm_char[["after_matching_12_cohort_ap"]] %>%
-  summariseCharacteristics(
-    cohortIntersect = list(
-      "Conditions" = list(
-        targetCohortTable = conditions, value = "flag", window = list(c(-Inf, -731), c(-730, -181), c(-180, 0))
-      )
-    )
-  )
-
-result_after_matching12_ap_window1 <- result_after_matching12_ap_2 %>% 
-  dplyr::filter(variable_level == "80502") %>% 
-  dplyr::filter(stringr::str_detect(variable, '-180 to 0')) %>% 
-  dplyr::mutate(variable_level = "f80502_1")
-
-result_after_matching12_ap_window2 <- result_after_matching12_ap_2 %>% 
-  dplyr::filter(variable_level == "80502") %>% 
-  dplyr::filter(stringr::str_detect(variable, '-730 to -181')) %>% 
-  dplyr::mutate(variable_level = "f80502_2")
-
-result_after_matching12_ap_window3 <- result_after_matching12_ap_2 %>% 
-  dplyr::filter(variable_level == "80502") %>% 
-  dplyr::filter(stringr::str_detect(variable, '-731')) %>% 
-  dplyr::mutate(variable_level = "f80502_3")
-
-result_after_matching12_ap_v2 <- rbind(
-  result_after_matching12_ap,
-  result_after_matching12_ap_window1,
-  result_after_matching12_ap_window2,
-  result_after_matching12_ap_window3
-)
-
-write_csv(result_after_matching12_ap_v2, here(t1_sub_output_folder, paste0("result_after_matching12_ap_v2.csv")))
+# #################### OST TABLE 1 ACROSS AFTER 12 ######################
+# # instantiate conditions
+# info(logger, "INSTANTIATE CONDITIONS - AFTER MATCHING 12 ACROSS PERIODS")
+# print(paste0("Instantiating OST condition cohort at ", Sys.time()))
+# codelistConditionsOst <- codesFromConceptSet(here("1_InstantiateCohorts", "Conditions", "Osteoporosis"), cdm_char)
+# cdm_char <- generateConceptCohortSet(cdm = cdm_char, name = conditions, conceptSet = codelistConditionsOst, overwrite = T)
+# 
+# # create table summary
+# info(logger, "CREATE SUMMARY - AFTER MATCHING 12")
+# result_after_matching12_ap_2 <- cdm_char[["after_matching_12_cohort_ap"]] %>%
+#   summariseCharacteristics(
+#     cohortIntersect = list(
+#       "Conditions" = list(
+#         targetCohortTable = conditions, value = "flag", window = list(c(-Inf, -731), c(-730, -181), c(-180, 0))
+#       )
+#     )
+#   )
+# 
+# result_after_matching12_ap_window1 <- result_after_matching12_ap_2 %>% 
+#   dplyr::filter(variable_level == "80502") %>% 
+#   dplyr::filter(stringr::str_detect(variable, '-180 to 0')) %>% 
+#   dplyr::mutate(variable_level = "f80502_1")
+# 
+# result_after_matching12_ap_window2 <- result_after_matching12_ap_2 %>% 
+#   dplyr::filter(variable_level == "80502") %>% 
+#   dplyr::filter(stringr::str_detect(variable, '-730 to -181')) %>% 
+#   dplyr::mutate(variable_level = "f80502_2")
+# 
+# result_after_matching12_ap_window3 <- result_after_matching12_ap_2 %>% 
+#   dplyr::filter(variable_level == "80502") %>% 
+#   dplyr::filter(stringr::str_detect(variable, '-731')) %>% 
+#   dplyr::mutate(variable_level = "f80502_3")
+# 
+# result_after_matching12_ap_v2 <- rbind(
+#   result_after_matching12_ap,
+#   result_after_matching12_ap_window1,
+#   result_after_matching12_ap_window2,
+#   result_after_matching12_ap_window3
+# )
+# 
+# write_csv(result_after_matching12_ap_v2, here(t1_sub_output_folder, paste0("result_after_matching12_ap_v2.csv")))
 
 ##### Compiling 
 # output<-reformat_table_one_rq3_across(result_before_matching2_v2, name1 = "Target", name2 = "Cohort1") %>% 
