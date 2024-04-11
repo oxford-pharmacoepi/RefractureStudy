@@ -269,14 +269,25 @@ info(logger, "FEATURE EXTRACTION IS DONE")
 
 ### Using Patient Profiles and pre-defined functions
 info(logger, "COMPUTING OTHER DEMOGRAPHICS")
-cdm[["all_subjects"]] <- cdm[["denominator"]] %>%
-  dplyr::mutate(cohort_start_date = as.Date(as.character(cohort_start_date)),
-         cohort_end_date = as.Date(as.character(cohort_end_date))) %>%
-  dplyr::inner_join(allSubjects, by = "subject_id", copy = T) %>%
-  dplyr::select(cohort_definition_id, subject_id, index_date, group, period) %>% 
-  dplyr::rename(cohort_start_date = index_date) %>%
-  dplyr::mutate(cohort_end_date = cohort_start_date) %>%
-  CDMConnector::computeQuery()
+if (country_setting %in% c("France", "Germany", "Italy")){
+  cdm[["all_subjects"]] <- cdm[["denominator"]] %>%
+    dplyr::mutate(cohort_start_date = as.Date(as.character(cohort_start_date)),
+                  cohort_end_date = as.Date(as.character(cohort_end_date))) %>%
+    dplyr::inner_join(cdm[["all_subjects"]], by = "subject_id", copy = T) %>%
+    dplyr::select(cohort_definition_id, subject_id, index_date, group, period) %>% 
+    dplyr::rename(cohort_start_date = index_date) %>%
+    dplyr::mutate(cohort_end_date = cohort_start_date) %>%
+    CDMConnector::computeQuery()
+} else {
+  cdm[["all_subjects"]] <- cdm[["denominator"]] %>%
+    dplyr::mutate(cohort_start_date = as.Date(as.character(cohort_start_date)),
+                  cohort_end_date = as.Date(as.character(cohort_end_date))) %>%
+    dplyr::inner_join(allSubjects, by = "subject_id", copy = T) %>%
+    dplyr::select(cohort_definition_id, subject_id, index_date, group, period) %>% 
+    dplyr::rename(cohort_start_date = index_date) %>%
+    dplyr::mutate(cohort_end_date = cohort_start_date) %>%
+    CDMConnector::computeQuery()
+}
 
 print(paste0("Extracting age and prior obs at ", Sys.time()))
 allSubjectsCohort <- 

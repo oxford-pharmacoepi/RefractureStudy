@@ -1788,22 +1788,23 @@ insertTable2 <- function(cdm, con, writeSchema, name, table) {
   nlim <- 100000
   if(nrow(table) > nlim) {
     cohorts <- list()
+    prefix2 <- stri_rand_strings(n = 1, length = 4, '[a-z]')
     # insert by part
     for (k in (1:ceiling(nrow(table)/nlim))){
       smalltable <- table %>% dplyr::slice((1+(k-1)*nlim):(nlim*k))
-      tmpname <- inSchema(schema = writeSchema, table = paste0("snlds_temp_", k), dbms = dbms(con))
+      tmpname <- inSchema(schema = writeSchema, table = paste0(prefix2, "_temp_", k), dbms = dbms(con))
       DBI::dbWriteTable(conn = con, name = tmpname, value = smalltable)
-      cdm[[paste0("snlds_temp_", k)]] <- dplyr::tbl(attr(cdm,"dbcon"), tmpname)
-      cohorts[[k]] <- cdm[[paste0("snlds_temp_", k)]]
+      cdm[[paste0(prefix2, "_temp_", k)]] <- dplyr::tbl(attr(cdm,"dbcon"), tmpname)
+      cohorts[[k]] <- cdm[[paste0(prefix2, "_temp_", k)]]
     }
     # merge all of them and compute to name
     cdm[[name]] <- Reduce(dplyr::union_all, cohorts) |> 
       dplyr::compute()
     # drop the the temp tables
     cdm <- cdm |> 
-      cdm_select_tbl(names(cdm)[!startsWith(names(cdm), prefix = "snlds_temp_")])
+      cdm_select_tbl(names(cdm)[!startsWith(names(cdm), prefix = paste0(prefix2, "_temp_"))])
     cdm <- CDMConnector::dropTable(cdm = cdm,
-                                   name = starts_with("snlds_temp_"))
+                                   name = starts_with(paste0(prefix2, "_temp_")))
   } else {
     tmpname <- inSchema(schema = writeSchema, table = name, dbms = dbms(con))
     
