@@ -26,7 +26,8 @@ if (country_setting == "France") {
   info(logger, "PRODUCING VISIT DATA FOR FRANCE")
   ## Join visit_occurrence and provider tables - visit_detail is empty for IQVIA
   joined_visit_provider_tables <- cdm$visit_occurrence %>% 
-    dplyr::inner_join(cdm$provider)
+    dplyr::inner_join(cdm$provider) %>% 
+    dplyr::compute()
   
   ## check that visit_start_date and visit_end_date are the same
   check_dates <- joined_visit_provider_tables %>%
@@ -52,10 +53,11 @@ if (country_setting == "France") {
   
   # Check table
   
-  visit_type_by_specialty <- visit_data %>%
+  visit_type_by_specialty <- cdm[["visit_data"]] %>%
     dplyr::group_by(specialty, visit_concept_id) %>%
     dplyr::summarise(visit_count = n(), .groups = 'drop') %>%
-    pivot_wider(names_from = visit_concept_id, values_from = visit_count, values_fill = list(visit_count = 0))
+    pivot_wider(names_from = visit_concept_id, values_from = visit_count, values_fill = list(visit_count = 0)) %>% 
+    dplyr::collect()
   
   
   ## Filter visit_data by concept_id
@@ -72,7 +74,8 @@ if (country_setting == "Germany") {
   info(logger, "PRODUCING VISIT DATA FOR GERMANY")
   ## Join visit_occurrence and provider tables - visit_detail is empty for IQVIA
   joined_visit_provider_tables <- cdm$visit_occurrence %>% 
-    dplyr::inner_join(cdm$provider)
+    dplyr::inner_join(cdm$provider) %>% 
+    dplyr::compute()
   
   ## check that visit_start_date and visit_end_date are the same
   check_dates <- joined_visit_provider_tables %>%
@@ -96,10 +99,11 @@ if (country_setting == "Germany") {
       overwrite = TRUE
     )
   
-  visit_type_by_specialty <- visit_data %>%
+  visit_type_by_specialty <- cdm[["visit_data"]] %>%
     dplyr::group_by(specialty, visit_concept_id) %>%
     dplyr::summarise(visit_count = n(), .groups = 'drop') %>%
-    pivot_wider(names_from = visit_concept_id, values_from = visit_count, values_fill = list(visit_count = 0))
+    pivot_wider(names_from = visit_concept_id, values_from = visit_count, values_fill = list(visit_count = 0)) %>% 
+    dplyr::collect()
   
   # In Germany we don't have the detail for concept_id, all visits are "office".
   info(logger, "PRODUCING VISIT DATA FOR GERMANY IS DONE")
@@ -144,7 +148,8 @@ if (country_setting == "Spain") {
   info(logger, "PRODUCING VISIT DATA FOR SPAIN")
   ## Join visit_occurrence and provider tables - visit_detail is not empty but we cannot interpret source values 
   joined_visit_provider_tables <- cdm$visit_occurrence %>% 
-    dplyr::inner_join(cdm$provider)
+    dplyr::inner_join(cdm$provider) %>% 
+    dplyr::compute()
   
   ## check that visit_start_date and visit_end_date are the same
   check_dates <- joined_visit_provider_tables %>%
@@ -171,10 +176,11 @@ if (country_setting == "Spain") {
   
   # Check table
   
-  visit_type_by_specialty <- visit_data %>%
+  visit_type_by_specialty <- cdm[["visit_data"]] %>%
     dplyr::group_by(specialty, visit_concept_id) %>%
     dplyr::summarise(visit_count = n(), .groups = 'drop') %>%
-    pivot_wider(names_from = visit_concept_id, values_from = visit_count, values_fill = list(visit_count = 0))
+    pivot_wider(names_from = visit_concept_id, values_from = visit_count, values_fill = list(visit_count = 0)) %>% 
+    dplyr::collect()
   
   ## Filter visit_data by concept_id
   
