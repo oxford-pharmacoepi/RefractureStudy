@@ -147,6 +147,77 @@ if(country_setting == "Spain"){
   grouper_uk_Proc_HRG_STM <- read_excel(file_path_4, sheet = "Proc_HRG_STM")
   grouper_uk_unit_cost <- read_excel(file_path_4, sheet = "Unit costs")
   
+  secondary_output <- here(output_folder, washout_period[[k]], "secondary_cost")
+  secondary_output_ic <- here(output_folder, washout_period[[k]], "secondary_ic_cost")
+  secondary_output_inpatient <- here(output_folder, washout_period[[k]], "secondary_inpatient_cost")
+  
+  if (!dir.exists(secondary_output)) {
+    dir.create(secondary_output)
+  }
+  
+  if (!dir.exists(secondary_output_ic)) {
+    dir.create(secondary_output_ic)
+  }
+  
+  if (!dir.exists(secondary_output_inpatient)) {
+    dir.create(secondary_output_inpatient)
+  }
+  
+  cdm[["visit_occurrence_hes"]] <- cdm[["visit_occurrence"]] %>%
+    dplyr::filter(visit_concept_id == 32037|visit_concept_id == 9201) %>%
+    CDMConnector::computeQuery(
+      name = "visit_occurrence_hes",
+      temporary = FALSE,
+      schema = attr(cdm, "write_schema"),
+      overwrite = TRUE
+    )
+  
+  cdm[["visit_occurrence_inpatient"]] <- cdm[["visit_occurrence"]] %>%
+    dplyr::filter(visit_concept_id == 9201) %>%
+    CDMConnector::computeQuery(
+      name = "visit_occurrence_inpatient",
+      temporary = FALSE,
+      schema = attr(cdm, "write_schema"),
+      overwrite = TRUE
+    )
+  
+  cdm[["visit_occurrence_ic"]] <- cdm[["visit_occurrence"]] %>%
+    dplyr::filter(visit_concept_id == 32037) %>%
+    CDMConnector::computeQuery(
+      name = "visit_occurrence_ic",
+      temporary = FALSE,
+      schema = attr(cdm, "write_schema"),
+      overwrite = TRUE
+    )
+  
+  cdm[["visit_detail_hes"]] <- cdm[["visit_detail"]] %>%
+    dplyr::filter(visit_detail_concept_id == 32037|visit_detail_concept_id == 9201) %>%
+    CDMConnector::computeQuery(
+      name = "visit_detail_hes",
+      temporary = FALSE,
+      schema = attr(cdm, "write_schema"),
+      overwrite = TRUE
+    )
+  
+  cdm[["condition_occurrence_hes"]] <- cdm[["condition_occurrence"]] %>% 
+    dplyr::filter(condition_type_concept_id == 32829) %>% 
+    CDMConnector::computeQuery(
+      name = "condition_occurrence_hes", 
+      temporary = FALSE, 
+      schema = attr(cdm, "write_schema"), 
+      overwrite = TRUE
+    )
+  
+  cdm[["procedure_occurrence_hes"]] <- cdm[["procedure_occurrence"]] %>% 
+    dplyr::filter(procedure_type_concept_id == 32829) %>% 
+    CDMConnector::computeQuery(
+      name = "procedure_occurrence_hes", 
+      temporary = FALSE, 
+      schema = attr(cdm, "write_schema"), 
+      overwrite = TRUE
+    )
+  
+  
   target_secondary_cost_all <- secondary_cost_cprd(cohort_freq = target_matched, table_name = "visit_occurrence_hes")
   c1_comp1_secondary_cost_all <- secondary_cost_cprd(cohort_freq = cohort1_matched_to, table_name = "visit_occurrence_hes")
   c1_comp2_secondary_cost_all <- secondary_cost_cprd(cohort_freq = cohort1_matched_from, table_name = "visit_occurrence_hes")
