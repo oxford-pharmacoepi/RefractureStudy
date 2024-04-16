@@ -139,5 +139,11 @@ if(country_setting == "Spain"){
   # write.xlsx(c1_comp2_secondary_cost_fx_related_inpatient , file = here(secondary_output_inpatient, "c1_comp2_secondary_cost_fx_related_inpatient .xlsx"))
   # write.xlsx(c2_secondary_cost_fx_related_inpatient , file = here(secondary_output_inpatient, "c2_secondary_cost_fx_related_inpatient .xlsx"))
   
-  
+} else if (country_setting == "UK"){
+  file_path_4 <- here("4_HealthEconomics", "Inputs", "simplified_nhs_hrg_grouper_v2_gf.xlsx")
+  grouper_uk_Diag_incl <- read_excel(file_path_4, sheet = "Diag_incl")
+  grouper_uk_Diag_HRG <- read_excel(file_path_4, sheet = "Diag_HRG")
+  grouper_uk_Proc_HRG_any <- read_excel(file_path_4, sheet = "Proc_HRG_any")
+  grouper_uk_Proc_HRG_STM <- read_excel(file_path_4, sheet = "Proc_HRG_STM")
+  grouper_uk_unit_cost <- read_excel(file_path_4, sheet = "Unit costs")
 }

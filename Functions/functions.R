@@ -1927,3 +1927,412 @@ secondary_cost_sidiap <- function(cohort_freq, table_name, cost_type = "all"){
     cond_outside
   ))
 }
+
+#### secondary cost
+secondary_cost_cprd <- function(cohort_freq, table_name){
+  
+  freq_cond_proc_tbl <- cohort_freq %>% 
+    dplyr::left_join(cdm[["visit_occurrence_hes"]] %>% dplyr::select(person_id, visit_concept_id, visit_start_date, visit_end_date, visit_source_value, visit_occurrence_id),
+                     by = c("subject_id" = "person_id"),
+                     copy = T,
+                     relationship = "many-to-many")  %>%
+    dplyr::left_join(cdm[["condition_occurrence_hes"]] %>% dplyr::select(person_id, condition_source_value, condition_start_date, condition_status_source_value, visit_occurrence_id, visit_detail_id),
+                     by = c("subject_id" = "person_id", "visit_occurrence_id"),
+                     copy = T,
+                     relationship = "many-to-many") 
+  # count conditions outside visit
+  cond_outs <- freq_cond_proc_tbl %>%  
+    dplyr::filter(condition_start_date <visit_start_date | condition_start_date > visit_end_date) %>% tally()
+  
+  freq_cond_proc_tbl <- freq_cond_proc_tbl %>%  
+    #  filter conditions and visits
+    dplyr::filter(visit_start_date >=index_date & visit_start_date <= follow_up_end) %>% 
+    dplyr::filter(condition_start_date >=visit_start_date & condition_start_date <= visit_end_date) %>%
+    dplyr::filter(condition_start_date >=index_date & condition_start_date <= follow_up_end) %>%
+    dplyr::distinct() %>% 
+    dplyr::mutate(LoS = .data$visit_end_date - .data$visit_start_date + 1)
+  
+  
+  freq_cond_proc_tbl <- freq_cond_proc_tbl %>%  
+    # Join primary procedures (separately because too big otherwise)
+    dplyr::left_join(cdm[["procedure_occurrence_hes"]] %>% 
+                       dplyr::filter(modifier_source_value == "1") %>% 
+                       dplyr::select(person_id, procedure_source_value, procedure_date, visit_occurrence_id, modifier_source_value, visit_detail_id),
+                     by = c("subject_id" = "person_id", "visit_occurrence_id", "visit_detail_id"),
+                     copy = T,
+                     relationship = "many-to-many")
+  
+  # count procedures outside visit
+  proc_outs <- freq_cond_proc_tbl %>%  
+    dplyr::filter(procedure_date <visit_start_date | procedure_date > visit_end_date) %>% 
+    tally()
+  
+  freq_cond_proc_tbl <- freq_cond_proc_tbl  %>%  
+    # filter procedures
+    dplyr::filter(procedure_date >=visit_start_date & procedure_date <= visit_end_date) %>%
+    dplyr::filter(procedure_date >=index_date & procedure_date <= follow_up_end) %>%
+    dplyr::distinct() %>% 
+    dplyr::mutate(LoS = .data$visit_end_date - .data$visit_start_date + 1) 
+  
+  # Apply simplified NHS HRG Grouper
+  
+  # removing "." in icd.10 and opcs codes
+  freq_cond_proc_tbl$condition_source_value <- gsub("\\.", "", freq_cond_proc_tbl$condition_source_value)
+  freq_cond_proc_tbl$procedure_source_value <- gsub("\\.", "", freq_cond_proc_tbl$procedure_source_value)
+  
+  # Step 1: If primary diagnostic code = any of those in the <Diag_incl> sheet, then include in costing; if not, exclude
+  
+  ## 1.1: Identify hospitalisations with at least one primary diagnosis in the <Diag_incl> sheet
+  qualifying_hospitalisations <- freq_cond_proc_tbl %>%
+    dplyr::filter(condition_status_source_value == 1 & 
+                    condition_source_value %in% grouper_uk_Diag_incl$ICD10CM) %>%
+    distinct(subject_id, visit_occurrence_id)
+  
+  ## 1.2: Filter the original dataset to include only hospitalisations from those qualifying hospitalisations
+  freq_cond_proc_tbl_hrg <- freq_cond_proc_tbl %>%
+    semi_join(qualifying_hospitalisations, by = c("subject_id", "visit_occurrence_id"))
+  
+  # Step 2: 
+  
+  ## 2.1: If >1 diagnostic codes from the list in <Diag_incl> are present in the list of diagnoses for a hospitalisation, then apply HRG = VA1A
+  # Note: there might be >1 primary diagnostic codes that meet the criterion for the same visit_occurrence_id. This is because primary diagnoses are at episode level, so there are as many as the episodes in a spell
+  freq_cond_proc_tbl_hrg <- freq_cond_proc_tbl_hrg %>%
+    # Group by subject_id
+    dplyr::group_by(subject_id, visit_occurrence_id) %>%
+    dplyr::mutate(HRG = ifelse(sum(condition_source_value %in% grouper_uk_Diag_incl$ICD10CM) > 1, 
+                               "VA1A", 
+                               NA_character_)) %>%
+    ungroup()
+  
+  ## 2.2: Next, look-up primary diagnosis in sheet <Diag_HRG> an apply corresponding HRG
+  freq_cond_proc_tbl_hrg <- freq_cond_proc_tbl_hrg %>%
+    dplyr::filter(condition_status_source_value == 1) %>%
+    dplyr::group_by(subject_id, visit_occurrence_id) %>%
+    dplyr::mutate(HRG = if_else(is.na(HRG) & condition_source_value %in% grouper_uk_Diag_HRG$ICD10CM,
+                                grouper_uk_Diag_HRG$SpellHRG[match(condition_source_value, grouper_uk_Diag_HRG$ICD10CM)],
+                                HRG)) %>%
+    ungroup()
+  
+  # Step 3: Categorise main diagnostic codes - SHOULD I FILTER FOR PRIMARY ONLY?
+  library(stringr)
+  freq_cond_proc_tbl_hrg <- freq_cond_proc_tbl_hrg %>%
+    dplyr::mutate(diag_group = case_when(
+      str_starts(condition_source_value, "S") ~ "S", # If primary diagnostic code starts with "S", then categorise as diag_group = "S"
+      str_starts(condition_source_value, "T") ~ "T", # If primary diagnostic code starts with "T", then categorise as diag_group = "T"
+      str_starts(condition_source_value, "M") ~ "M", # If primary diagnostic code starts with "M", then categorise as diag_group = "M"
+      TRUE ~ "O" # If primary diagnostic code starts with any other letter, then categorise as diag_group = "O"
+    ))
+  
+  
+  # Step 4: If main procedure code is any of those shown in sheet <Proc_HRG_any>, then replace HRG for corresponding code shown in the sheet
+  freq_cond_proc_tbl_hrg <- freq_cond_proc_tbl_hrg %>%    
+    dplyr::mutate(HRG = if_else(procedure_source_value %in% grouper_uk_Proc_HRG_any$OPCS,
+                                grouper_uk_Proc_HRG_any$HRG[match(procedure_source_value, grouper_uk_Proc_HRG_any$OPCS)],
+                                HRG))
+  
+  # Step 5: Then for Proc_HRG_STM based on diag_group
+  freq_cond_proc_tbl_hrg <- freq_cond_proc_tbl_hrg %>%
+    dplyr::mutate(HRG = case_when(
+      diag_group == "S" & procedure_source_value %in% grouper_uk_Proc_HRG_STM$OPCS ~ 
+        grouper_uk_Proc_HRG_STM$`HRG - Diag S or T`[match(procedure_source_value, grouper_uk_Proc_HRG_STM$OPCS)],
+      diag_group == "T" & procedure_source_value %in% grouper_uk_Proc_HRG_STM$OPCS ~ 
+        grouper_uk_Proc_HRG_STM$`HRG - Diag S or T`[match(procedure_source_value, grouper_uk_Proc_HRG_STM$OPCS)],
+      diag_group == "M" & procedure_source_value %in% grouper_uk_Proc_HRG_STM$OPCS ~ 
+        grouper_uk_Proc_HRG_STM$`HRG - Diag M`[match(procedure_source_value, grouper_uk_Proc_HRG_STM$OPCS)],
+      TRUE ~ HRG
+    ))
+  
+  # Append costs to HRG and compute summary
+  freq_cond_proc_tbl_hrg_cost <- freq_cond_proc_tbl_hrg %>% 
+    dplyr::left_join(grouper_uk_unit_cost,
+                     by = c("HRG" = "SpellHRG"))
+  
+  # cleaning - when one visit has multiple rows with the same entry, visit_occurrence_id, and HRG keep only one
+  freq_cond_proc_tbl_hrg_cost_clean<- freq_cond_proc_tbl_hrg_cost %>% 
+    dplyr::distinct(subject_id, index_date, follow_up_end, visit_occurrence_id, HRG, Unit_cost, .keep_all = TRUE)
+  
+  # Count and checks for multiple entries during same spell
+  
+  # CASE A: leave/enter on the same day as the spell (spell=1 day)
+  case_a <- freq_cond_proc_tbl_hrg_cost_clean %>%
+    # First, filter rows where visit_start_date is equal to visit_end_date
+    dplyr::filter(visit_start_date == visit_end_date) %>%
+    dplyr::group_by(visit_occurrence_id, subject_id) %>%
+    # Summarise to collapse each group into a list-column, each element is a dataframe
+    summarise(data = list(tibble(index_date = index_date, follow_up_end = follow_up_end)), .groups = 'keep') %>%
+    # For each group, check if any index_date matches any follow_up_end across rows
+    dplyr::mutate(match_found = map_lgl(data, ~{
+      any(sapply(.$index_date, function(id) id %in% .$follow_up_end))
+    })) %>%
+    dplyr::filter(match_found) %>%
+    ungroup() %>%
+    # Count unique visit_occurrence_id and subject_id pairs
+    summarise(
+      distinct_subjects = n_distinct(subject_id),
+      distinct_visit_occurrences = n_distinct(visit_occurrence_id)
+    )
+  
+  # CASE A.1: leave enter on the same day as the start of the spell 
+  case_a.1 <- freq_cond_proc_tbl_hrg_cost_clean %>%
+    # Ensure visit spans more than a single day
+    dplyr::filter(as.Date(visit_end_date) - as.Date(visit_start_date) > 1) %>%
+    dplyr::group_by(visit_occurrence_id, subject_id) %>%
+    # Create a list-column with relevant data for each group
+    summarise(
+      data = list(tibble(visit_start_date = visit_start_date, 
+                         visit_end_date = visit_end_date,
+                         index_date = index_date, 
+                         follow_up_end = follow_up_end)),
+      .groups = 'keep'
+    ) %>%
+    # Check within each group for the specified conditions
+    mutate(match_found = map_lgl(data, ~{
+      # Condition 1: Checking for any visit_start_date that matches an index_date
+      condition1 <- any(duplicated(c(.$visit_start_date, .$index_date)))
+      # Condition 2: Any index_date equals any follow_up_end within the group
+      condition2 <- any(sapply(.$index_date, function(id) id %in% .$follow_up_end))
+      
+      condition1 && condition2
+    })) %>%
+    filter(match_found) %>%
+    ungroup() %>%
+    # Count unique visit_occurrence_id and subject_id pairs
+    summarise(
+      distinct_subjects = n_distinct(subject_id),
+      distinct_visit_occurrences = n_distinct(visit_occurrence_id)
+    )
+  
+  
+  # CASE B: leave enter on the same day within the spell 
+  case_b <- freq_cond_proc_tbl_hrg_cost_clean %>%
+    # Ensure visit spans more than a single day
+    dplyr::filter(as.Date(visit_end_date) - as.Date(visit_start_date) > 1) %>%
+    dplyr::group_by(visit_occurrence_id, subject_id) %>%
+    # Create a list-column with relevant data for each group
+    summarise(
+      data = list(tibble(visit_start_date = visit_start_date, 
+                         index_date = index_date, 
+                         follow_up_end = follow_up_end)),
+      .groups = 'keep'
+    ) %>%
+    # Check within each group for the specified conditions
+    dplyr::mutate(match_found = map_lgl(data, ~{
+      # New Condition 1: Check if any visit_start_date is less than any index_date within the group
+      condition1 <- any(sapply(.$visit_start_date, function(vsd) any(vsd < .$index_date)))
+      # Condition 2 (Unchanged): Any index_date equals any follow_up_end within the group
+      condition2 <- any(sapply(.$index_date, function(id) id %in% .$follow_up_end))
+      
+      condition1 && condition2
+    })) %>%
+    filter(match_found) %>%
+    ungroup() %>%
+    # Count unique visit_occurrence_id and subject_id pairs
+    summarise(
+      distinct_subjects = n_distinct(subject_id),
+      distinct_visit_occurrences = n_distinct(visit_occurrence_id)
+    )
+  
+  # CASE C: leave/enter on different days within the same spell
+  case_c<-freq_cond_proc_tbl_hrg_cost_clean %>%
+    # Ensure visit spans more than a single day
+    dplyr::filter(as.Date(visit_end_date) - as.Date(visit_start_date) > 1) %>%
+    dplyr::group_by(visit_occurrence_id, subject_id) %>%
+    # Create a list-column with relevant data for each group
+    summarise(
+      data = list(tibble(visit_start_date = visit_start_date, 
+                         index_date = index_date, 
+                         follow_up_end = follow_up_end)),
+      .groups = 'keep'
+    ) %>%
+    # Check within each group for the specified conditions
+    dplyr::mutate(match_found = map_lgl(data, ~{
+      # New Condition 1: Check if any visit_start_date is less than any index_date within the group
+      condition1 <- any(sapply(.$visit_start_date, function(vsd) any(vsd < .$index_date)))
+      # Condition 2: Any index_date equals any follow_up_end within the group
+      condition2 <- any(sapply(.$index_date, function(id) id %in% .$follow_up_end))
+      # Additional Condition: Ensure no index_date is the same as any follow_up_end within the group
+      no_overlap <- !any(sapply(.$index_date, function(id) id %in% .$follow_up_end) & 
+                           sapply(.$follow_up_end, function(fue) fue %in% .$index_date))
+      
+      condition1 && condition2 && no_overlap
+    })) %>%
+    filter(match_found) %>%
+    ungroup() %>%
+    # Count unique visit_occurrence_id and subject_id pairs
+    summarise(
+      distinct_subjects = n_distinct(subject_id),
+      distinct_visit_occurrences = n_distinct(visit_occurrence_id)
+    )
+  
+  # Cleaning
+  
+  ## Case A & A.1 -> we keep the second entry
+  freq_cond_proc_tbl_hrg_cost_clean<- freq_cond_proc_tbl_hrg_cost_clean %>% 
+    dplyr::group_by(subject_id, visit_occurrence_id) %>%
+    dplyr::filter(if (any(visit_start_date == index_date)) visit_start_date == index_date else TRUE)
+  
+  ## Case B or C -> we keep the first entry
+  freq_cond_proc_tbl_hrg_cost_clean <- freq_cond_proc_tbl_hrg_cost_clean %>% 
+    dplyr::group_by(subject_id, visit_occurrence_id) %>%
+    dplyr::filter(visit_start_date > index_date & visit_start_date < follow_up_end) #the second entry would have index date > than visit_start date
+  
+  
+  # Lastly, when more than one HRG is associated with a visit, keep the HRG with highest unit cost
+  freq_cond_proc_tbl_hrg_cost_clean<- freq_cond_proc_tbl_hrg_cost_clean %>%
+    dplyr::group_by(visit_occurrence_id) %>%
+    slice_max(order_by = Unit_cost, with_ties = FALSE) %>%
+    ungroup()
+  
+  # final checks to make sure we have one entry per spell 
+  unique_pairs_count <- freq_cond_proc_tbl_hrg_cost_clean %>%
+    dplyr::group_by(visit_occurrence_id) %>%
+    summarise(
+      unique_pairs = n_distinct(paste(index_date, follow_up_end)),
+      .groups = 'drop'
+    ) %>%
+    # Check if any visit_occurrence_id has more than one unique pair
+    filter(unique_pairs > 1)
+  
+  # Check if there are any visit_occurrence_id with more than one unique pair
+  if(nrow(unique_pairs_count) > 0) {
+    print("There are visit_occurrence_id(s) with more than one unique index_date and follow_up_end date pair.")
+    info(logger, "There are visit_occurrence_id(s) with more than one unique index_date and follow_up_end date pair.")
+  } else {
+    print("Each visit_occurrence_id has a single correspondence with index_date and follow_up_end date pairs.")
+    info(logger, "Each visit_occurrence_id has a single correspondence with index_date and follow_up_end date pairs.")
+  }
+  
+  # final checks to make sure we have one hrg per spell  
+  
+  rows_per_visit <- freq_cond_proc_tbl_hrg_cost_clean %>%
+    dplyr::group_by(visit_occurrence_id) %>%
+    summarise(row_count = n(), .groups = 'drop') %>%
+    # Check if any group has more than one row
+    filter(row_count > 1)
+  
+  # Check if there are any visit_occurrence_id with more than one row
+  if(nrow(rows_per_visit) > 0) {
+    print("There are visit_occurrence_id(s) with more than one row.")
+    info(logger,"There are visit_occurrence_id(s) with more than one row.")
+  } else {
+    print("Each visit_occurrence_id is unique or appears only once.")
+    info(logger, "Each visit_occurrence_id is unique or appears only once.")
+  }
+  
+  
+  # Summary costs per fx related spells
+  tot_fx_related_hosp <- nrow(freq_cond_proc_tbl_hrg_cost_clean)
+  
+  summary_cost_per_fx_related_hosp <- tibble(mean_HRG_cost_per_hosp = as.integer(sum(freq_cond_proc_tbl_hrg_cost_clean$Unit_cost))/tot_hospitalisations_fx_related,
+                                             min_HRG_cost_per_hosp = min(freq_cond_proc_tbl_hrg_cost_clean$Unit_cost),
+                                             max_HRG_cost_per_hosp = max(freq_cond_proc_tbl_hrg_cost_clean$Unit_cost),
+                                             sd_HRG_cost_per_hosp = round(sd(freq_cond_proc_tbl_hrg_cost_clean$Unit_cost), 2),
+                                             median_HRG_cost_per_hosp = round(quantile(freq_cond_proc_tbl_hrg_cost_clean$Unit_cost, probs = (.5)), 2),
+                                             lower_HRG_cost_per_hosp = round(quantile(freq_cond_proc_tbl_hrg_cost_clean$Unit_cost, probs = (.25)), 2),
+                                             upper_HRG_cost_per_hosp = round(quantile(freq_cond_proc_tbl_hrg_cost_clean$Unit_cost, probs = (.75)), 2))
+  
+  # Summary LoS per fx related spells
+  summary_LoS_per_fx_related_hosp <- tibble(mean_LoS_per_hosp = as.integer(sum(freq_cond_proc_tbl_hrg_cost_clean$LoS))/tot_hospitalisations_fx_related,
+                                            min_LoS_per_hosp = min(freq_cond_proc_tbl_hrg_cost_clean$LoS),
+                                            max_LoS_per_hosp = max(freq_cond_proc_tbl_hrg_cost_clean$LoS),
+                                            sd_LoS_per_hosp = round(sd(freq_cond_proc_tbl_hrg_cost_clean$LoS), 2),
+                                            median_LoS_per_hosp = round(quantile(freq_cond_proc_tbl_hrg_cost_clean$LoS, probs = (.5)), 2),
+                                            lower_LoS_per_hosp = round(quantile(freq_cond_proc_tbl_hrg_cost_clean$LoS, probs = (.25)), 2),
+                                            upper_LoS_per_hosp = round(quantile(freq_cond_proc_tbl_hrg_cost_clean$LoS, probs = (.75)), 2))
+  
+  
+  # Summary costs per entry-person/year
+  
+  costs_fx_related_hosp_per_person <- freq_cond_proc_tbl_hrg_cost_clean %>% 
+    dplyr::group_by(subject_id, index_date, exposed_yrs) %>% 
+    dplyr::ungroup() %>% 
+    dplyr::mutate(costs_per_yr = Unit_cost/exposed_yrs)
+  
+  summary_cost_fx_related_hosp_per_person_per_year <- tibble(mean_cost_per_person_per_year = sum(freq_cond_proc_tbl_hrg_cost_clean$Unit_cost)/sum(freq_cond_proc_tbl_hrg_cost_clean$exposed_yrs),
+                                                             min_cost_per_person_per_year = min(costs_fx_related_hosp_per_person$costs_per_yr),
+                                                             max_cost_per_person_per_year = max(costs_fx_related_hosp_per_person$costs_per_yr),
+                                                             sd_cost_per_person_per_year = round(sd(costs_fx_related_hosp_per_person$costs_per_yr), 2),
+                                                             median_cost_per_person_per_year = round(quantile(costs_fx_related_hosp_per_person$costs_per_yr, probs = (.5)), 2),
+                                                             lower_q_cost_per_person_per_year = round(quantile(costs_fx_related_hosp_per_person$costs_per_yr, probs = (.25)), 2),
+                                                             upper_q_cost_per_person_per_year = round(quantile(costs_fx_related_hosp_per_person$costs_per_yr, probs = (.75)), 2))
+  
+  # Sumamry spells per person
+  
+  mean_spells_per_subject <- freq_cond_proc_tbl_hrg_cost_clean %>%
+    dplyr::group_by(subject_id) %>%
+    summarise(spells = n_distinct(visit_occurrence_id)) %>%
+    summarise(mean_spells = mean(spells))
+  
+  # frequency table primary fx related diagnosis
+  
+  primary_cond_freq_table <- freq_cond_proc_tbl_hrg_cost_clean %>%
+    dplyr::group_by(condition_source_value) %>%
+    summarise(n_spells = n_distinct(visit_occurrence_id),
+              n_subjects = n_distinct (subject_id)) %>%
+    arrange(desc(n_spells)) %>% 
+    ungroup()
+  
+  # frequency table primary fx related procedure
+  
+  primary_proc_freq_table <- freq_cond_proc_tbl_hrg_cost_clean %>%
+    dplyr::group_by(procedure_source_value) %>%
+    summarise(n_spells = n_distinct(visit_occurrence_id),
+              n_subjects = n_distinct (subject_id)) %>%
+    arrange(desc(n_spells))%>% 
+    ungroup()
+  
+  ###### checking distributions for GLM #####
+  
+  fx_related_hosp_cost_distribuion<- ggplot(freq_cond_proc_tbl_hrg_cost_clean, aes(x = Unit_cost)) +
+    geom_histogram(bins = 30, fill = "blue", color = "black") +
+    theme_minimal() +
+    labs(title = "Histogram of Unit_cost", x = "Unit_cost", y = "Frequency")
+  
+  
+  ### summary ALL (users and non users) ------
+  
+  freq_cond_proc_tbl_hrg_cost_clean_all <- cohort_freq %>% 
+    left_join(freq_cond_proc_tbl_hrg_cost_clean %>% dplyr::select(subject_id, HRG, Unit_cost),
+              by = c("subject_id"),
+              copy = T,
+              relationship = "many-to-many") 
+  
+  
+  freq_cond_proc_tbl_hrg_cost_clean_all <- freq_cond_proc_tbl_hrg_cost_clean_all %>% 
+    dplyr::mutate(Unit_cost = case_when(
+      is.na(Unit_cost) ~ 0, 
+      TRUE ~ Unit_cost
+    )) %>% 
+    dplyr::mutate(cost_per_person_year = Unit_cost/exposed_yrs) %>% 
+    ungroup()
+  
+  # Summary costs per entry-person/year
+  
+  summary_cost_fx_related_hosp_per_person_per_year_all <- tibble(mean_cost_per_person_per_year = sum(freq_cond_proc_tbl_hrg_cost_clean_all$Unit_cost)/sum(freq_cond_proc_tbl_hrg_cost_clean_all$exposed_yrs),
+                                                                 min_cost_per_person_per_year = min(freq_cond_proc_tbl_hrg_cost_clean_all$cost_per_person_year),
+                                                                 max_cost_per_person_per_year = max(freq_cond_proc_tbl_hrg_cost_clean_all$cost_per_person_year),
+                                                                 sd_cost_per_person_per_year = round(sd(freq_cond_proc_tbl_hrg_cost_clean_all$cost_per_person_year), 2),
+                                                                 median_cost_per_person_per_year = round(quantile(freq_cond_proc_tbl_hrg_cost_clean_all$cost_per_person_year, probs = (.5)), 2),
+                                                                 lower_q_cost_per_person_per_year = round(quantile(freq_cond_proc_tbl_hrg_cost_clean_all$cost_per_person_year, probs = (.25)), 2),
+                                                                 upper_q_cost_per_person_per_year = round(quantile(freq_cond_proc_tbl_hrg_cost_clean_all$cost_per_person_year, probs = (.75)), 2))
+
+  return(list(# costs of all hospitalisations
+    cond_outs = cond_outs,
+    proc_outs = proc_outs,
+    case_a = case_a,
+    case_a.1 = case_a.1,
+    case_b = case_b,
+    case_c = case_c,
+    tot_fx_related_hosp = tot_fx_related_hosp,
+    summary_cost_per_fx_related_hosp = summary_cost_per_fx_related_hosp,
+    summary_LoS_per_fx_related_hosp = summary_LoS_per_fx_related_hosp,
+    summary_cost_fx_related_hosp_per_person_per_year = summary_cost_fx_related_hosp_per_person_per_year,
+    mean_spells_per_subject = mean_spells_per_subject,
+    primary_cond_freq_table = primary_cond_freq_table,
+    primary_proc_freq_table = primary_proc_freq_table,
+    fx_related_hosp_cost_distribuion = fx_related_hosp_cost_distribuion,
+    summary_cost_fx_related_hosp_per_person_per_year_all = summary_cost_fx_related_hosp_per_person_per_year_all
+
+  ))
+  
+  }
