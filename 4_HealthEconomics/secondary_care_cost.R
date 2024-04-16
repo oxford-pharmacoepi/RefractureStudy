@@ -146,4 +146,32 @@ if(country_setting == "Spain"){
   grouper_uk_Proc_HRG_any <- read_excel(file_path_4, sheet = "Proc_HRG_any")
   grouper_uk_Proc_HRG_STM <- read_excel(file_path_4, sheet = "Proc_HRG_STM")
   grouper_uk_unit_cost <- read_excel(file_path_4, sheet = "Unit costs")
+  
+  target_secondary_cost_all <- secondary_cost_cprd(cohort_freq = target_matched, table_name = "visit_occurrence_hes")
+  c1_comp1_secondary_cost_all <- secondary_cost_cprd(cohort_freq = cohort1_matched_to, table_name = "visit_occurrence_hes")
+  c1_comp2_secondary_cost_all <- secondary_cost_cprd(cohort_freq = cohort1_matched_from, table_name = "visit_occurrence_hes")
+  c2_secondary_cost_all <- secondary_cost_cprd(cohort_freq = cohort2_matched, table_name = "visit_occurrence_hes")
+  write.xlsx(target_secondary_cost_all, file = here(secondary_output, "target_secondary_cost_all.xlsx"))
+  write.xlsx(c1_comp1_secondary_cost_all, file = here(secondary_output, "c1_comp1_secondary_cost_all.xlsx"))
+  write.xlsx(c1_comp2_secondary_cost_all, file = here(secondary_output, "c1_comp2_secondary_cost_all.xlsx"))
+  write.xlsx(c2_secondary_cost_all, file = here(secondary_output, "c2_secondary_cost_all.xlsx"))
+  
+  target_secondary_cost_all_ic <- secondary_cost_cprd(cohort_freq = target_matched, table_name = "visit_occurrence_ic")
+  c1_comp1_secondary_cost_all_ic  <- secondary_cost_cprd(cohort_freq = cohort1_matched_to, table_name = "visit_occurrence_ic")
+  c1_comp2_secondary_cost_all_ic  <- secondary_cost_cprd(cohort_freq = cohort1_matched_from, table_name = "visit_occurrence_ic")
+  c2_secondary_cost_all_ic  <- secondary_cost_cprd(cohort_freq = cohort2_matched, table_name = "visit_occurrence_ic")
+  write.xlsx(target_secondary_cost_all_ic , file = here(secondary_output_ic, "target_secondary_cost_all_ic .xlsx"))
+  write.xlsx(c1_comp1_secondary_cost_all_ic , file = here(secondary_output_ic, "c1_comp1_secondary_cost_all_ic .xlsx"))
+  write.xlsx(c1_comp2_secondary_cost_all_ic , file = here(secondary_output_ic, "c1_comp2_secondary_cost_all_ic .xlsx"))
+  write.xlsx(c2_secondary_cost_all_ic , file = here(secondary_output_ic, "c2_secondary_cost_all_ic .xlsx"))
+  
+  target_secondary_cost_all_inpatient <- secondary_cost_cprd(cohort_freq = target_matched, table_name = "visit_occurrence_inpatient")
+  c1_comp1_secondary_cost_all_inpatient  <- secondary_cost_cprd(cohort_freq = cohort1_matched_to, table_name = "visit_occurrence_inpatient")
+  c1_comp2_secondary_cost_all_inpatient  <- secondary_cost_cprd(cohort_freq = cohort1_matched_from, table_name = "visit_occurrence_inpatient")
+  c2_secondary_cost_all_inpatient  <- secondary_cost_cprd(cohort_freq = cohort2_matched, table_name = "visit_occurrence_inpatient")
+  write.xlsx(target_secondary_cost_all_inpatient , file = here(secondary_output_inpatient, "target_secondary_cost_all_inpatient .xlsx"))
+  write.xlsx(c1_comp1_secondary_cost_all_inpatient , file = here(secondary_output_inpatient, "c1_comp1_secondary_cost_all_inpatient .xlsx"))
+  write.xlsx(c1_comp2_secondary_cost_all_inpatient , file = here(secondary_output_inpatient, "c1_comp2_secondary_cost_all_inpatient .xlsx"))
+  write.xlsx(c2_secondary_cost_all_inpatient , file = here(secondary_output_inpatient, "c2_secondary_cost_all_inpatient .xlsx"))
+  
 }

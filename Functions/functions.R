@@ -1932,7 +1932,7 @@ secondary_cost_sidiap <- function(cohort_freq, table_name, cost_type = "all"){
 secondary_cost_cprd <- function(cohort_freq, table_name){
   
   freq_cond_proc_tbl <- cohort_freq %>% 
-    dplyr::left_join(cdm[["visit_occurrence_hes"]] %>% dplyr::select(person_id, visit_concept_id, visit_start_date, visit_end_date, visit_source_value, visit_occurrence_id),
+    dplyr::left_join(cdm[[table_name]] %>% dplyr::select(person_id, visit_concept_id, visit_start_date, visit_end_date, visit_source_value, visit_occurrence_id),
                      by = c("subject_id" = "person_id"),
                      copy = T,
                      relationship = "many-to-many")  %>%
