@@ -180,6 +180,9 @@ imbal_c1_c2 <- smd_post_match_c1_c2 %>%
   dplyr::select(variable_level)%>%
   unique()%>%
   mutate(variable_level = to_snake_case(variable_level))
+if (country_setting %in% c("Spain", "UK")){
+  write_csv(imbal_c1_c2, here(t1_sub_output_folder, "imbalanced_covs_12.csv"))
+}
 
 #### glm
 imbal_c1_c2_nb <- imbal_c1_c2 %>% dplyr::filter(variable_level %in% non_binary_var) %>% dplyr::pull("variable_level")
