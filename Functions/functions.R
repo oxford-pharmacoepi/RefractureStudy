@@ -2223,7 +2223,7 @@ secondary_cost_cprd <- function(cohort_freq, table_name){
   # Summary costs per fx related spells
   tot_fx_related_hosp <- nrow(freq_cond_proc_tbl_hrg_cost_clean)
   
-  summary_cost_per_fx_related_hosp <- tibble(mean_HRG_cost_per_hosp = as.integer(sum(freq_cond_proc_tbl_hrg_cost_clean$Unit_cost))/tot_hospitalisations_fx_related,
+  summary_cost_per_fx_related_hosp <- tibble(mean_HRG_cost_per_hosp = as.integer(sum(freq_cond_proc_tbl_hrg_cost_clean$Unit_cost))/tot_fx_related_hosp,
                                              min_HRG_cost_per_hosp = min(freq_cond_proc_tbl_hrg_cost_clean$Unit_cost),
                                              max_HRG_cost_per_hosp = max(freq_cond_proc_tbl_hrg_cost_clean$Unit_cost),
                                              sd_HRG_cost_per_hosp = round(sd(freq_cond_proc_tbl_hrg_cost_clean$Unit_cost), 2),
@@ -2232,7 +2232,7 @@ secondary_cost_cprd <- function(cohort_freq, table_name){
                                              upper_HRG_cost_per_hosp = round(quantile(freq_cond_proc_tbl_hrg_cost_clean$Unit_cost, probs = (.75)), 2))
   
   # Summary LoS per fx related spells
-  summary_LoS_per_fx_related_hosp <- tibble(mean_LoS_per_hosp = as.integer(sum(freq_cond_proc_tbl_hrg_cost_clean$LoS))/tot_hospitalisations_fx_related,
+  summary_LoS_per_fx_related_hosp <- tibble(mean_LoS_per_hosp = as.integer(sum(freq_cond_proc_tbl_hrg_cost_clean$LoS))/tot_fx_related_hosp,
                                             min_LoS_per_hosp = min(freq_cond_proc_tbl_hrg_cost_clean$LoS),
                                             max_LoS_per_hosp = max(freq_cond_proc_tbl_hrg_cost_clean$LoS),
                                             sd_LoS_per_hosp = round(sd(freq_cond_proc_tbl_hrg_cost_clean$LoS), 2),
