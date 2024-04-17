@@ -2324,14 +2324,14 @@ secondary_cost_cprd <- function(cohort_freq, table_name){
     case_b = case_b,
     case_c = case_c,
     tot_fx_related_hosp = tot_fx_related_hosp,
-    summary_cost_per_fx_related_hosp = summary_cost_per_fx_related_hosp,
-    summary_LoS_per_fx_related_hosp = summary_LoS_per_fx_related_hosp,
-    summary_cost_fx_related_hosp_per_person_per_year = summary_cost_fx_related_hosp_per_person_per_year,
+    summ_cost_per_fx_rlt_hosp = summary_cost_per_fx_related_hosp,
+    summ_LoS_per_fx_rlt_hosp = summary_LoS_per_fx_related_hosp,
+    summ_cost_fx_rlt_hosp_pppy = summary_cost_fx_related_hosp_per_person_per_year,
     mean_spells_per_subject = mean_spells_per_subject,
     primary_cond_freq_table = primary_cond_freq_table,
     primary_proc_freq_table = primary_proc_freq_table,
-    fx_related_hosp_cost_distribuion = fx_related_hosp_cost_distribuion,
-    summary_cost_fx_related_hosp_per_person_per_year_all = summary_cost_fx_related_hosp_per_person_per_year_all
+    fx_related_hosp_cost_dist = fx_related_hosp_cost_distribuion,
+    summ_cost_fx_rlt_hosp_pppy_all = summary_cost_fx_related_hosp_per_person_per_year_all
 
   ))
   
