@@ -1946,7 +1946,7 @@ secondary_cost_cprd <- function(cohort_freq, table_name){
   
   freq_cond_proc_tbl <- freq_cond_proc_tbl %>%  
     #  filter conditions and visits
-    dplyr::filter(visit_start_date >=index_date & visit_start_date <= follow_up_end) %>% 
+    dplyr::filter(visit_start_date >=index_date & visit_end_date <= follow_up_end) %>%  
     dplyr::filter(condition_start_date >=visit_start_date & condition_start_date <= visit_end_date) %>%
     dplyr::filter(condition_start_date >=index_date & condition_start_date <= follow_up_end) %>%
     dplyr::distinct() %>% 
@@ -2174,7 +2174,7 @@ secondary_cost_cprd <- function(cohort_freq, table_name){
   ## Case B or C -> we keep the first entry
   freq_cond_proc_tbl_hrg_cost_clean <- freq_cond_proc_tbl_hrg_cost_clean %>% 
     dplyr::group_by(subject_id, visit_occurrence_id) %>%
-    dplyr::filter(visit_start_date > index_date & visit_start_date < follow_up_end) #the second entry would have index date > than visit_start date
+    dplyr::filter(visit_start_date > index_date & visit_end_date < follow_up_end) #the second entry would have index date > than visit_start date
   
   
   # Lastly, when more than one HRG is associated with a visit, keep the HRG with highest unit cost
