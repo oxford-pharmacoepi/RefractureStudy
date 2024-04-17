@@ -217,32 +217,54 @@ if(country_setting == "Spain"){
       overwrite = TRUE
     )
   
-  
   target_secondary_cost_all <- secondary_cost_cprd(cohort_freq = target_matched, table_name = "visit_occurrence_hes")
   c1_comp1_secondary_cost_all <- secondary_cost_cprd(cohort_freq = cohort1_matched_to, table_name = "visit_occurrence_hes")
   c1_comp2_secondary_cost_all <- secondary_cost_cprd(cohort_freq = cohort1_matched_from, table_name = "visit_occurrence_hes")
   c2_secondary_cost_all <- secondary_cost_cprd(cohort_freq = cohort2_matched, table_name = "visit_occurrence_hes")
-  write.xlsx(target_secondary_cost_all, file = here(secondary_output, "target_secondary_cost_all.xlsx"))
-  write.xlsx(c1_comp1_secondary_cost_all, file = here(secondary_output, "c1_comp1_secondary_cost_all.xlsx"))
-  write.xlsx(c1_comp2_secondary_cost_all, file = here(secondary_output, "c1_comp2_secondary_cost_all.xlsx"))
-  write.xlsx(c2_secondary_cost_all, file = here(secondary_output, "c2_secondary_cost_all.xlsx"))
+  write.xlsx(target_secondary_cost_all[-14], file = here(secondary_output, "target_secondary_cost_all.xlsx"))
+  write.xlsx(c1_comp1_secondary_cost_all[-14], file = here(secondary_output, "c1_comp1_secondary_cost_all.xlsx"))
+  write.xlsx(c1_comp2_secondary_cost_all[-14], file = here(secondary_output, "c1_comp2_secondary_cost_all.xlsx"))
+  write.xlsx(c2_secondary_cost_all[-14], file = here(secondary_output, "c2_secondary_cost_all.xlsx"))
+  ggsave(here::here(secondary_output, "fx_related_hosp_cost_dist_target.PNG"),
+         target_secondary_cost_all[[14]], width = 6, height = 4)
+  ggsave(here::here(secondary_output, "fx_related_hosp_cost_dist_c1_comp1.PNG"),
+         c1_comp1_secondary_cost_all[[14]], width = 6, height = 4)
+  ggsave(here::here(secondary_output, "fx_related_hosp_cost_dist_c1_comp2.PNG"),
+         c1_comp2_secondary_cost_all[[14]], width = 6, height = 4)
+  ggsave(here::here(secondary_output, "fx_related_hosp_cost_dist_c2.PNG"),
+         c2_secondary_cost_all[[14]], width = 6, height = 4)
   
   target_secondary_cost_all_ic <- secondary_cost_cprd(cohort_freq = target_matched, table_name = "visit_occurrence_ic")
   c1_comp1_secondary_cost_all_ic  <- secondary_cost_cprd(cohort_freq = cohort1_matched_to, table_name = "visit_occurrence_ic")
   c1_comp2_secondary_cost_all_ic  <- secondary_cost_cprd(cohort_freq = cohort1_matched_from, table_name = "visit_occurrence_ic")
   c2_secondary_cost_all_ic  <- secondary_cost_cprd(cohort_freq = cohort2_matched, table_name = "visit_occurrence_ic")
-  write.xlsx(target_secondary_cost_all_ic , file = here(secondary_output_ic, "target_secondary_cost_all_ic .xlsx"))
-  write.xlsx(c1_comp1_secondary_cost_all_ic , file = here(secondary_output_ic, "c1_comp1_secondary_cost_all_ic .xlsx"))
-  write.xlsx(c1_comp2_secondary_cost_all_ic , file = here(secondary_output_ic, "c1_comp2_secondary_cost_all_ic .xlsx"))
-  write.xlsx(c2_secondary_cost_all_ic , file = here(secondary_output_ic, "c2_secondary_cost_all_ic .xlsx"))
+  write.xlsx(target_secondary_cost_all_ic[-14], file = here(secondary_output_ic, "target_secondary_cost_all_ic .xlsx"))
+  write.xlsx(c1_comp1_secondary_cost_all_ic[-14], file = here(secondary_output_ic, "c1_comp1_secondary_cost_all_ic .xlsx"))
+  write.xlsx(c1_comp2_secondary_cost_all_ic[-14], file = here(secondary_output_ic, "c1_comp2_secondary_cost_all_ic .xlsx"))
+  write.xlsx(c2_secondary_cost_all_ic[-14], file = here(secondary_output_ic, "c2_secondary_cost_all_ic .xlsx"))
+  ggsave(here::here(secondary_output_ic, "fx_related_hosp_cost_dist_target_ic.PNG"),
+         target_secondary_cost_all_ic[[14]], width = 6, height = 4)
+  ggsave(here::here(secondary_output_ic, "fx_related_hosp_cost_dist_c1_comp1_ic.PNG"),
+         c1_comp1_secondary_cost_all_ic[[14]], width = 6, height = 4)
+  ggsave(here::here(secondary_output_ic, "fx_related_hosp_cost_dist_c1_comp2_ic.PNG"),
+         c1_comp2_secondary_cost_all_ic[[14]], width = 6, height = 4)
+  ggsave(here::here(secondary_output_ic, "fx_related_hosp_cost_dist_c2_ic.PNG"),
+         c2_secondary_cost_all_ic[[14]], width = 6, height = 4)
   
   target_secondary_cost_all_inpatient <- secondary_cost_cprd(cohort_freq = target_matched, table_name = "visit_occurrence_inpatient")
   c1_comp1_secondary_cost_all_inpatient  <- secondary_cost_cprd(cohort_freq = cohort1_matched_to, table_name = "visit_occurrence_inpatient")
   c1_comp2_secondary_cost_all_inpatient  <- secondary_cost_cprd(cohort_freq = cohort1_matched_from, table_name = "visit_occurrence_inpatient")
   c2_secondary_cost_all_inpatient  <- secondary_cost_cprd(cohort_freq = cohort2_matched, table_name = "visit_occurrence_inpatient")
-  write.xlsx(target_secondary_cost_all_inpatient , file = here(secondary_output_inpatient, "target_secondary_cost_all_inpatient .xlsx"))
-  write.xlsx(c1_comp1_secondary_cost_all_inpatient , file = here(secondary_output_inpatient, "c1_comp1_secondary_cost_all_inpatient .xlsx"))
-  write.xlsx(c1_comp2_secondary_cost_all_inpatient , file = here(secondary_output_inpatient, "c1_comp2_secondary_cost_all_inpatient .xlsx"))
-  write.xlsx(c2_secondary_cost_all_inpatient , file = here(secondary_output_inpatient, "c2_secondary_cost_all_inpatient .xlsx"))
-  
+  write.xlsx(target_secondary_cost_all_inpatient[-14], file = here(secondary_output_inpatient, "target_secondary_cost_all_inpatient .xlsx"))
+  write.xlsx(c1_comp1_secondary_cost_all_inpatient[-14], file = here(secondary_output_inpatient, "c1_comp1_secondary_cost_all_inpatient .xlsx"))
+  write.xlsx(c1_comp2_secondary_cost_all_inpatient[-14], file = here(secondary_output_inpatient, "c1_comp2_secondary_cost_all_inpatient .xlsx"))
+  write.xlsx(c2_secondary_cost_all_inpatient[-14], file = here(secondary_output_inpatient, "c2_secondary_cost_all_inpatient .xlsx"))
+  ggsave(here::here(secondary_output_inpatient, "fx_related_hosp_cost_dist_target_inpatient.PNG"),
+         target_secondary_cost_all_inpatient[[14]], width = 6, height = 4)
+  ggsave(here::here(secondary_output_inpatient, "fx_related_hosp_cost_dist_c1_comp1_inpatient.PNG"),
+         c1_comp1_secondary_cost_all_inpatient[[14]], width = 6, height = 4)
+  ggsave(here::here(secondary_output_inpatient, "fx_related_hosp_cost_dist_c1_comp2_inpatient.PNG"),
+         c1_comp2_secondary_cost_all_inpatient[[14]], width = 6, height = 4)
+  ggsave(here::here(secondary_output_inpatient, "fx_related_hosp_cost_dist_c2_inpatient.PNG"),
+         c2_secondary_cost_all_ic[[14]], width = 6, height = 4)
 }
