@@ -2177,11 +2177,11 @@ secondary_cost_cprd <- function(cohort_freq, table_name){
     dplyr::filter(visit_start_date > index_date & visit_end_date < follow_up_end) #the second entry would have index date > than visit_start date
   
   
-  # Lastly, when more than one HRG is associated with a visit, keep the HRG with highest unit cost
+  # Lastly, when more than one HRG is associated with a visit & entry, keep the HRG with highest unit cost (if there are multiple entries during the same spell (possible for C2 we keep them all in unless the same entry appears more than once with the same hrg))
   freq_cond_proc_tbl_hrg_cost_clean<- freq_cond_proc_tbl_hrg_cost_clean %>%
-    dplyr::group_by(visit_occurrence_id) %>%
+    dplyr::group_by(visit_occurrence_id, index_date, exposed_yrs) %>%
     slice_max(order_by = Unit_cost, with_ties = FALSE) %>%
-    ungroup()
+    dplyr::ungroup()
   
   # final checks to make sure we have one entry per spell 
   unique_pairs_count <- freq_cond_proc_tbl_hrg_cost_clean %>%
@@ -2221,9 +2221,9 @@ secondary_cost_cprd <- function(cohort_freq, table_name){
   
   
   # Summary costs per fx related spells
-  tot_fx_related_hosp <- nrow(freq_cond_proc_tbl_hrg_cost_clean)
+  tot_fx_related_hosp <- n_distinct(freq_cond_proc_tbl_hrg_cost_clean$visit_occurrence_id)
   
-  summary_cost_per_fx_related_hosp <- tibble(mean_HRG_cost_per_hosp = as.integer(sum(freq_cond_proc_tbl_hrg_cost_clean$Unit_cost))/tot_fx_related_hosp,
+  summary_cost_per_fx_related_hosp <- tibble(mean_HRG_cost_per_hosp = mean(freq_cond_proc_tbl_hrg_cost_clean$Unit_cost),
                                              min_HRG_cost_per_hosp = min(freq_cond_proc_tbl_hrg_cost_clean$Unit_cost),
                                              max_HRG_cost_per_hosp = max(freq_cond_proc_tbl_hrg_cost_clean$Unit_cost),
                                              sd_HRG_cost_per_hosp = round(sd(freq_cond_proc_tbl_hrg_cost_clean$Unit_cost), 2),
@@ -2232,7 +2232,7 @@ secondary_cost_cprd <- function(cohort_freq, table_name){
                                              upper_HRG_cost_per_hosp = round(quantile(freq_cond_proc_tbl_hrg_cost_clean$Unit_cost, probs = (.75)), 2))
   
   # Summary LoS per fx related spells
-  summary_LoS_per_fx_related_hosp <- tibble(mean_LoS_per_hosp = as.integer(sum(freq_cond_proc_tbl_hrg_cost_clean$LoS))/tot_fx_related_hosp,
+  summary_LoS_per_fx_related_hosp <- tibble(mean_LoS_per_hosp = mean(freq_cond_proc_tbl_hrg_cost_clean$LoS),
                                             min_LoS_per_hosp = min(freq_cond_proc_tbl_hrg_cost_clean$LoS),
                                             max_LoS_per_hosp = max(freq_cond_proc_tbl_hrg_cost_clean$LoS),
                                             sd_LoS_per_hosp = round(sd(freq_cond_proc_tbl_hrg_cost_clean$LoS), 2),
@@ -2280,6 +2280,15 @@ secondary_cost_cprd <- function(cohort_freq, table_name){
               n_subjects = n_distinct (subject_id)) %>%
     arrange(desc(n_spells))%>% 
     ungroup()
+  
+  # frequency table HRG
+  
+  HRG_freq_table <- freq_cond_proc_tbl_hrg_cost_clean %>%
+    dplyr::group_by(HRG) %>%
+    dplyr::summarise(n_spells = n_distinct(visit_occurrence_id),
+              n_subjects = n_distinct (subject_id)) %>%
+    dplyr::arrange(desc(n_spells))%>% 
+    dplyr::ungroup()
   
   ###### checking distributions for GLM #####
   
