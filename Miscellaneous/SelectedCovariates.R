@@ -13,12 +13,7 @@ selected01[["selected_covariates"]] <- substr(selected01$selected_covariates, 2,
 selected01 <- selected01 %>% 
   dplyr::mutate(selected_covariates = as.integer(selected_covariates)) %>% 
   dplyr::rename("concept_id" = "selected_covariates") %>% 
-  left_join(tbl(db, sql(paste0(
-    "SELECT * FROM ",
-    cdm_database_schema,
-    ".concept"
-  ))),
-  copy = T) %>%
+  left_join(cdm[["concept"]], by = "concept_id", copy = T) %>%
   dplyr::select(
     "concept_id", "concept_name",
     "domain_id", "vocabulary_id", "period"
@@ -60,12 +55,7 @@ selected12[["selected_covariates"]] <- substr(selected12$selected_covariates, 2,
 selected12 <- selected12 %>% 
 dplyr::mutate(selected_covariates = as.integer(selected_covariates)) %>% 
   dplyr::rename("concept_id" = "selected_covariates") %>% 
-  left_join(tbl(db, sql(paste0(
-    "SELECT * FROM ",
-    cdm_database_schema,
-    ".concept"
-  ))),
-  copy = T) %>%
+  left_join(cdm[["concept"]], by = "concept_id", copy = T) %>%
   dplyr::select(
     "concept_id", "concept_name",
     "domain_id", "vocabulary_id", "period"
