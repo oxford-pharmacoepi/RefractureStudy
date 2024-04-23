@@ -14,6 +14,16 @@ sheet_name <- switch(country_setting,
 # Import the data from the selected sheet
 provider_cost_inputs <- read_excel(file_path, sheet = sheet_name)
 
+primary_resources_subfolder <- here(sub_output_folder, "primary_resources")
+if (!dir.exists(primary_resources_subfolder)) {
+  dir.create(primary_resources_subfolder)
+}
+
+primary_costs_subfolder <- here(sub_output_folder, "primary_costs")
+if (!dir.exists(primary_costs_subfolder)) {
+  dir.create(primary_costs_subfolder)
+}
+
 if(country_setting %in% c("UK", "Italy")){
   specialty_names <- provider_cost_inputs %>% dplyr::filter(Include == 1) %>% dplyr::pull(specialty_source_value)
 } else if(country_setting %in% c("Spain", "Germany", "France")){
@@ -342,10 +352,10 @@ if(cohort2_results_output[[names(cohort2_results)[3]]]$nonservice<5 & cohort2_re
 }
 
 #HCRU
-write.xlsx(target_results_output[-4], file = here(sub_output_folder, "target_results.xlsx"))
-write.xlsx(cohort1_comp1_results_output[-4], file = here(sub_output_folder, "cohort1_comp1_results.xlsx"))
-write.xlsx(cohort1_comp2_results_output[-4], file = here(sub_output_folder, "cohort1_comp2_results.xlsx"))
-write.xlsx(cohort2_results_output[-4], file = here(sub_output_folder, "cohort2_results.xlsx"))
+write.xlsx(target_results_output[-4], file = here(primary_resources_subfolder, "target_results.xlsx"))
+write.xlsx(cohort1_comp1_results_output[-4], file = here(primary_resources_subfolder, "cohort1_comp1_results.xlsx"))
+write.xlsx(cohort1_comp2_results_output[-4], file = here(primary_resources_subfolder, "cohort1_comp2_results.xlsx"))
+write.xlsx(cohort2_results_output[-4], file = here(primary_resources_subfolder, "cohort2_results.xlsx"))
 
 if (country_setting != "Netherlands") {
   
@@ -554,22 +564,22 @@ if (country_setting != "Netherlands") {
                   num_subjects_visited = ifelse((num_subjects_visited < minimum_counts & num_subjects_visited > 0), paste0("<", minimum_counts), as.numeric(.data$num_subjects_visited)))
   
   #HCRU
-  write.xlsx(target_results_cost_output[-3], file = here(sub_output_folder, "target_results_cost.xlsx"))
-  write.xlsx(cohort1_comp1_results_cost_output[-3], file = here(sub_output_folder, "cohort1_comp1_results_cost.xlsx"))
-  write.xlsx(cohort1_comp2_results_cost_output[-3], file = here(sub_output_folder, "cohort1_comp2_results_cost.xlsx"))
-  write.xlsx(cohort2_results_cost_output[-3], file = here(sub_output_folder, "cohort2_results_cost.xlsx"))
+  write.xlsx(target_results_cost_output[-3], file = here(primary_costs_subfolder, "target_results_cost.xlsx"))
+  write.xlsx(cohort1_comp1_results_cost_output[-3], file = here(primary_costs_subfolder, "cohort1_comp1_results_cost.xlsx"))
+  write.xlsx(cohort1_comp2_results_cost_output[-3], file = here(primary_costs_subfolder, "cohort1_comp2_results_cost.xlsx"))
+  write.xlsx(cohort2_results_cost_output[-3], file = here(primary_costs_subfolder, "cohort2_results_cost.xlsx"))
 }
 
 #summary
-write.xlsx(summary_cohort_comp1, file = here(sub_output_folder, "summary_cohort_comp1.xlsx"))
-write.xlsx(summary_cohort_comp2, file = here(sub_output_folder, "summary_cohort_comp2.xlsx"))
+write.xlsx(summary_cohort_comp1, file = here(primary_resources_subfolder, "summary_cohort_comp1.xlsx"))
+write.xlsx(summary_cohort_comp2, file = here(primary_resources_subfolder, "summary_cohort_comp2.xlsx"))
 
 #Other 
 if (exists("check_dates")){
-  write.xlsx(check_dates, file = here(sub_output_folder, "check_dates.xlsx"))
+  write.xlsx(check_dates, file = here(primary_resources_subfolder, "check_dates.xlsx"))
 }
 if (exists("visit_type_by_specialty")) {
-  write.xlsx(visit_type_by_specialty, file = here(sub_output_folder, "visit_type_by_specialty.xlsx"))
+  write.xlsx(visit_type_by_specialty, file = here(primary_resources_subfolder, "visit_type_by_specialty.xlsx"))
 }
 
 #Secondary Care
