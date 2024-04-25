@@ -628,6 +628,7 @@ analyse_visits_cost <- function(cohort_combined, visit_data) {
       dplyr::rename(specialty = specialty_concept_id)
     # Join and create new names for specialties
     filtered_visits <- filtered_visits %>%
+      dplyr::select(-"unit_cost") %>% 
       dplyr::left_join(provider_cost_inputs_2, by = "specialty", copy = T) %>%
       dplyr::mutate(specialty = as.character(specialty),
                     specialty_temp = ifelse(is.na(description_athena), specialty, description_athena))%>%
