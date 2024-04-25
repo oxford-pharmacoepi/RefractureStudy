@@ -148,7 +148,8 @@ if (country_setting == "Spain") {
   info(logger, "PRODUCING VISIT DATA FOR SPAIN")
   ## Join visit_occurrence and provider tables - visit_detail is not empty but we cannot interpret source values 
   joined_visit_provider_tables <- cdm$visit_occurrence %>% 
-    dplyr::inner_join(cdm$provider) %>% 
+    dplyr::select(-"care_site_id") %>% 
+    dplyr::inner_join(cdm$provider, by = "provider_id") %>% 
     dplyr::compute()
   
   ## check that visit_start_date and visit_end_date are the same
