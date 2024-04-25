@@ -1898,6 +1898,20 @@ secondary_cost_sidiap <- function(cohort_freq, table_name, cost_type = "all"){
     dplyr::mutate(cost_per_person_year = cost/exposed_yrs) %>% 
     dplyr::ungroup()
   
+  hosp_cost_distribution<- ggplot(freq_condition_tbl_users, 
+                                  aes(x = cost)) +
+    geom_histogram(bins = 30, fill = "blue", color = "black") +
+    theme_minimal() +
+    labs(title = "Histogram of Costs", x = "Cost per hospitalisation", y = "Frequency")
+  
+  
+  summary_cost_per_hosp <- tibble(mean_cost_per_hosp = mean(freq_condition_tbl_users$cost),
+                                  min_cost_per_hosp = min(freq_condition_tbl_users$cost),
+                                  max_cost_per_hosp = max(freq_condition_tbl_users$cost),
+                                  sd_cost_per_hosp = round(sd(freq_condition_tbl_users$cost), 2),
+                                  median_cost_per_hosp = round(quantile(freq_condition_tbl_users$cost, probs = (.5)), 2),
+                                  lower_cost_per_hosp = round(quantile(freq_condition_tbl_users$cost, probs = (.25)), 2),
+                                  upper_cost_per_hosp = round(quantile(freq_condition_tbl_users$cost, probs = (.75)), 2))
   
   # Summary all
   summary_hospitalisation_per_person_per_year_all <- tibble(mean_hospitalisation_per_person_per_year=(sum(all_cost$cost)/sum(all_cost$exposed_yrs)),
@@ -1921,10 +1935,12 @@ secondary_cost_sidiap <- function(cohort_freq, table_name, cost_type = "all"){
     summary_hos_per_pers_yr_all = summary_hospitalisation_per_person_per_year_all,
     summary_hos_per_pers_yr_user = summary_hospitalisation_per_person_per_year_user,
     non_user_count = non_user_count_2,
+    summary_cost_per_hosp = summary_cost_per_hosp,
     # check cost assignment
-    no_cost_conditions,
-    duplicates,
-    cond_outside
+    no_cost_conditions = no_cost_conditions,
+    duplicates = duplicates,
+    cond_outside = cond_outside,
+    hosp_cost_distribution = hosp_cost_distribution
   ))
 }
 

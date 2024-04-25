@@ -172,6 +172,10 @@ c2 <- c2 %>%
   dplyr::select(cdm_name, variable, variable_level, period, asmd_t_c1)
 smd_post_match_t_c1 <- rbind(c1,c2)
 
+if (country_setting %in% c("Spain", "UK")){
+  write_csv(smd_post_match_t_c1, here(t1_sub_output_folder, "smd_post_match_t_c1.csv"))
+}
+
 exclude <- c("Fractures", "Hiv", "Hormonal contraceptives syst", "Malignant neoplastic disease", "Antineoplastic agents")
 imbal_t_c1 <- smd_post_match_t_c1 %>%
   dplyr::filter(!(variable_level %in% exclude))%>%
