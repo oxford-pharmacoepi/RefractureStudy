@@ -139,7 +139,7 @@ for (name in (names(target_results)[1:length(target_results)])){
 
 data_all <- target_results_output[["visits_count_wide"]] %>% 
   dplyr::select(-exposed_yrs, -cohort) %>% 
-  pivot_longer(cols = -c(subject_id, index_date, follow_up_end)) %>% 
+  pivot_longer(cols = -c(subject_id, index_date, follow_up_end, unit_cost, Include)) %>% 
   dplyr::group_by(subject_id, index_date, follow_up_end) %>% 
   dplyr::summarise(tot_visits = sum(value, na.rm = T)) %>% 
   dplyr::ungroup() %>% 
@@ -194,7 +194,7 @@ for (name in (names(cohort1_comp1_results)[1:length(cohort1_comp1_results)])){
 
 data_all <- cohort1_comp1_results_output[["visits_count_wide"]] %>% 
   dplyr::select(-exposed_yrs, -cohort) %>% 
-  pivot_longer(cols = -c(subject_id, index_date, follow_up_end)) %>% 
+  pivot_longer(cols = -c(subject_id, index_date, follow_up_end, unit_cost, Include)) %>% 
   dplyr::group_by(subject_id, index_date, follow_up_end) %>% 
   dplyr::summarise(tot_visits = sum(value, na.rm = T)) %>% 
   dplyr::ungroup() %>% 
@@ -249,7 +249,7 @@ for (name in (names(cohort1_comp2_results)[1:length(cohort1_comp2_results)])){
 
 data_all <- cohort1_comp2_results_output[["visits_count_wide"]] %>% 
   dplyr::select(-exposed_yrs, -cohort) %>% 
-  pivot_longer(cols = -c(subject_id, index_date, follow_up_end)) %>% 
+  pivot_longer(cols = -c(subject_id, index_date, follow_up_end, unit_cost, Include)) %>% 
   dplyr::group_by(subject_id, index_date, follow_up_end) %>% 
   dplyr::summarise(tot_visits = sum(value, na.rm = T)) %>% 
   dplyr::ungroup() %>% 
@@ -304,7 +304,7 @@ for (name in (names(cohort2_results)[1:length(cohort2_results)])){
 
 data_all <- cohort2_results_output[["visits_count_wide"]] %>% 
   dplyr::select(-exposed_yrs, -cohort) %>% 
-  pivot_longer(cols = -c(subject_id, index_date, follow_up_end)) %>% 
+  pivot_longer(cols = -c(subject_id, index_date, follow_up_end, unit_cost, Include)) %>% 
   dplyr::group_by(subject_id, index_date, follow_up_end) %>% 
   dplyr::summarise(tot_visits = sum(value, na.rm = T)) %>% 
   dplyr::ungroup() %>% 
@@ -595,9 +595,9 @@ if (country_setting %in% c("Spain", "UK")){
   source(here("4_HealthEconomics", "secondary_care_cost.R"))
   info(logger, "Finishing secondary care cost")
   
-  info(logger, "Starting general linear model")
-  source(here("4_HealthEconomics", "glm.R"))
-  info(logger, "Finishing general linear model")
+  # info(logger, "Starting general linear model")
+  # source(here("4_HealthEconomics", "glm.R"))
+  # info(logger, "Finishing general linear model")
 }
 
 info(logger, "OUTPUT FOR HEALTH ECONOMICS IS DONE")
