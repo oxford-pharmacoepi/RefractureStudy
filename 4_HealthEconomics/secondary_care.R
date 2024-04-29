@@ -260,6 +260,7 @@ if (country_setting == "UK"){
     )
   
   ## matched condition - ALL
+  print(paste0("Creating secondary - condition, all at ", Sys.time()))
   target_condition <- condition_frequency_table_sidiap(cohort_freq = target_matched, table_name = "visit_occurrence_hes")
   c1_comp1_condition <- condition_frequency_table_sidiap(cohort_freq = cohort1_matched_to, table_name = "visit_occurrence_hes")
   c1_comp2_condition <- condition_frequency_table_sidiap(cohort_freq = cohort1_matched_from, table_name = "visit_occurrence_hes")
@@ -279,6 +280,7 @@ if (country_setting == "UK"){
   # write.xlsx(c2_condition_primary, file = here(secondary_output, "c2_condition_primary_all.xlsx"))
   # 
   ## matched condition - IC
+  print(paste0("Creating secondary - condition, ic at ", Sys.time()))
   target_condition_ic <- condition_frequency_table_sidiap(cohort_freq = target_matched, table_name = "visit_occurrence_ic")
   c1_comp1_condition_ic <- condition_frequency_table_sidiap(cohort_freq = cohort1_matched_to, table_name = "visit_occurrence_ic")
   c1_comp2_condition_ic <- condition_frequency_table_sidiap(cohort_freq = cohort1_matched_from, table_name = "visit_occurrence_ic")
@@ -298,6 +300,7 @@ if (country_setting == "UK"){
   # write.xlsx(c2_condition_ic_primary, file = here(secondary_output_ic, "c2_condition_primary_ic.xlsx"))
   # 
   ## matched condition - Inpatient
+  print(paste0("Creating secondary - condition, inpatient at ", Sys.time()))
   target_condition_inpatient <- condition_frequency_table_sidiap(cohort_freq = target_matched, table_name = "visit_occurrence_inpatient")
   c1_comp1_condition_inpatient <- condition_frequency_table_sidiap(cohort_freq = cohort1_matched_to, table_name = "visit_occurrence_inpatient")
   c1_comp2_condition_inpatient <- condition_frequency_table_sidiap(cohort_freq = cohort1_matched_from, table_name = "visit_occurrence_inpatient")
@@ -317,6 +320,7 @@ if (country_setting == "UK"){
   # write.xlsx(c2_condition_inpatient_primary, file = here(secondary_output_inpatient, "c2_condition_primary_inpatient.xlsx"))
   # 
   ## matched procedure - ALL
+  print(paste0("Creating secondary - procedure, all at ", Sys.time()))
   target_procedure <- procedure_frequency_table_sidiap(cohort_freq = target_matched, table_name = "visit_occurrence_hes")
   c1_comp1_procedure <- procedure_frequency_table_sidiap(cohort_freq = cohort1_matched_to, table_name = "visit_occurrence_hes")
   c1_comp2_procedure <- procedure_frequency_table_sidiap(cohort_freq = cohort1_matched_from, table_name = "visit_occurrence_hes")
@@ -336,6 +340,7 @@ if (country_setting == "UK"){
   # write.xlsx(c2_procedure_primary, file = here(secondary_output, "c2_procedure_primary_all.xlsx"))
   # 
   ## matched procedure - IC
+  print(paste0("Creating secondary - procedure, ic at ", Sys.time()))
   target_procedure_ic <- procedure_frequency_table_sidiap(cohort_freq = target_matched, table_name = "visit_occurrence_ic")
   c1_comp1_procedure_ic <- procedure_frequency_table_sidiap(cohort_freq = cohort1_matched_to, table_name = "visit_occurrence_ic")
   c1_comp2_procedure_ic <- procedure_frequency_table_sidiap(cohort_freq = cohort1_matched_from, table_name = "visit_occurrence_ic")
@@ -355,6 +360,7 @@ if (country_setting == "UK"){
   # write.xlsx(c2_procedure_ic_primary, file = here(secondary_output_ic, "c2_procedure_primary_ic.xlsx"))
   # 
   ## matched procedure - Inpatient
+  print(paste0("Creating secondary - procedure, inpatient at ", Sys.time()))
   target_procedure_inpatient <- procedure_frequency_table_sidiap(cohort_freq = target_matched, table_name = "visit_occurrence_inpatient")
   c1_comp1_procedure_inpatient <- procedure_frequency_table_sidiap(cohort_freq = cohort1_matched_to, table_name = "visit_occurrence_inpatient")
   c1_comp2_procedure_inpatient <- procedure_frequency_table_sidiap(cohort_freq = cohort1_matched_from, table_name = "visit_occurrence_inpatient")
@@ -374,6 +380,7 @@ if (country_setting == "UK"){
   # write.xlsx(c2_procedure_inpatient_primary, file = here(secondary_output_inpatient, "c2_procedure_primary_inpatient.xlsx"))
   # 
   ## matched visit - ALL
+  print(paste0("Creating secondary - matched visit, all at ", Sys.time()))
   target_visit <- visit_summary_sidiap(cohort_freq = target_matched, table_name = "visit_occurrence_hes")
   c1_comp1_visit <- visit_summary_sidiap(cohort_freq = cohort1_matched_to, table_name = "visit_occurrence_hes")
   c1_comp2_visit <- visit_summary_sidiap(cohort_freq = cohort1_matched_from, table_name = "visit_occurrence_hes")
@@ -384,6 +391,7 @@ if (country_setting == "UK"){
   write.xlsx(c2_visit, file = here(secondary_output, "c2_visit_all.xlsx"))
   
   ## matched visit - IC
+  print(paste0("Creating secondary - matched visit, ic at ", Sys.time()))
   target_visit_ic <- visit_summary_sidiap(cohort_freq = target_matched, table_name = "visit_occurrence_ic")
   c1_comp1_visit_ic <- visit_summary_sidiap(cohort_freq = cohort1_matched_to, table_name = "visit_occurrence_ic")
   c1_comp2_visit_ic <- visit_summary_sidiap(cohort_freq = cohort1_matched_from, table_name = "visit_occurrence_ic")
@@ -394,6 +402,7 @@ if (country_setting == "UK"){
   write.xlsx(c2_visit_ic, file = here(secondary_output_ic, "c2_visit_ic.xlsx"))
   
   ## matched visit - Inpatient
+  print(paste0("Creating secondary - matched visit, inpatient at ", Sys.time()))
   target_visit_inpatient <- visit_summary_sidiap(cohort_freq = target_matched, table_name = "visit_occurrence_inpatient")
   c1_comp1_visit_inpatient <- visit_summary_sidiap(cohort_freq = cohort1_matched_to, table_name = "visit_occurrence_inpatient")
   c1_comp2_visit_inpatient <- visit_summary_sidiap(cohort_freq = cohort1_matched_from, table_name = "visit_occurrence_inpatient")
