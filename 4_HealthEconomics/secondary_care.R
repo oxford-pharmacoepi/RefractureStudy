@@ -259,6 +259,24 @@ if (country_setting == "UK"){
       overwrite = TRUE
     )
   
+  cdm[["condition_occurrence_hes"]] <- cdm[["condition_occurrence"]] %>% 
+    dplyr::filter(condition_type_concept_id == 32829) %>% 
+    CDMConnector::computeQuery(
+      name = "condition_occurrence_hes", 
+      temporary = FALSE, 
+      schema = attr(cdm, "write_schema"), 
+      overwrite = TRUE
+    )
+  
+  cdm[["procedure_occurrence_hes"]] <- cdm[["procedure_occurrence"]] %>% 
+    dplyr::filter(procedure_type_concept_id == 32829) %>% 
+    CDMConnector::computeQuery(
+      name = "procedure_occurrence_hes", 
+      temporary = FALSE, 
+      schema = attr(cdm, "write_schema"), 
+      overwrite = TRUE
+    )
+  
   ## matched condition - ALL
   print(paste0("Creating secondary - condition, all at ", Sys.time()))
   target_condition <- condition_frequency_table_sidiap(cohort_freq = target_matched, table_name = "visit_occurrence_hes")
