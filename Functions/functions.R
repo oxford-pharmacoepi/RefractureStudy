@@ -1910,27 +1910,27 @@ secondary_cost_sidiap <- function(cohort_freq, table_name, cost_type = "all"){
                                   min_cost_per_hosp = min(freq_condition_tbl_users$cost),
                                   max_cost_per_hosp = max(freq_condition_tbl_users$cost),
                                   sd_cost_per_hosp = round(sd(freq_condition_tbl_users$cost), 2),
-                                  median_cost_per_hosp = round(quantile(freq_condition_tbl_users$cost, probs = (.5)), 2),
-                                  lower_cost_per_hosp = round(quantile(freq_condition_tbl_users$cost, probs = (.25)), 2),
-                                  upper_cost_per_hosp = round(quantile(freq_condition_tbl_users$cost, probs = (.75)), 2))
+                                  median_cost_per_hosp = round(quantile(freq_condition_tbl_users$cost, probs = (.5), na.rm = T), 2),
+                                  lower_cost_per_hosp = round(quantile(freq_condition_tbl_users$cost, probs = (.25), na.rm = T), 2),
+                                  upper_cost_per_hosp = round(quantile(freq_condition_tbl_users$cost, probs = (.75), na.rm = T), 2))
   
   # Summary all
   summary_hospitalisation_per_person_per_year_all <- tibble(mean_hospitalisation_per_person_per_year=(sum(all_cost$cost)/sum(all_cost$exposed_yrs)),
                                                             min_hospitalisation_per_person_per_year = min(all_cost$cost_per_person_year),
                                                             max_hospitalisation_per_person_per_year = max(all_cost$cost_per_person_year),
                                                             sd_hospitalisation_per_person_per_year = round(sd(all_cost$cost_per_person_year), 2),
-                                                            median_hospitalisation_per_person_per_year = round(quantile(all_cost$cost_per_person_year, probs = (.5)), 2),
-                                                            lower_q_hospitalisation_per_person_per_year = round(quantile(all_cost$cost_per_person_year, probs = (.25)), 2),
-                                                            upper_q_hospitalisation_per_person_per_year = round(quantile(all_cost$cost_per_person_year, probs = (.75)), 2))
+                                                            median_hospitalisation_per_person_per_year = round(quantile(all_cost$cost_per_person_year, probs = (.5), na.rm = T), 2),
+                                                            lower_q_hospitalisation_per_person_per_year = round(quantile(all_cost$cost_per_person_year, probs = (.25), na.rm = T), 2),
+                                                            upper_q_hospitalisation_per_person_per_year = round(quantile(all_cost$cost_per_person_year, probs = (.75), na.rm = T), 2))
   
   # Summary users
   summary_hospitalisation_per_person_per_year_user <- tibble(mean_hospitalisation_per_person_per_year=(sum(user_cost$cost)/sum(user_cost$exposed_yrs)),
                                                              min_hospitalisation_per_person_per_year = min(user_cost$cost_per_person_year),
                                                              max_hospitalisation_per_person_per_year = max(user_cost$cost_per_person_year),
                                                              sd_hospitalisation_per_person_per_year = round(sd(user_cost$cost_per_person_year), 2),
-                                                             median_hospitalisation_per_person_per_year = round(quantile(user_cost$cost_per_person_year, probs = (.5)), 2),
-                                                             lower_q_hospitalisation_per_person_per_year = round(quantile(user_cost$cost_per_person_year, probs = (.25)), 2),
-                                                             upper_q_hospitalisation_per_person_per_year = round(quantile(user_cost$cost_per_person_year, probs = (.75)), 2))
+                                                             median_hospitalisation_per_person_per_year = round(quantile(user_cost$cost_per_person_year, probs = (.5), na.rm = T), 2),
+                                                             lower_q_hospitalisation_per_person_per_year = round(quantile(user_cost$cost_per_person_year, probs = (.25), na.rm = T), 2),
+                                                             upper_q_hospitalisation_per_person_per_year = round(quantile(user_cost$cost_per_person_year, probs = (.75), na.rm = T), 2))
   
   return(list(# costs of all hospitalisations
     summary_hos_per_pers_yr_all = summary_hospitalisation_per_person_per_year_all,

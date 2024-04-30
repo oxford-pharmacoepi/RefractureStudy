@@ -46,14 +46,14 @@ if(country_setting == "Spain"){
       overwrite = TRUE
     )
   
-  cdm[["visit_detail_hes"]] <- cdm[["visit_detail"]] %>%
-    dplyr::filter(visit_detail_concept_id == 32037|visit_detail_concept_id == 9201) %>%
-    CDMConnector::computeQuery(
-      name = "visit_detail_hes",
-      temporary = FALSE,
-      schema = attr(cdm, "write_schema"),
-      overwrite = TRUE
-    )
+  # cdm[["visit_detail_hes"]] <- cdm[["visit_detail"]] %>%
+  #   dplyr::filter(visit_detail_concept_id == 32037|visit_detail_concept_id == 9201) %>%
+  #   CDMConnector::computeQuery(
+  #     name = "visit_detail_hes",
+  #     temporary = FALSE,
+  #     schema = attr(cdm, "write_schema"),
+  #     overwrite = TRUE
+  #   )
   
   cdm[["condition_occurrence_hes"]] <- cdm[["condition_occurrence"]] %>% 
     dplyr::filter(condition_type_concept_id == 32829) %>% 
