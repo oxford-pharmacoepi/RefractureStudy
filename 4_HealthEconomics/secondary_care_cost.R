@@ -1,7 +1,7 @@
 if(country_setting == "Spain"){
   file_path <- here("4_HealthEconomics", "Inputs", "icd_ccs_cost_secondary_care_Spain_fracture.xlsx")
   ccs_spain_cost_inputs <- read_excel(file_path)
-  ccs_spain_cost_inputs_fx <- ccs_spain_cost_inputs %>% filter(Fracture_incl=1)
+  ccs_spain_cost_inputs_fx <- ccs_spain_cost_inputs %>% filter(Fracture_incl==1)
   
   secondary_output <- here(output_folder, washout_period[[k]], "secondary_cost")
   secondary_output_ic <- here(output_folder, washout_period[[k]], "secondary_ic_cost")
