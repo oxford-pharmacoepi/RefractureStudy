@@ -492,3 +492,10 @@ suppressWarnings(
      reformatted_table_1,
      fracture_table_rq2)
 )
+
+if (country_setting %in% c("Spain", "UK")){
+  info(logger, "Starting incidence primary vs hospital")
+  source(here("Miscellaneous", "rq2_additional_analysis_secondary.R"))
+  source(here("Miscellaneous", "rq2_additional_analysis_primary.R"))
+  info(logger, "Finishing incidence primary vs hospital")
+}
