@@ -331,11 +331,10 @@ for (l in (1:length(targetCohort))){
                  compCohort1[[l]] %>% dplyr::select(subject_id, index_date, group, follow_up_end))
   
   subfeatures_01 <- cdm[["subfeatures"]] %>% 
-    dplyr::right_join(df_to,
+    dplyr::inner_join(df_to,
                by = c("subject_id", "index_date", "follow_up_end"),
                copy = T) %>% 
     dplyr::collect()
-  # rm(subfeatures)
   
   subfeatures_01 <- lowerBoundLasso01(subfeatures_01, 50)
   
@@ -428,11 +427,10 @@ for (l in (1:length(compCohort1))){
                  compCohort2[[l]] %>% dplyr::select(subject_id, index_date, group, follow_up_end))
   
   subfeatures_12 <- cdm[["subfeatures"]] %>% 
-    dplyr::right_join(df_to,
+    dplyr::inner_join(df_to,
                       by = c("subject_id", "index_date", "follow_up_end"),
                       copy = T) %>% 
     dplyr::collect()
-  # rm(subfeatures)
   
   subfeatures_12 <- lowerBoundLasso12(subfeatures_12, 50)
   
