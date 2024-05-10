@@ -1832,10 +1832,13 @@ secondary_cost_sidiap <- function(cohort_freq, table_name, cost_type = "all"){
                      relationship = "many-to-many") %>% 
     dplyr::compute()
   freq_condition_tbl <- freq_condition_tbl %>% 
-    dplyr::left_join(cdm[["condition_occurrence_hes"]] %>% dplyr::select(person_id, condition_source_value, condition_start_date, visit_occurrence_id), 
-                     by = c("subject_id" = "person_id", "visit_occurrence_id"),
+    dplyr::left_join(cdm[["condition_occurrence_hes"]] %>% dplyr::select(person_id, condition_source_value, condition_start_date), 
+                     by = c("subject_id" = "person_id"),
                      copy = T,
                      relationship = "many-to-many") %>% 
+    dplyr::filter(condition_start_date >=visit_start_date & condition_start_date <= visit_end_date) %>%
+    dplyr::filter(condition_start_date >=index_date & condition_start_date <= follow_up_end) %>%
+    dplyr::distinct() %>% 
     dplyr::compute()
   
   # removing "." in icd.10 codes - in spain they have the "."
@@ -1843,7 +1846,8 @@ secondary_cost_sidiap <- function(cohort_freq, table_name, cost_type = "all"){
   
   # Joining costs based on the selected cost inputs
   freq_condition_tbl_all <- freq_condition_tbl %>% 
-    dplyr::left_join(cost_inputs %>% dplyr::select(icd10cm_code, cost), 
+    dplyr::mutate(condition_source_value = as.character(condition_source_value)) %>% 
+    dplyr::left_join(cost_inputs %>% dplyr::select(icd10cm_code, cost) %>% dplyr::mutate(icd10cm_code = as.character(icd10cm_code)), 
                      by = c("condition_source_value" = "icd10cm_code"))
   
   ### CHECK PART ###
@@ -1853,13 +1857,6 @@ secondary_cost_sidiap <- function(cohort_freq, table_name, cost_type = "all"){
     dplyr::filter(is.na(cost))
   
   no_cost_conditions <- distinct(no_cost_conditions, condition_source_value)
-  
-  # 2. identifying if there are duplicate records (so two hospitalisations with same spell number, condition and by the same patient)
-  duplicates <- freq_condition_tbl %>%
-    dplyr::group_by(condition_source_value, subject_id, visit_source_value, visit_occurrence_id) %>%
-    dplyr::summarise(n = n(), .groups = 'drop') %>%
-    dplyr::filter(n>1) %>% 
-    dplyr::select(condition_source_value, n)
   
   # 3. Are there any conditions outside of the spell?
   
@@ -1888,11 +1885,14 @@ secondary_cost_sidiap <- function(cohort_freq, table_name, cost_type = "all"){
   freq_condition_tbl_users <- freq_condition_tbl_all %>% 
     dplyr::filter(!is.na(visit_concept_id)) %>% 
     ## filtering so that to include only hospitalisaitons during entry
-    dplyr::filter(visit_start_date >=index_date & visit_start_date <= follow_up_end) %>% 
-    ## filtering so that conditions are within hospitalisations
-    dplyr::filter(condition_start_date >=visit_start_date & condition_start_date <= visit_end_date) %>%
-    dplyr::filter(condition_start_date >=index_date & condition_start_date <= follow_up_end) %>%
-    dplyr::distinct() # same as the check for duplicates above to deal with duplicated hospitalisations due to enter/leaves on the same day 
+    dplyr::filter(visit_start_date >=index_date & visit_start_date <= follow_up_end) 
+  
+  # Check 2. identifying if there are duplicate records (so two hospitalisations with same spell number, condition and by the same patient)
+  duplicates <- freq_condition_tbl_users %>%
+    dplyr::group_by(condition_source_value, subject_id, visit_source_value, visit_occurrence_id) %>%
+    dplyr::summarise(n = n(), .groups = 'drop') %>%
+    dplyr::filter(n>1) %>% 
+    dplyr::select(condition_source_value, n)
   
   user_cost <-freq_condition_tbl_users %>% 
     dplyr::group_by(subject_id, index_date, exposed_yrs) %>% 
