@@ -137,6 +137,17 @@ for (name in (names(target_results)[1:length(target_results)])){
   target_results_output[[name]]<-target_results[[name]]
 }
 
+if (country_setting == "UK"){
+  data_all <- target_results_output[["visits_count_wide"]] %>% 
+    dplyr::select(-exposed_yrs, -cohort) %>% 
+    pivot_longer(cols = -c(subject_id, index_date, follow_up_end)) %>% 
+    dplyr::group_by(subject_id, index_date, follow_up_end) %>% 
+    dplyr::summarise(tot_visits = sum(value, na.rm = T)) %>% 
+    dplyr::ungroup() %>% 
+    dplyr::mutate(cohort = "target",
+                  tot_exposed_yrs = as.numeric((follow_up_end - index_date)/365.25),
+                  tot_visits_per_yr = tot_visits/tot_exposed_yrs)
+} else {
 data_all <- target_results_output[["visits_count_wide"]] %>% 
   dplyr::select(-exposed_yrs, -cohort) %>% 
   pivot_longer(cols = -c(subject_id, index_date, follow_up_end, unit_cost, Include)) %>% 
@@ -146,6 +157,7 @@ data_all <- target_results_output[["visits_count_wide"]] %>%
   dplyr::mutate(cohort = "target",
                 tot_exposed_yrs = as.numeric((follow_up_end - index_date)/365.25),
                 tot_visits_per_yr = tot_visits/tot_exposed_yrs)
+}
 
 data_user <- data_all %>% 
   dplyr::filter(tot_visits > 0)
@@ -192,15 +204,27 @@ for (name in (names(cohort1_comp1_results)[1:length(cohort1_comp1_results)])){
   cohort1_comp1_results_output[[name]]<-cohort1_comp1_results[[name]]
 }
 
-data_all <- cohort1_comp1_results_output[["visits_count_wide"]] %>% 
+if (country_setting == "UK"){
+  data_all <- cohort1_comp1_results_output[["visits_count_wide"]] %>% 
   dplyr::select(-exposed_yrs, -cohort) %>% 
-  pivot_longer(cols = -c(subject_id, index_date, follow_up_end, unit_cost, Include)) %>% 
+  pivot_longer(cols = -c(subject_id, index_date, follow_up_end)) %>% 
   dplyr::group_by(subject_id, index_date, follow_up_end) %>% 
   dplyr::summarise(tot_visits = sum(value, na.rm = T)) %>% 
   dplyr::ungroup() %>% 
   dplyr::mutate(cohort = "cohort1_comp1",
                 tot_exposed_yrs = as.numeric((follow_up_end - index_date)/365.25),
                 tot_visits_per_yr = tot_visits/tot_exposed_yrs)
+} else {
+  data_all <- cohort1_comp1_results_output[["visits_count_wide"]] %>% 
+    dplyr::select(-exposed_yrs, -cohort) %>% 
+    pivot_longer(cols = -c(subject_id, index_date, follow_up_end, unit_cost, Include)) %>% 
+    dplyr::group_by(subject_id, index_date, follow_up_end) %>% 
+    dplyr::summarise(tot_visits = sum(value, na.rm = T)) %>% 
+    dplyr::ungroup() %>% 
+    dplyr::mutate(cohort = "cohort1_comp1",
+                  tot_exposed_yrs = as.numeric((follow_up_end - index_date)/365.25),
+                  tot_visits_per_yr = tot_visits/tot_exposed_yrs)
+  }
 
 data_user <- data_all %>% 
   dplyr::filter(tot_visits > 0)
@@ -247,15 +271,27 @@ for (name in (names(cohort1_comp2_results)[1:length(cohort1_comp2_results)])){
   cohort1_comp2_results_output[[name]]<-cohort1_comp2_results[[name]]
 }
 
-data_all <- cohort1_comp2_results_output[["visits_count_wide"]] %>% 
-  dplyr::select(-exposed_yrs, -cohort) %>% 
-  pivot_longer(cols = -c(subject_id, index_date, follow_up_end, unit_cost, Include)) %>% 
-  dplyr::group_by(subject_id, index_date, follow_up_end) %>% 
-  dplyr::summarise(tot_visits = sum(value, na.rm = T)) %>% 
-  dplyr::ungroup() %>% 
-  dplyr::mutate(cohort = "cohort1_comp1",
-                tot_exposed_yrs = as.numeric((follow_up_end - index_date)/365.25),
-                tot_visits_per_yr = tot_visits/tot_exposed_yrs)
+if (country_setting == "UK"){
+  data_all <- cohort1_comp2_results_output[["visits_count_wide"]] %>% 
+    dplyr::select(-exposed_yrs, -cohort) %>% 
+    pivot_longer(cols = -c(subject_id, index_date, follow_up_end)) %>% 
+    dplyr::group_by(subject_id, index_date, follow_up_end) %>% 
+    dplyr::summarise(tot_visits = sum(value, na.rm = T)) %>% 
+    dplyr::ungroup() %>% 
+    dplyr::mutate(cohort = "cohort1_comp1",
+                  tot_exposed_yrs = as.numeric((follow_up_end - index_date)/365.25),
+                  tot_visits_per_yr = tot_visits/tot_exposed_yrs)
+} else {
+  data_all <- cohort1_comp2_results_output[["visits_count_wide"]] %>% 
+    dplyr::select(-exposed_yrs, -cohort) %>% 
+    pivot_longer(cols = -c(subject_id, index_date, follow_up_end, unit_cost, Include)) %>% 
+    dplyr::group_by(subject_id, index_date, follow_up_end) %>% 
+    dplyr::summarise(tot_visits = sum(value, na.rm = T)) %>% 
+    dplyr::ungroup() %>% 
+    dplyr::mutate(cohort = "cohort1_comp1",
+                  tot_exposed_yrs = as.numeric((follow_up_end - index_date)/365.25),
+                  tot_visits_per_yr = tot_visits/tot_exposed_yrs)
+}
 
 data_user <- data_all %>% 
   dplyr::filter(tot_visits > 0)
@@ -302,15 +338,28 @@ for (name in (names(cohort2_results)[1:length(cohort2_results)])){
   cohort2_results_output[[name]]<-cohort2_results[[name]]
 }
 
-data_all <- cohort2_results_output[["visits_count_wide"]] %>% 
-  dplyr::select(-exposed_yrs, -cohort) %>% 
-  pivot_longer(cols = -c(subject_id, index_date, follow_up_end, unit_cost, Include)) %>% 
-  dplyr::group_by(subject_id, index_date, follow_up_end) %>% 
-  dplyr::summarise(tot_visits = sum(value, na.rm = T)) %>% 
-  dplyr::ungroup() %>% 
-  dplyr::mutate(cohort = "cohort2",
-                tot_exposed_yrs = as.numeric((follow_up_end - index_date)/365.25),
-                tot_visits_per_yr = tot_visits/tot_exposed_yrs)
+if (country_setting == "UK"){
+  data_all <- cohort2_results_output[["visits_count_wide"]] %>% 
+    dplyr::select(-exposed_yrs, -cohort) %>% 
+    pivot_longer(cols = -c(subject_id, index_date, follow_up_end)) %>% 
+    dplyr::group_by(subject_id, index_date, follow_up_end) %>% 
+    dplyr::summarise(tot_visits = sum(value, na.rm = T)) %>% 
+    dplyr::ungroup() %>% 
+    dplyr::mutate(cohort = "cohort2",
+                  tot_exposed_yrs = as.numeric((follow_up_end - index_date)/365.25),
+                  tot_visits_per_yr = tot_visits/tot_exposed_yrs)
+} else {
+  data_all <- cohort2_results_output[["visits_count_wide"]] %>% 
+    dplyr::select(-exposed_yrs, -cohort) %>% 
+    pivot_longer(cols = -c(subject_id, index_date, follow_up_end, unit_cost, Include)) %>% 
+    dplyr::group_by(subject_id, index_date, follow_up_end) %>% 
+    dplyr::summarise(tot_visits = sum(value, na.rm = T)) %>% 
+    dplyr::ungroup() %>% 
+    dplyr::mutate(cohort = "cohort2",
+                  tot_exposed_yrs = as.numeric((follow_up_end - index_date)/365.25),
+                  tot_visits_per_yr = tot_visits/tot_exposed_yrs)
+  
+}
 
 data_user <- data_all %>% 
   dplyr::filter(tot_visits > 0)
