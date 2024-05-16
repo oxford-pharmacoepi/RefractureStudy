@@ -213,6 +213,7 @@ if (country_setting == "UK"){
   write.xlsx(c1_comp2_visit_inpatient, file = here(secondary_output_inpatient, "c1_comp2_visit_inpatient.xlsx"))
   write.xlsx(c2_visit_inpatient, file = here(secondary_output_inpatient, "c2_visit_inpatient.xlsx"))
   
+  source(here("4_HealthEconomics", "secondary_ae_op.R"))
   
 } else if(country_setting == "Spain"){
   

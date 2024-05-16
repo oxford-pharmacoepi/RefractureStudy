@@ -1363,16 +1363,27 @@ visit_summary <- function(cohort_freq, table_name){
     dplyr::left_join(cdm[["visit_occurrence_hes"]] %>% dplyr::select(person_id, visit_concept_id, visit_start_date, visit_end_date),
                      by = c("subject_id" = "person_id"),
                      copy = T,
-                     relationship = "many-to-many") 
+                     relationship = "many-to-many") %>% 
+    dplyr::filter(visit_start_date >=index_date & visit_start_date <= follow_up_end)
   
-  non_user <- freq_visit_occurrence_tbl %>% 
-    dplyr::filter(is.na(visit_concept_id))
+  user_count <- freq_visit_occurrence_tbl %>% 
+    dplyr::select(subject_id, index_date, follow_up_end, cohort) %>% 
+    dplyr::distinct() %>% 
+    dplyr::tally() %>% 
+    as.numeric()
   
-  non_user_count_2 <- non_user %>% dplyr::tally() %>% dplyr::rename("non_user_count" = "n")
+  overall_count <- cohort_freq %>% 
+    dplyr::select(subject_id, index_date, follow_up_end, cohort) %>% 
+    dplyr::distinct() %>% 
+    dplyr::tally() %>% 
+    as.numeric()
+  
+  non_user_count_2 <- overall_count - user_count 
+  
+  non_user_count_2 <- data.frame("non_user_count" = non_user_count_2)
   
   user <- freq_visit_occurrence_tbl %>% 
     dplyr::filter(!is.na(visit_concept_id)) %>% 
-    dplyr::filter(visit_start_date >=index_date & visit_start_date <= follow_up_end) %>%
     dplyr::distinct() %>% 
     dplyr::mutate(LoS = visit_end_date - visit_start_date + 1)
   
@@ -1718,16 +1729,27 @@ visit_summary_sidiap <- function(cohort_freq, table_name){
     dplyr::left_join(cdm[[table_name]] %>% dplyr::select(person_id, visit_concept_id, visit_start_date, visit_end_date),
                      by = c("subject_id" = "person_id"),
                      copy = T,
-                     relationship = "many-to-many") 
+                     relationship = "many-to-many") %>% 
+    dplyr::filter(visit_start_date >=index_date & visit_start_date <= follow_up_end)
   
-  non_user <- freq_visit_occurrence_tbl %>% 
-    dplyr::filter(is.na(visit_concept_id))
+  user_count <- freq_visit_occurrence_tbl %>% 
+    dplyr::select(subject_id, index_date, follow_up_end, cohort) %>% 
+    dplyr::distinct() %>% 
+    dplyr::tally() %>% 
+    as.numeric()
   
-  non_user_count_2 <- non_user %>% dplyr::tally() %>% dplyr::rename("non_user_count" = "n")
+  overall_count <- cohort_freq %>% 
+    dplyr::select(subject_id, index_date, follow_up_end, cohort) %>% 
+    dplyr::distinct() %>% 
+    dplyr::tally() %>% 
+    as.numeric()
+  
+  non_user_count_2 <- overall_count - user_count 
+  
+  non_user_count_2 <- data.frame("non_user_count" = non_user_count_2)
   
   user <- freq_visit_occurrence_tbl %>% 
     dplyr::filter(!is.na(visit_concept_id)) %>% 
-    dplyr::filter(visit_start_date >=index_date & visit_start_date <= follow_up_end) %>%
     dplyr::distinct() %>% 
     dplyr::mutate(LoS = visit_end_date - visit_start_date + 1)
   
@@ -2362,3 +2384,224 @@ secondary_cost_cprd <- function(cohort_freq, table_name){
   ))
   
   }
+
+# function AE - to estimate hcru ae
+
+visit_summary_ae <- function(cohort_freq){
+  
+  freq_visit_occurrence_tbl <- cohort_freq %>% 
+    dplyr::left_join(cdm[["visit_occurrence_hes_ae"]] %>% dplyr::select(person_id, visit_concept_id, visit_occurrence_id, visit_start_date, visit_end_date),
+                     by = c("subject_id" = "person_id"),
+                     copy = T,
+                     relationship = "many-to-many") %>% 
+    dplyr::filter(visit_start_date >=index_date & visit_start_date <= follow_up_end)
+  
+  user_count <- freq_visit_occurrence_tbl %>% 
+    dplyr::select(subject_id, index_date, follow_up_end, cohort) %>% 
+    dplyr::distinct() %>% 
+    dplyr::tally() %>% 
+    as.numeric()
+  
+  overall_count <- cohort_freq %>% 
+    dplyr::select(subject_id, index_date, follow_up_end, cohort) %>% 
+    dplyr::distinct() %>% 
+    dplyr::tally() %>% 
+    as.numeric()
+  
+  non_user_count_2 <- overall_count - user_count 
+  
+  non_user_count_2 <- data.frame("non_user_count" = non_user_count_2)
+  
+  user <- freq_visit_occurrence_tbl %>% 
+    dplyr::filter(!is.na(visit_occurrence_id)) %>% 
+    dplyr::distinct() %>% 
+    dplyr::mutate(LoS = visit_end_date - visit_start_date + 1)
+  
+  user_count <- user %>% 
+    dplyr::group_by(subject_id, index_date, exposed_yrs) %>% 
+    dplyr::summarise(counts = n()) %>% 
+    dplyr::ungroup() %>% 
+    dplyr::mutate(counts_per_yr = counts/exposed_yrs)
+  
+  non_user <- cohort_freq %>% 
+    dplyr::anti_join(user, by = c("subject_id", "index_date", "exposed_yrs"))
+  
+  non_user_count <- non_user %>% 
+    dplyr::select(subject_id, index_date, exposed_yrs) %>% 
+    dplyr::mutate(counts = 0,
+                  counts_per_yr = 0)
+  
+  tot_count_hos <- union_all(user_count, non_user_count)
+  
+  
+  #hcru
+  summary_ae_admission_per_person_per_year_all <- tibble(mean_ae_admission_per_person_per_year=(sum(tot_count_hos$counts, na.rm = T)/sum(tot_count_hos$exposed_yrs, na.rm = T)),
+                                                         min_ae_admission_per_person_per_year = min(tot_count_hos$counts_per_yr, na.rm = T),
+                                                         max_ae_admission_per_person_per_year = max(tot_count_hos$counts_per_yr, na.rm = T),
+                                                         sd_ae_admission_per_person_per_year = round(sd(tot_count_hos$counts_per_yr, na.rm = T), 2),
+                                                         median_ae_admission_per_person_per_year = round(quantile(tot_count_hos$counts_per_yr, na.rm = T, probs = (.5)), 2),
+                                                         lower_q_ae_admission_per_person_per_year = round(quantile(tot_count_hos$counts_per_yr, na.rm = T, probs = (.25)), 2),
+                                                         upper_q_ae_admission_per_person_per_year = round(quantile(tot_count_hos$counts_per_yr, na.rm = T, probs = (.75)), 2))
+  
+  summary_ae_admission_per_person_per_year_user <- tibble(mean_ae_admission_per_person_per_year=(sum(user_count$counts, na.rm = T)/sum(user_count$exposed_yrs, na.rm = T)),
+                                                          min_ae_admission_per_person_per_year = min(user_count$counts_per_yr, na.rm = T),
+                                                          max_ae_admission_per_person_per_year = max(user_count$counts_per_yr, na.rm = T),
+                                                          sd_ae_admission_per_person_per_year = round(sd(user_count$counts_per_yr, na.rm = T), 2),
+                                                          median_ae_admission_per_person_per_year = round(quantile(user_count$counts_per_yr, na.rm = T, probs = (.5)), 2),
+                                                          lower_q_ae_admission_per_person_per_year = round(quantile(user_count$counts_per_yr, na.rm = T, probs = (.25)), 2),
+                                                          upper_q_ae_admission_per_person_per_year = round(quantile(user_count$counts_per_yr, na.rm = T, probs = (.75)), 2))
+  
+  return(list(summary_hos_per_pers_yr_all = summary_ae_admission_per_person_per_year_all,
+              summary_hos_per_pers_yr_user = summary_ae_admission_per_person_per_year_user,
+              non_user_count = non_user_count_2
+  ))
+}
+
+# function OP - hcru ------
+
+visit_summary_op <- function(cohort_freq){
+  # first I create an object with only op visits with associated provider
+  visit_provider_op <- cdm[["visit_occurrence_hes_op"]] %>% dplyr::select(person_id, visit_concept_id, visit_occurrence_id, visit_start_date, visit_end_date, provider_id) %>% 
+    inner_join(cdm[["provider"]] %>% dplyr::select(provider_id, specialty_concept_id, specialty_source_value, specialty_concept_id),
+               by = c("provider_id" = "provider_id"),
+               copy = T,
+               relationship = "many-to-many")
+  # then I left join with the cohort so that we can keep users and non users
+  freq_visit_occurrence_tbl_op <- cohort_freq %>% 
+    dplyr::left_join(visit_provider_op %>% dplyr::select(person_id, visit_concept_id, visit_occurrence_id, visit_start_date, visit_end_date, provider_id, specialty_concept_id, specialty_source_value),
+                     by = c("subject_id" = "person_id"),
+                     copy = T,
+                     relationship = "many-to-many") %>% 
+    dplyr::filter(visit_start_date >=index_date & visit_start_date <= follow_up_end)
+  
+  user_count <- freq_visit_occurrence_tbl_op %>% 
+    dplyr::select(subject_id, index_date, follow_up_end, cohort) %>% 
+    dplyr::distinct() %>% 
+    dplyr::tally() %>% 
+    as.numeric()
+  
+  overall_count <- cohort_freq %>% 
+    dplyr::select(subject_id, index_date, follow_up_end, cohort) %>% 
+    dplyr::distinct() %>% 
+    dplyr::tally() %>% 
+    as.numeric()
+  
+  non_user_count_2 <- overall_count - user_count 
+  
+  non_user_count_2 <- data.frame("non_user_count" = non_user_count_2)
+  
+  user <- freq_visit_occurrence_tbl_op %>% 
+    dplyr::filter(!is.na(visit_occurrence_id)) %>% 
+    dplyr::distinct()
+  
+  user_count <- user %>% 
+    dplyr::group_by(subject_id, index_date, exposed_yrs) %>% 
+    dplyr::summarise(counts = n()) %>% 
+    dplyr::ungroup() %>% 
+    dplyr::mutate(counts_per_yr = counts/exposed_yrs)
+  
+  non_user <- cohort_freq %>% 
+    dplyr::anti_join(user, by = c("subject_id", "index_date", "exposed_yrs"))
+  
+  non_user_count <- non_user %>% 
+    dplyr::select(subject_id, index_date, exposed_yrs) %>% 
+    dplyr::mutate(counts = 0,
+                  counts_per_yr = 0)
+  
+  tot_count_op <- union_all(user_count, non_user_count)
+  
+  summary_op_visit_per_person_per_year_all <- tibble(mean_op_visit_per_person_per_year=(sum(tot_count_op$counts, na.rm = T)/sum(tot_count_op$exposed_yrs, na.rm = T)),
+                                                     min_op_visit_per_person_per_year = min(tot_count_op$counts_per_yr, na.rm = T),
+                                                     max_op_visit_per_person_per_year = max(tot_count_op$counts_per_yr, na.rm = T),
+                                                     sd_op_visit_per_person_per_year = round(sd(tot_count_op$counts_per_yr, na.rm = T), 2),
+                                                     median_op_visit_per_person_per_year = round(quantile(tot_count_op$counts_per_yr, na.rm = T, probs = (.5)), 2),
+                                                     lower_q_op_visit_per_person_per_year = round(quantile(tot_count_op$counts_per_yr, na.rm = T, probs = (.25)), 2),
+                                                     upper_q_op_visit_per_person_per_year = round(quantile(tot_count_op$counts_per_yr, na.rm = T, probs = (.75)), 2))
+  
+  summary_op_visit_per_person_per_year_user <- tibble(mean_op_visit_per_person_per_year=(sum(user_count$counts, na.rm = T)/sum(user_count$exposed_yrs, na.rm = T)),
+                                                      min_op_visit_per_person_per_year = min(user_count$counts_per_yr, na.rm = T),
+                                                      max_op_visit_per_person_per_year = max(user_count$counts_per_yr, na.rm = T),
+                                                      sd_op_visit_per_person_per_year = round(sd(user_count$counts_per_yr, na.rm = T), 2),
+                                                      median_op_visit_per_person_per_year = round(quantile(user_count$counts_per_yr, na.rm = T, probs = (.5)), 2),
+                                                      lower_q_op_visit_per_person_per_year = round(quantile(user_count$counts_per_yr, na.rm = T, probs = (.25)), 2),
+                                                      upper_q_op_visit_per_person_per_year = round(quantile(user_count$counts_per_yr, na.rm = T, probs = (.75)), 2))
+  
+  # summary per specialty
+  freq_visit_occurrence_tbl_op_new <- cohort_freq %>% 
+    dplyr::left_join(visit_provider_op %>% dplyr::select(person_id, visit_concept_id, visit_occurrence_id, visit_start_date, visit_end_date, provider_id, specialty_concept_id, specialty_source_value),
+                     by = c("subject_id" = "person_id"),
+                     copy = T,
+                     relationship = "many-to-many")
+  
+  distinct_specialties <- freq_visit_occurrence_tbl_op_new %>%
+    dplyr::distinct(specialty_source_value) %>%
+    dplyr::filter(specialty_source_value != "NA") %>%
+    dplyr::pull(specialty_source_value)
+  
+  freq_visit_occurrence_tbl_op2<- freq_visit_occurrence_tbl_op_new %>%
+    dplyr::group_by(subject_id, index_date, follow_up_end, specialty_source_value) %>% # we group by index date to ensure each visit is associated with an entry
+    dplyr::summarise(visit_count = n(), .groups = "drop") %>%
+    dplyr::ungroup() 
+  
+  freq_visit_occurrence_tbl_op3 <- freq_visit_occurrence_tbl_op2 %>%
+    pivot_wider(names_from = specialty_source_value, values_from = visit_count, values_fill = NA) %>%
+    dplyr::mutate(exposed_yrs = as.numeric(follow_up_end - index_date)/ 365.25) 
+  
+  tot_exposed_yrs_all <- freq_visit_occurrence_tbl_op3 %>%
+    dplyr::mutate(exposed_yrs = as.numeric(follow_up_end - index_date)/ 365.25) %>% 
+    dplyr::summarise(tot_exposed_yrs = sum(exposed_yrs)) %>% 
+    dplyr::pull(tot_exposed_yrs)
+  
+  tot_exposed_yrs_user <- freq_visit_occurrence_tbl_op3 %>%
+    dplyr::mutate(exposed_yrs = as.numeric(follow_up_end - index_date)/ 365.25) %>% 
+    pivot_longer(all_of(distinct_specialties), names_to = "specialty", values_to = "visits") %>% 
+    dplyr::mutate(visits_per_year = visits / exposed_yrs) %>%
+    dplyr::filter(visits > 0) %>% 
+    dplyr::group_by(subject_id, index_date) %>% 
+    dplyr::filter(row_number()==1) %>% 
+    dplyr::ungroup() %>% 
+    dplyr::summarise(tot_exposed_yrs = sum(exposed_yrs)) %>% 
+    dplyr::pull(tot_exposed_yrs)
+  
+  user_only_summary <- freq_visit_occurrence_tbl_op3 %>%
+    pivot_longer(all_of(distinct_specialties), names_to = "specialty", values_to = "visits") %>% 
+    dplyr::mutate(visits_per_year = visits / exposed_yrs) %>%
+    dplyr::filter(visits > 0) %>%
+    dplyr::group_by(specialty) %>%
+    dplyr::summarise(
+      tot_visits = sum(visits, na.rm = TRUE),
+      mean_visits_per_year = signif(tot_visits / tot_exposed_yrs_user, 4), # Manual calculation of mean
+      sd_visits_per_year = signif(sd(visits_per_year, na.rm = TRUE), 4),
+      min_visits_per_year = signif(min(visits_per_year, na.rm = TRUE), 4),
+      max_visits_per_year = signif(max(visits_per_year, na.rm = TRUE), 4),
+      num_subjects_visited = n_distinct(subject_id),
+      .groups = "drop"
+    ) %>% 
+    dplyr::ungroup() %>% 
+    CDMConnector::computeQuery() 
+  
+  all_summary <- freq_visit_occurrence_tbl_op3 %>%
+    dplyr::mutate(exposed_yrs = as.numeric(follow_up_end - index_date)/ 365.25) %>% 
+    pivot_longer(all_of(distinct_specialties), names_to = "specialty", values_to = "visits") %>% 
+    tidyr::complete(subject_id, specialty, fill = list(visits = 0)) %>% # filling missing visits with 0
+    dplyr::mutate(visits_per_year = visits / exposed_yrs) %>%
+    dplyr::group_by(specialty) %>%
+    dplyr::summarise(
+      tot_visits = sum(visits, na.rm = TRUE),
+      mean_visits_per_year = signif(tot_visits / tot_exposed_yrs_all, 4), # Manual calculation of mean
+      sd_visits_per_year = signif(sd(visits_per_year, na.rm = TRUE), 4),
+      min_visits_per_year = signif(min(visits_per_year, na.rm = TRUE), 4),
+      max_visits_per_year = signif(max(visits_per_year, na.rm = TRUE), 4),
+      num_subjects_visited = n_distinct(subject_id),
+      .groups = "drop"
+    ) %>% 
+    dplyr::ungroup() %>% 
+    CDMConnector::computeQuery()
+  
+  return(list(summary_op_per_pers_yr_all = summary_op_visit_per_person_per_year_all,
+              summary_op_per_pers_yr_user = summary_op_visit_per_person_per_year_user,
+              non_user_count = non_user_count_2,
+              user_only_summary = user_only_summary,
+              all_summary = all_summary
+  ))
+}
