@@ -1393,6 +1393,9 @@ visit_summary <- function(cohort_freq, table_name){
     dplyr::ungroup() %>% 
     dplyr::mutate(counts_per_yr = counts/exposed_yrs)
   
+  non_user <- cohort_freq %>% 
+    dplyr::anti_join(user, by = c("subject_id", "index_date", "exposed_yrs"))
+  
   non_user_count <- non_user %>% 
     dplyr::select(subject_id, index_date, exposed_yrs) %>% 
     dplyr::mutate(counts = 0,
@@ -1758,6 +1761,9 @@ visit_summary_sidiap <- function(cohort_freq, table_name){
     dplyr::summarise(counts = n()) %>% 
     dplyr::ungroup() %>% 
     dplyr::mutate(counts_per_yr = counts/exposed_yrs)
+  
+  non_user <- cohort_freq %>% 
+    dplyr::anti_join(user, by = c("subject_id", "index_date", "exposed_yrs"))
   
   non_user_count <- non_user %>% 
     dplyr::select(subject_id, index_date, exposed_yrs) %>% 
