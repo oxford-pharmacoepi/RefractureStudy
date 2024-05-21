@@ -40,6 +40,71 @@ target_op <- visit_summary_op(cohort_freq = target_matched)
 c1_comp1_op <- visit_summary_op(cohort_freq = cohort1_matched_to)
 c1_comp2_op <- visit_summary_op(cohort_freq = cohort1_matched_from)
 c2_op <- visit_summary_op(cohort_freq = cohort2_matched)
+
+target_op[[names(target_op)[4]]] <-target_op[[names(target_op)[4]]] %>% 
+  dplyr::mutate(mean_visits_per_year = ifelse((tot_visits < minimum_counts & tot_visits > 0), paste0("<", minimum_counts), as.numeric(.data$mean_visits_per_year)),
+                sd_visits_per_year = ifelse((tot_visits < minimum_counts & tot_visits > 0), paste0("<", minimum_counts), as.numeric(.data$sd_visits_per_year)),
+                min_visits_per_year  = ifelse((tot_visits < minimum_counts & tot_visits > 0), paste0("<", minimum_counts), as.numeric(.data$min_visits_per_year )),
+                max_visits_per_year = ifelse((tot_visits < minimum_counts & tot_visits > 0), paste0("<", minimum_counts), as.numeric(.data$max_visits_per_year)),
+                num_subjects_visited = ifelse((tot_visits < minimum_counts & tot_visits > 0), paste0("<", minimum_counts), as.numeric(.data$num_subjects_visited)),
+                tot_visits = ifelse((tot_visits < minimum_counts & tot_visits>0), paste0("<", minimum_counts), as.numeric(.data$tot_visits)))
+
+target_op[[names(target_op)[5]]] <-target_op[[names(target_op)[5]]] %>% 
+  dplyr::mutate(mean_visits_per_year = ifelse((tot_visits < minimum_counts & tot_visits > 0), paste0("<", minimum_counts), as.numeric(.data$mean_visits_per_year)),
+                sd_visits_per_year = ifelse((tot_visits < minimum_counts & tot_visits > 0), paste0("<", minimum_counts), as.numeric(.data$sd_visits_per_year)),
+                min_visits_per_year  = ifelse((tot_visits < minimum_counts & tot_visits > 0), paste0("<", minimum_counts), as.numeric(.data$min_visits_per_year )),
+                max_visits_per_year = ifelse((tot_visits < minimum_counts & tot_visits > 0), paste0("<", minimum_counts), as.numeric(.data$max_visits_per_year)),
+                num_subjects_visited = ifelse((tot_visits < minimum_counts & tot_visits > 0), paste0("<", minimum_counts), as.numeric(.data$num_subjects_visited)),
+                tot_visits = ifelse((tot_visits < minimum_counts & tot_visits>0), paste0("<", minimum_counts), as.numeric(.data$tot_visits)))
+
+c1_comp1_op[[names(c1_comp1_op)[4]]] <-c1_comp1_op[[names(c1_comp1_op)[4]]] %>% 
+  dplyr::mutate(mean_visits_per_year = ifelse((tot_visits < minimum_counts & tot_visits > 0), paste0("<", minimum_counts), as.numeric(.data$mean_visits_per_year)),
+                sd_visits_per_year = ifelse((tot_visits < minimum_counts & tot_visits > 0), paste0("<", minimum_counts), as.numeric(.data$sd_visits_per_year)),
+                min_visits_per_year  = ifelse((tot_visits < minimum_counts & tot_visits > 0), paste0("<", minimum_counts), as.numeric(.data$min_visits_per_year )),
+                max_visits_per_year = ifelse((tot_visits < minimum_counts & tot_visits > 0), paste0("<", minimum_counts), as.numeric(.data$max_visits_per_year)),
+                num_subjects_visited = ifelse((tot_visits < minimum_counts & tot_visits > 0), paste0("<", minimum_counts), as.numeric(.data$num_subjects_visited)),
+                tot_visits = ifelse((tot_visits < minimum_counts & tot_visits>0), paste0("<", minimum_counts), as.numeric(.data$tot_visits)))
+
+c1_comp1_op[[names(c1_comp1_op)[5]]] <-c1_comp1_op[[names(c1_comp1_op)[5]]] %>% 
+  dplyr::mutate(mean_visits_per_year = ifelse((tot_visits < minimum_counts & tot_visits > 0), paste0("<", minimum_counts), as.numeric(.data$mean_visits_per_year)),
+                sd_visits_per_year = ifelse((tot_visits < minimum_counts & tot_visits > 0), paste0("<", minimum_counts), as.numeric(.data$sd_visits_per_year)),
+                min_visits_per_year  = ifelse((tot_visits < minimum_counts & tot_visits > 0), paste0("<", minimum_counts), as.numeric(.data$min_visits_per_year )),
+                max_visits_per_year = ifelse((tot_visits < minimum_counts & tot_visits > 0), paste0("<", minimum_counts), as.numeric(.data$max_visits_per_year)),
+                num_subjects_visited = ifelse((tot_visits < minimum_counts & tot_visits > 0), paste0("<", minimum_counts), as.numeric(.data$num_subjects_visited)),
+                tot_visits = ifelse((tot_visits < minimum_counts & tot_visits>0), paste0("<", minimum_counts), as.numeric(.data$tot_visits)))
+
+c1_comp2_op[[names(c1_comp2_op)[4]]] <-c1_comp2_op[[names(c1_comp2_op)[4]]] %>% 
+  dplyr::mutate(mean_visits_per_year = ifelse((tot_visits < minimum_counts & tot_visits > 0), paste0("<", minimum_counts), as.numeric(.data$mean_visits_per_year)),
+                sd_visits_per_year = ifelse((tot_visits < minimum_counts & tot_visits > 0), paste0("<", minimum_counts), as.numeric(.data$sd_visits_per_year)),
+                min_visits_per_year  = ifelse((tot_visits < minimum_counts & tot_visits > 0), paste0("<", minimum_counts), as.numeric(.data$min_visits_per_year )),
+                max_visits_per_year = ifelse((tot_visits < minimum_counts & tot_visits > 0), paste0("<", minimum_counts), as.numeric(.data$max_visits_per_year)),
+                num_subjects_visited = ifelse((tot_visits < minimum_counts & tot_visits > 0), paste0("<", minimum_counts), as.numeric(.data$num_subjects_visited)),
+                tot_visits = ifelse((tot_visits < minimum_counts & tot_visits>0), paste0("<", minimum_counts), as.numeric(.data$tot_visits)))
+
+c1_comp2_op[[names(c1_comp2_op)[5]]] <-c1_comp2_op[[names(c1_comp2_op)[5]]] %>% 
+  dplyr::mutate(mean_visits_per_year = ifelse((tot_visits < minimum_counts & tot_visits > 0), paste0("<", minimum_counts), as.numeric(.data$mean_visits_per_year)),
+                sd_visits_per_year = ifelse((tot_visits < minimum_counts & tot_visits > 0), paste0("<", minimum_counts), as.numeric(.data$sd_visits_per_year)),
+                min_visits_per_year  = ifelse((tot_visits < minimum_counts & tot_visits > 0), paste0("<", minimum_counts), as.numeric(.data$min_visits_per_year )),
+                max_visits_per_year = ifelse((tot_visits < minimum_counts & tot_visits > 0), paste0("<", minimum_counts), as.numeric(.data$max_visits_per_year)),
+                num_subjects_visited = ifelse((tot_visits < minimum_counts & tot_visits > 0), paste0("<", minimum_counts), as.numeric(.data$num_subjects_visited)),
+                tot_visits = ifelse((tot_visits < minimum_counts & tot_visits>0), paste0("<", minimum_counts), as.numeric(.data$tot_visits)))
+
+c2_op[[names(c2_op)[4]]] <-c2_op[[names(c2_op)[4]]] %>% 
+  dplyr::mutate(mean_visits_per_year = ifelse((tot_visits < minimum_counts & tot_visits > 0), paste0("<", minimum_counts), as.numeric(.data$mean_visits_per_year)),
+                sd_visits_per_year = ifelse((tot_visits < minimum_counts & tot_visits > 0), paste0("<", minimum_counts), as.numeric(.data$sd_visits_per_year)),
+                min_visits_per_year  = ifelse((tot_visits < minimum_counts & tot_visits > 0), paste0("<", minimum_counts), as.numeric(.data$min_visits_per_year )),
+                max_visits_per_year = ifelse((tot_visits < minimum_counts & tot_visits > 0), paste0("<", minimum_counts), as.numeric(.data$max_visits_per_year)),
+                num_subjects_visited = ifelse((tot_visits < minimum_counts & tot_visits > 0), paste0("<", minimum_counts), as.numeric(.data$num_subjects_visited)),
+                tot_visits = ifelse((tot_visits < minimum_counts & tot_visits>0), paste0("<", minimum_counts), as.numeric(.data$tot_visits)))
+
+c2_op[[names(c2_op)[5]]] <-c2_op[[names(c2_op)[5]]] %>% 
+  dplyr::mutate(mean_visits_per_year = ifelse((tot_visits < minimum_counts & tot_visits > 0), paste0("<", minimum_counts), as.numeric(.data$mean_visits_per_year)),
+                sd_visits_per_year = ifelse((tot_visits < minimum_counts & tot_visits > 0), paste0("<", minimum_counts), as.numeric(.data$sd_visits_per_year)),
+                min_visits_per_year  = ifelse((tot_visits < minimum_counts & tot_visits > 0), paste0("<", minimum_counts), as.numeric(.data$min_visits_per_year )),
+                max_visits_per_year = ifelse((tot_visits < minimum_counts & tot_visits > 0), paste0("<", minimum_counts), as.numeric(.data$max_visits_per_year)),
+                num_subjects_visited = ifelse((tot_visits < minimum_counts & tot_visits > 0), paste0("<", minimum_counts), as.numeric(.data$num_subjects_visited)),
+                tot_visits = ifelse((tot_visits < minimum_counts & tot_visits>0), paste0("<", minimum_counts), as.numeric(.data$tot_visits)))
+
 write.xlsx(target_op, file = here(secondary_output_op, "target_op.xlsx"))
 write.xlsx(c1_comp1_op, file = here(secondary_output_op, "c1_comp1_op.xlsx"))
 write.xlsx(c1_comp2_op, file = here(secondary_output_op, "c1_comp2_op.xlsx"))
