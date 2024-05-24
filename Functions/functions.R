@@ -1858,13 +1858,15 @@ secondary_cost_sidiap <- function(cohort_freq, table_name, cost_type = "all"){
                      by = c("subject_id" = "person_id"),
                      copy = T,
                      relationship = "many-to-many") %>% 
+    dplyr::filter(visit_start_date >=index_date & visit_start_date <= follow_up_end) %>% 
+    dplyr::distinct()
     dplyr::compute()
+  
   freq_condition_tbl <- freq_condition_tbl %>% 
     dplyr::left_join(cdm[["condition_occurrence_hes"]] %>% dplyr::select(person_id, condition_source_value, condition_start_date), 
                      by = c("subject_id" = "person_id"),
                      copy = T,
                      relationship = "many-to-many") %>% 
-    dplyr::filter(condition_start_date >=visit_start_date & condition_start_date <= visit_end_date) %>%
     dplyr::filter(condition_start_date >=index_date & condition_start_date <= follow_up_end) %>%
     dplyr::distinct() %>% 
     dplyr::compute()
@@ -1877,6 +1879,22 @@ secondary_cost_sidiap <- function(cohort_freq, table_name, cost_type = "all"){
     dplyr::mutate(condition_source_value = as.character(condition_source_value)) %>% 
     dplyr::left_join(cost_inputs %>% dplyr::select(icd10cm_code, cost) %>% dplyr::mutate(icd10cm_code = as.character(icd10cm_code)), 
                      by = c("condition_source_value" = "icd10cm_code"))
+  
+  user_count <- freq_condition_tbl_all %>% 
+    dplyr::select(subject_id, index_date, follow_up_end, cohort) %>% 
+    dplyr::distinct() %>% 
+    dplyr::tally() %>% 
+    as.numeric()
+  
+  overall_count <- cohort_freq %>% 
+    dplyr::select(subject_id, index_date, follow_up_end, cohort) %>% 
+    dplyr::distinct() %>% 
+    dplyr::tally() %>% 
+    as.numeric()
+  
+  non_user_count_2 <- overall_count - user_count 
+  
+  non_user_count_2 <- data.frame("non_user_count" = non_user_count_2)
   
   ### CHECK PART ###
   
@@ -1895,6 +1913,11 @@ secondary_cost_sidiap <- function(cohort_freq, table_name, cost_type = "all"){
   #### END of CHECKs ####
   
   ## replacing cost with zeros for non-users
+  non_user_tbl <- cohort_freq %>% 
+    dplyr::anti_join(freq_condition_tbl_all, by = c("subject_id", "index_date"))
+  
+  freq_condition_tbl_all <- bind_rows(non_user_tbl, freq_condition_tbl_all)
+  
   all_cost <- freq_condition_tbl_all %>%
     dplyr::mutate(cost = case_when(
       is.na(visit_concept_id) ~ 0, 
@@ -1903,17 +1926,10 @@ secondary_cost_sidiap <- function(cohort_freq, table_name, cost_type = "all"){
     dplyr::mutate(cost_per_person_year = cost/exposed_yrs) %>% 
     ungroup()
   
-  # just a count for the non_users
-  non_user <- all_cost %>% 
-    dplyr::filter(is.na(visit_concept_id))
-  
-  non_user_count_2 <- non_user %>% dplyr::tally() %>% dplyr::rename("non_user_count" = "n")
-  
+
   # creating a separate dataframe for users
   freq_condition_tbl_users <- freq_condition_tbl_all %>% 
-    dplyr::filter(!is.na(visit_concept_id)) %>% 
-    ## filtering so that to include only hospitalisaitons during entry
-    dplyr::filter(visit_start_date >=index_date & visit_start_date <= follow_up_end) 
+    dplyr::filter(!is.na(visit_concept_id)) 
   
   # Check 2. identifying if there are duplicate records (so two hospitalisations with same spell number, condition and by the same patient)
   duplicates <- freq_condition_tbl_users %>%
