@@ -1859,7 +1859,7 @@ secondary_cost_sidiap <- function(cohort_freq, table_name, cost_type = "all"){
                      copy = T,
                      relationship = "many-to-many") %>% 
     dplyr::filter(visit_start_date >=index_date & visit_start_date <= follow_up_end) %>% 
-    dplyr::distinct()
+    dplyr::distinct() %>% 
     dplyr::compute()
   
   freq_condition_tbl <- freq_condition_tbl %>% 
