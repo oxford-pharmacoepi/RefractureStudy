@@ -10,7 +10,7 @@ if (country_setting == "UK") {
   ## Sub-setting the visit data
   cdm[["visit_data"]] <- joined_visit_provider_tables %>%
     dplyr::inner_join(provider_cost_inputs %>% dplyr::filter(Include == "1"), by = "specialty_source_value", copy=TRUE) %>% # Filter for only meaningful specialties
-    dplyr::select(person_id, provider_id, specialty_source_value, visit_detail_start_date, visit_detail_id, unit_cost) %>%
+    dplyr::select(person_id, provider_id, specialty_source_value, visit_detail_start_date, visit_detail_id, unit_cost, visit_detail_concept_id) %>%
     dplyr::filter(visit_detail_start_date >= study_start_date & # include only visits in the study period
                    visit_detail_start_date <= study_end_date) %>%
     dplyr::filter(visit_detail_concept_id == 581477) %>% # including only primary care
