@@ -13,6 +13,7 @@ if (country_setting == "UK") {
     dplyr::select(person_id, provider_id, specialty_source_value, visit_detail_start_date, visit_detail_id, unit_cost) %>%
     dplyr::filter(visit_detail_start_date >= study_start_date & # include only visits in the study period
                    visit_detail_start_date <= study_end_date) %>%
+    dplyr::filter(visit_detail_concept_id == 581477) %>% # including only primary care
     dplyr::rename(subject_id=person_id) %>% # just renaming for consistency with cohort data
     dplyr::distinct(visit_detail_start_date, subject_id, specialty_source_value, .keep_all=TRUE) %>% # Keep only distinct rows - eliminate all visits in the same day with the same specialist by the same patient
     dplyr::rename(specialty = specialty_source_value) %>%  # renaming for consistency with other countries as this variable is used for the HCRU and costs too
