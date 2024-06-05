@@ -187,12 +187,12 @@ target_results_output[[names(target_results)[1]]] <-target_results_output[[names
                 num_subjects_visited = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.numeric(.data$num_subjects_visited)))
 
 target_results_output[[names(target_results)[2]]] <-target_results_output[[names(target_results)[2]]] %>% 
-  dplyr::mutate(tot_visits = ifelse((tot_visits<minimum_counts & tot_visits>0), paste0("<", minimum_counts), as.numeric(.data$tot_visits)),
-                mean_visits_per_year = ifelse((tot_visits<minimum_counts & tot_visits>0), paste0("<", minimum_counts), as.numeric(.data$mean_visits_per_year)),
+  dplyr::mutate(mean_visits_per_year = ifelse((tot_visits<minimum_counts & tot_visits>0), paste0("<", minimum_counts), as.numeric(.data$mean_visits_per_year)),
                 sd_visits_per_year = ifelse((tot_visits<minimum_counts & tot_visits>0), paste0("<", minimum_counts), as.numeric(.data$sd_visits_per_year)),
                 min_visits_per_year  = ifelse((tot_visits<minimum_counts & tot_visits>0), paste0("<", minimum_counts), as.numeric(.data$min_visits_per_year )),
                 max_visits_per_year = ifelse((tot_visits<minimum_counts & tot_visits>0), paste0("<", minimum_counts), as.numeric(.data$max_visits_per_year)),
-                num_subjects_visited = ifelse((tot_visits<minimum_counts & tot_visits>0), paste0("<", minimum_counts), as.numeric(.data$num_subjects_visited)))
+                num_subjects_visited = ifelse((tot_visits<minimum_counts & tot_visits>0), paste0("<", minimum_counts), as.numeric(.data$num_subjects_visited)),
+                tot_visits = ifelse((tot_visits<minimum_counts & tot_visits>0), paste0("<", minimum_counts), as.numeric(.data$tot_visits)))
 
 if(target_results_output[[names(target_results)[3]]]$nonservice<5 & target_results_output[[names(target_results)[3]]]$nonservice>0){
   target_results_output[[names(target_results)[3]]]$nonservice <- paste0("<", minimum_counts)
@@ -254,12 +254,12 @@ cohort1_comp1_results_output[[names(cohort1_comp1_results)[1]]] <-cohort1_comp1_
                 num_subjects_visited = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.numeric(.data$num_subjects_visited)))
 
 cohort1_comp1_results_output[[names(cohort1_comp1_results)[2]]] <-cohort1_comp1_results_output[[names(cohort1_comp1_results)[2]]] %>% 
-  dplyr::mutate(tot_visits = ifelse((tot_visits<minimum_counts & tot_visits>0), paste0("<", minimum_counts), as.numeric(.data$tot_visits)),
-                mean_visits_per_year = ifelse((tot_visits<minimum_counts & tot_visits>0), paste0("<", minimum_counts), as.numeric(.data$mean_visits_per_year)),
+  dplyr::mutate(mean_visits_per_year = ifelse((tot_visits<minimum_counts & tot_visits>0), paste0("<", minimum_counts), as.numeric(.data$mean_visits_per_year)),
                 sd_visits_per_year = ifelse((tot_visits<minimum_counts & tot_visits>0), paste0("<", minimum_counts), as.numeric(.data$sd_visits_per_year)),
                 min_visits_per_year  = ifelse((tot_visits<minimum_counts & tot_visits>0), paste0("<", minimum_counts), as.numeric(.data$min_visits_per_year )),
                 max_visits_per_year = ifelse((tot_visits<minimum_counts & tot_visits>0), paste0("<", minimum_counts), as.numeric(.data$max_visits_per_year)),
-                num_subjects_visited = ifelse((tot_visits<minimum_counts & tot_visits>0), paste0("<", minimum_counts), as.numeric(.data$num_subjects_visited)))
+                num_subjects_visited = ifelse((tot_visits<minimum_counts & tot_visits>0), paste0("<", minimum_counts), as.numeric(.data$num_subjects_visited)),
+                tot_visits = ifelse((tot_visits<minimum_counts & tot_visits>0), paste0("<", minimum_counts), as.numeric(.data$tot_visits)))
 
 if(cohort1_comp1_results_output[[names(cohort1_comp1_results)[3]]]$nonservice<5 & cohort1_comp1_results_output[[names(cohort1_comp1_results)[3]]]$nonservice>0){
   cohort1_comp1_results_output[[names(cohort1_comp1_results)[3]]]$nonservice <- paste0("<", minimum_counts)
@@ -321,12 +321,12 @@ cohort1_comp2_results_output[[names(cohort1_comp2_results)[1]]] <-cohort1_comp2_
                 num_subjects_visited = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.numeric(.data$num_subjects_visited)))
 
 cohort1_comp2_results_output[[names(cohort1_comp2_results)[2]]] <-cohort1_comp2_results_output[[names(cohort1_comp2_results)[2]]] %>% 
-  dplyr::mutate(tot_visits = ifelse((tot_visits<minimum_counts & tot_visits>0), paste0("<", minimum_counts), as.numeric(.data$tot_visits)),
-                mean_visits_per_year = ifelse((tot_visits<minimum_counts & tot_visits>0), paste0("<", minimum_counts), as.numeric(.data$mean_visits_per_year)),
+  dplyr::mutate(mean_visits_per_year = ifelse((tot_visits<minimum_counts & tot_visits>0), paste0("<", minimum_counts), as.numeric(.data$mean_visits_per_year)),
                 sd_visits_per_year = ifelse((tot_visits<minimum_counts & tot_visits>0), paste0("<", minimum_counts), as.numeric(.data$sd_visits_per_year)),
                 min_visits_per_year  = ifelse((tot_visits<minimum_counts & tot_visits>0), paste0("<", minimum_counts), as.numeric(.data$min_visits_per_year )),
                 max_visits_per_year = ifelse((tot_visits<minimum_counts & tot_visits>0), paste0("<", minimum_counts), as.numeric(.data$max_visits_per_year)),
-                num_subjects_visited = ifelse((tot_visits<minimum_counts & tot_visits>0), paste0("<", minimum_counts), as.numeric(.data$num_subjects_visited)))
+                num_subjects_visited = ifelse((tot_visits<minimum_counts & tot_visits>0), paste0("<", minimum_counts), as.numeric(.data$num_subjects_visited)),
+                tot_visits = ifelse((tot_visits<minimum_counts & tot_visits>0), paste0("<", minimum_counts), as.numeric(.data$tot_visits)))
 
 if(cohort1_comp2_results_output[[names(cohort1_comp2_results)[3]]]$nonservice<5 & cohort1_comp2_results_output[[names(cohort1_comp2_results)[3]]]$nonservice>0){
   cohort1_comp2_results_output[[names(cohort1_comp2_results)[3]]]$nonservice <- paste0("<", minimum_counts)
@@ -389,12 +389,12 @@ cohort2_results_output[[names(cohort2_results)[1]]] <-cohort2_results_output[[na
                 num_subjects_visited = ifelse((num_subjects_visited<minimum_counts & num_subjects_visited>0), paste0("<", minimum_counts), as.numeric(.data$num_subjects_visited)))
 
 cohort2_results_output[[names(cohort2_results)[2]]] <-cohort2_results_output[[names(cohort2_results)[2]]] %>% 
-  dplyr::mutate(tot_visits = ifelse((tot_visits<minimum_counts & tot_visits>0), paste0("<", minimum_counts), as.numeric(.data$tot_visits)),
-                mean_visits_per_year = ifelse((tot_visits<minimum_counts & tot_visits>0), paste0("<", minimum_counts), as.numeric(.data$mean_visits_per_year)),
+  dplyr::mutate(mean_visits_per_year = ifelse((tot_visits<minimum_counts & tot_visits>0), paste0("<", minimum_counts), as.numeric(.data$mean_visits_per_year)),
                 sd_visits_per_year = ifelse((tot_visits<minimum_counts & tot_visits>0), paste0("<", minimum_counts), as.numeric(.data$sd_visits_per_year)),
                 min_visits_per_year  = ifelse((tot_visits<minimum_counts & tot_visits>0), paste0("<", minimum_counts), as.numeric(.data$min_visits_per_year )),
                 max_visits_per_year = ifelse((tot_visits<minimum_counts & tot_visits>0), paste0("<", minimum_counts), as.numeric(.data$max_visits_per_year)),
-                num_subjects_visited = ifelse((tot_visits<minimum_counts & tot_visits>0), paste0("<", minimum_counts), as.numeric(.data$num_subjects_visited)))
+                num_subjects_visited = ifelse((tot_visits<minimum_counts & tot_visits>0), paste0("<", minimum_counts), as.numeric(.data$num_subjects_visited)),
+                tot_visits = ifelse((tot_visits<minimum_counts & tot_visits>0), paste0("<", minimum_counts), as.numeric(.data$tot_visits)))
 
 if(cohort2_results_output[[names(cohort2_results)[3]]]$nonservice<5 & cohort2_results_output[[names(cohort2_results)[3]]]$nonservice>0){
   cohort2_results_output[[names(cohort2_results)[3]]]$nonservice <- paste0("<", minimum_counts)
