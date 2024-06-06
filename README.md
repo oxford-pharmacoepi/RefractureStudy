@@ -1,6 +1,12 @@
 # Re-fracture UCB study
-
 This is a repository for UCB Re-fracture study.
+
+# Research Questions
+1. To describe the characteristics of postmenopausal women with an imminent subsequent fracture
+
+2. To describe the incidence of imminent subsequent fractures (fractures within 2 years after an index fracture) amongst postmenopausal women
+
+3. To estimate the impact of an imminent subsequent fracture on healthcare resource utilisation and direct costs amongst postmenopausal wo
 
 ## Running the analysis
 1) Download this entire repository (you can download as a zip folder using Code -> Download ZIP, or you can use GitHub Desktop). 
