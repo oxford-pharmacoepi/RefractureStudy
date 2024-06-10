@@ -12,6 +12,41 @@ cdm[["condition_occurrence_primary"]] <-
     dplyr::compute()
 }
 
+info(logger, "CREATING DENOMINATOR - WOMEN WHO ARE ABOVE 50 WITHIN THE STUDY PERIOD")
+print(paste0("Creating denominators at ", Sys.time()))
+cdm <- generateDenominatorCohortSet(
+  cdm,
+  name = "denominator",
+  cohortDateRange = c(study_start_date, study_end_date),
+  sex = "Female",
+  ageGroup = list(c(50, 150)))
+
+denom_count <-cdm[["denominator"]] %>% dplyr::tally() %>% dplyr::pull()
+
+AttritionReportDenom<-cohortAttrition(cdm$denominator)
+
+### Loading fracture codes
+info(logger, "LOADING FRACTURE CODES")
+print(paste0("Loading fracture codes at ", Sys.time()))
+conditions_sheet1 <- read_excel(paste0(here(), "/1_InstantiateCohorts/fracture_sites_conditions_codes.xlsx"), sheet = 1) 
+trauma <- read_excel(paste0(here(), "/1_InstantiateCohorts/trauma_codes.xlsx")) 
+trauma_condition <- trauma %>% dplyr::filter(Domain == "Condition") %>% dplyr::select(Id) %>% dplyr::pull()
+trauma_observation <- trauma %>% dplyr::filter(Domain == "Observation") %>% dplyr::select(Id) %>% dplyr::pull()
+
+hip_fracture_id <- conditions_sheet1 %>% dplyr::filter(Site == "Hip") %>% dplyr::select(Id) %>% dplyr::pull()
+femur_fracture_id <- conditions_sheet1 %>% dplyr::filter(Site == "Femur") %>% dplyr::select(Id) %>% dplyr::pull()
+pelvic_fracture_id <- conditions_sheet1 %>% dplyr::filter(Site == "Pelvic") %>% dplyr::select(Id) %>% dplyr::pull()
+vert_fracture_id <- conditions_sheet1 %>% dplyr::filter(Site == "Vertebra") %>% dplyr::select(Id) %>% dplyr::pull()
+humerus_fracture_id <- conditions_sheet1 %>% dplyr::filter(Site == "Humerus") %>% dplyr::select(Id) %>% dplyr::pull()
+forearm_fracture_id <- conditions_sheet1 %>% dplyr::filter(Site == "Forearm") %>% dplyr::select(Id) %>% dplyr::pull()
+tib_fracture_id <- conditions_sheet1 %>% dplyr::filter(Site == "Tibia and Fibula") %>% dplyr::select(Id) %>% dplyr::pull()
+rib_fracture_id <- conditions_sheet1 %>% dplyr::filter(Site == "Rib") %>% dplyr::select(Id) %>% dplyr::pull()
+foot_fracture_id <- conditions_sheet1 %>% dplyr::filter(Site == "Foot") %>% dplyr::select(Id) %>% dplyr::pull()
+nonspecific_fracture_id <- conditions_sheet1 %>% dplyr::filter(Site == "Nonspecific") %>% dplyr::select(Id) %>% dplyr::pull()
+
+any_fracture_id <- conditions_sheet1 %>% dplyr::filter(!Site == "Exclude") %>% dplyr::select(Id) %>% dplyr::pull()
+
+
 ### cohort with all records of fracture 
 info(logger, "COLLECTING ALL RECORDS OF FRACTURES FROM DENOMINATORS")
 print(paste0("Collecting all records of fractures from the denominators at ", Sys.time()))
@@ -256,5 +291,18 @@ if (!dir.exists(sub_output_folder)) {
   dir.create(sub_output_folder)
 }
 
+info(logger, "GENERATING COHORTS FOR RESEARCH QUESTION 1 AND 2")
+print(paste0("Generating cohorts for RQ1+2 at ", Sys.time()))
 source(here("2_CohortCreation", "CohortRQ1&2.R"))
+info(logger, "GENERATING COHORTS FOR RESEARCH QUESTION 1 AND 2 IS DONE")
+print(paste0("Generating cohorts for RQ1+2 is done at ", Sys.time()))
+# 
+# carrying out analyses for Research Question 1
+info(logger, "CARRYING OUT ANALYSES FOR RESEARCH QUESTION 1")
+source(here("3_Analysis", "RQ1Characterisation.R"))
+info(logger, "CARRYING OUT ANALYSES FOR RESEARCH QUESTION 1 IS DONE")
+
+# carrying out analyses for Research Question 2
+info(logger, "CARRYING OUT ANALYSES FOR RESEARCH QUESTION 2")
 source(here("3_Analysis", "RQ2IncidenceCalculation.R"))
+info(logger, "CARRYING OUT ANALYSES FOR RESEARCH QUESTION 2 IS DONE")
