@@ -79,6 +79,29 @@ for (k in (1:length(washout_period))){
   print(paste0("Finishing RQ3 Health Econ plots at ", Sys.time()))
 }
 
+	if (country_setting %in% c("Spain", "UK")){
+	  for (k in (1:length(washout_period))){
+	    print(paste0("Starting the analysis for washout of ", washout_period[[k]], " at ", Sys.time()))
+	    # create logger
+	    log_file <- paste0(sub_output_folder, "/log.txt")
+	    logger <- create.logger()
+	    logfile(logger) <- log_file
+	    level(logger) <- "INFO"
+    
+     # running necessary functions
+ 	    info(logger, "RUNNING NECESSARY FUNCTIONS")
+      print(paste0("Running necessary functions at ", Sys.time()))
+  	  source(here("Functions", "functions.R"))
+      info(logger, "RUNNING NECESSARY FUNCTIONS IS DONE")
+      print(paste0("Running necessary functions is done at ", Sys.time()))
+    	 
+      info(logger, "Starting incidence primary vs hospital")
+      source(here("Miscellaneous", "rq2_additional_analysis_secondary.R"))
+      source(here("Miscellaneous", "rq2_additional_analysis_primary.R"))
+      info(logger, "Finishing incidence primary vs hospital")
+	  }
+	}
+
 # delete temp files - be careful
 for (k in (1:length(washout_period))){
   sub_output_folder <- here(output_folder, washout_period[[k]])
