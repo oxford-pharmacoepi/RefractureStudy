@@ -82,6 +82,10 @@ for (k in (1:length(washout_period))){
 	if (country_setting %in% c("Spain", "UK")){
 	  for (k in (1:length(washout_period))){
 	    print(paste0("Starting the analysis for washout of ", washout_period[[k]], " at ", Sys.time()))
+	    washout_folder <- here(output_folder, washout_period[[k]])
+	    if (!dir.exists(washout_folder)) {
+	      dir.create(washout_folder)
+	    }
 	    # create logger
 	    log_file <- paste0(sub_output_folder, "/log.txt")
 	    logger <- create.logger()
