@@ -1,4 +1,7 @@
 ### Creating periods
+if(country_setting %in% c("Italy", "France")){
+  study_start_date <- as.Date("2015-04-01")
+}
 print(paste0("Generating period-based denominators at ", Sys.time()))
 info(logger, "CREATING 6-MONTH PERIODS")
 periodStart <- c()
