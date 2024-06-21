@@ -15,6 +15,10 @@ suppressWarnings(
      fracture_table_rq2_index_ids)
 )
 
+if(country_setting %in% c("Italy", "France")){
+  study_start_date <- as.Date("2015-04-01")
+}
+
 psFolder <- here(sub_output_folder, "tempData")
 if (!dir.exists(psFolder)) {
   dir.create(psFolder)

@@ -90,10 +90,6 @@ washout_period <- c(90,30)
 # study start date
 study_start_date <- as.Date("2010-04-01")
 
-if(country_setting %in% c("Italy", "France")){
-  study_start_date <- as.Date("2015-04-01")
-}
-
 # study end date
 study_end_date <- as.Date("2018-03-31")
 
