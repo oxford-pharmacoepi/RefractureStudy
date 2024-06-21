@@ -1,7 +1,7 @@
 print(paste0("Creating condition occurrence hospital only at ", Sys.time()))
 cdm[["condition_occurrence_hospital"]] <- 
   cdm[["condition_occurrence"]] %>% 
-  dplyr::filter(condition_type_concept_id == 32829) %>% 
+  dplyr::filter(condition_type_concept_id == 32829|condition_type_concept_id == 32818) %>% 
   dplyr::compute()
 
 info(logger, "CREATING DENOMINATOR - WOMEN WHO ARE ABOVE 50 WITHIN THE STUDY PERIOD")
