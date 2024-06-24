@@ -137,7 +137,7 @@ for (name in (names(target_results)[1:length(target_results)])){
   target_results_output[[name]]<-target_results[[name]]
 }
 
-if (country_setting == "UK"){
+if (country_setting %in% c("UK", "Italy")){
   data_all <- target_results_output[["visits_count_wide"]] %>% 
     dplyr::select(-exposed_yrs, -cohort) %>% 
     pivot_longer(cols = -c(subject_id, index_date, follow_up_end)) %>% 
@@ -204,7 +204,7 @@ for (name in (names(cohort1_comp1_results)[1:length(cohort1_comp1_results)])){
   cohort1_comp1_results_output[[name]]<-cohort1_comp1_results[[name]]
 }
 
-if (country_setting == "UK"){
+if (country_setting %in% c("UK", "Italy")){
   data_all <- cohort1_comp1_results_output[["visits_count_wide"]] %>% 
   dplyr::select(-exposed_yrs, -cohort) %>% 
   pivot_longer(cols = -c(subject_id, index_date, follow_up_end)) %>% 
@@ -271,7 +271,7 @@ for (name in (names(cohort1_comp2_results)[1:length(cohort1_comp2_results)])){
   cohort1_comp2_results_output[[name]]<-cohort1_comp2_results[[name]]
 }
 
-if (country_setting == "UK"){
+if (country_setting %in% c("UK", "Italy")){
   data_all <- cohort1_comp2_results_output[["visits_count_wide"]] %>% 
     dplyr::select(-exposed_yrs, -cohort) %>% 
     pivot_longer(cols = -c(subject_id, index_date, follow_up_end)) %>% 
@@ -338,7 +338,7 @@ for (name in (names(cohort2_results)[1:length(cohort2_results)])){
   cohort2_results_output[[name]]<-cohort2_results[[name]]
 }
 
-if (country_setting == "UK"){
+if (country_setting %in% c("UK", "Italy")){
   data_all <- cohort2_results_output[["visits_count_wide"]] %>% 
     dplyr::select(-exposed_yrs, -cohort) %>% 
     pivot_longer(cols = -c(subject_id, index_date, follow_up_end)) %>% 
