@@ -1360,7 +1360,7 @@ procedure_frequency_table <- function(cohort_freq, table_name, primary = F){
 
 visit_summary <- function(cohort_freq, table_name){
   freq_visit_occurrence_tbl <- cohort_freq %>% 
-    dplyr::left_join(cdm[["visit_occurrence_hes"]] %>% dplyr::select(person_id, visit_concept_id, visit_start_date, visit_end_date),
+    dplyr::left_join(cdm[[table_name]] %>% dplyr::select(person_id, visit_concept_id, visit_start_date, visit_end_date),
                      by = c("subject_id" = "person_id"),
                      copy = T,
                      relationship = "many-to-many") %>% 
@@ -1420,7 +1420,7 @@ visit_summary <- function(cohort_freq, table_name){
                                                              upper_q_hospitalisation_per_person_per_year = round(quantile(user_count$counts_per_yr, probs = (.75)), 2))
   
   freq_visit_hosp <- cohort_freq %>% 
-    dplyr::inner_join(cdm[["visit_occurrence_hes"]] %>% dplyr::select(person_id, visit_concept_id, visit_start_date, visit_end_date),
+    dplyr::inner_join(cdm[[table_name]] %>% dplyr::select(person_id, visit_concept_id, visit_start_date, visit_end_date),
                       by = c("subject_id" = "person_id"),
                       copy = T,
                       relationship = "many-to-many") %>%
