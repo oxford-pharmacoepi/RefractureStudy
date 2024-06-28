@@ -1360,11 +1360,11 @@ procedure_frequency_table <- function(cohort_freq, table_name, primary = F){
 
 visit_summary <- function(cohort_freq, table_name){
   freq_visit_occurrence_tbl <- cohort_freq %>% 
-    dplyr::left_join(cdm[[table_name]] %>% dplyr::select(person_id, visit_concept_id, visit_start_date, visit_end_date),
+    dplyr::left_join(cdm[[table_name]] %>% dplyr::select(person_id, visit_detail_concept_id, visit_detail_start_date, visit_detail_end_date),
                      by = c("subject_id" = "person_id"),
                      copy = T,
                      relationship = "many-to-many") %>% 
-    dplyr::filter(visit_start_date >=index_date & visit_start_date <= follow_up_end)
+    dplyr::filter(visit_detail_start_date >=index_date & visit_detail_start_date <= follow_up_end)
   
   user_count <- freq_visit_occurrence_tbl %>% 
     dplyr::select(subject_id, index_date, follow_up_end, cohort) %>% 
@@ -1383,9 +1383,9 @@ visit_summary <- function(cohort_freq, table_name){
   non_user_count_2 <- data.frame("non_user_count" = non_user_count_2)
   
   user <- freq_visit_occurrence_tbl %>% 
-    dplyr::filter(!is.na(visit_concept_id)) %>% 
+    dplyr::filter(!is.na(visit_detail_concept_id)) %>% 
     dplyr::distinct() %>% 
-    dplyr::mutate(LoS = visit_end_date - visit_start_date + 1)
+    dplyr::mutate(LoS = visit_detail_end_date - visit_detail_start_date + 1)
   
   user_count <- user %>% 
     dplyr::group_by(subject_id, index_date, exposed_yrs) %>% 
@@ -1420,13 +1420,13 @@ visit_summary <- function(cohort_freq, table_name){
                                                              upper_q_hospitalisation_per_person_per_year = round(quantile(user_count$counts_per_yr, probs = (.75)), 2))
   
   freq_visit_hosp <- cohort_freq %>% 
-    dplyr::inner_join(cdm[[table_name]] %>% dplyr::select(person_id, visit_concept_id, visit_start_date, visit_end_date),
+    dplyr::inner_join(cdm[[table_name]] %>% dplyr::select(person_id, visit_detail_concept_id, visit_detail_start_date, visit_detail_end_date),
                       by = c("subject_id" = "person_id"),
                       copy = T,
                       relationship = "many-to-many") %>%
-    dplyr::filter(visit_start_date >=index_date & visit_start_date <= follow_up_end) %>%
+    dplyr::filter(visit_detail_start_date >=index_date & visit_detail_start_date <= follow_up_end) %>%
     dplyr::distinct() %>% 
-    dplyr::mutate(length_of_stay = visit_end_date - visit_start_date+1)
+    dplyr::mutate(length_of_stay = visit_detail_end_date - visit_detail_start_date+1)
   
   summary_LoS_per_person_per_hosp <- tibble(mean_LoS_per_hosp=(mean(freq_visit_hosp$length_of_stay)),
                                             min_LoS_per_hosp = min(freq_visit_hosp$length_of_stay),
